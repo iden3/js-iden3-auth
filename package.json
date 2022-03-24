@@ -1,0 +1,39 @@
+{
+  "name": "iden3-auth",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "iden3-auth implementation in JavaScript",
+  "main": "./build/main.cjs",
+  "module": "./main.js",
+  "exports": {
+    "import": "./main.js",
+    "require": "./build/main.cjs"
+  },
+  "scripts": {
+    "test": "mocha",
+    "build": "rollup -c config/rollup.cjs.config.js",
+    "buildcli": "rollup -c config/rollup.cli.config.js",
+    "buildiife": "BROWSER=true rollup -c config/rollup.iife.config.js",
+    "buildiifemin": "BROWSER=true rollup -c config/rollup.iife_min.config.js"
+  },
+  "bin": {
+    "snarkjs": "build/cli.cjs"
+  },
+  "directories": {
+    "templates": "templates"
+  },
+  "keywords": [
+    "iden3"
+  ],
+  "author": "Polygon",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iden3/js-iden3-auth"
+  },
+  "dependencies": {
+    "snarkjs": "^0.4.15"
+  },
+  "devDependencies": {
+  }
+}
