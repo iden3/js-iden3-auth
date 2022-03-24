@@ -1,5 +1,5 @@
 {
-  "name": "iden3-auth",
+  "name": "js-iden3-auth",
   "type": "module",
   "version": "0.1.0",
   "description": "iden3-auth implementation in JavaScript",
