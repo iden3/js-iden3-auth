@@ -4,12 +4,7 @@ import 'web3-eth-contract';
 async function calculateProof(message, publicSignals, proof) {
 
     // Verification of circuits public signals
-    const metadata = extractMetadata(message);
-    let token     = {
-        ID       : metadata.AuthData.UserIdentifier,
-        Challenge: metadata.AuthData.AuthenticationChallenge,
-        State    : metadata.AuthData.UserState,
-    };
+    const token = extractMetadata(message);
     let stateInfo = verifyState(ethURL, contractAddress, token);
     console.log(stateInfo);
 
@@ -22,8 +17,13 @@ async function calculateProof(message, publicSignals, proof) {
     console.log(res);
 }
 
-function extractMetadata() {
-    // TBD
+function extractMetadata(message) {
+    const metadata = JSON.parse(message)
+    return {
+        ID       : metadata.AuthData.UserIdentifier,
+        Challenge: metadata.AuthData.AuthenticationChallenge,
+        State    : metadata.AuthData.UserState,
+    };
 }
 
 /**
