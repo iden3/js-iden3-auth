@@ -78,10 +78,10 @@ function checkGenesisStateID(id, state) {
     const stateHash = merkletree.NewHashFromBigInt(state);
     const IDFromState = core.IdGenesisFromIdenState(stateHash).String();
 
-    const elemBytes = merkletree.NewElemBytesFromBigInt(id);
-    const IDFromParam = core.IDFromBytes(elemBytes[:31]);
+    // const elemBytes = merkletree.NewElemBytesFromBigInt(id);
+    // const IDFromParam = core.IDFromBytes(elemBytes[:31]);
 
-    if (IDFromState != IDFromParam) {
+    if (IDFromState !== id) {
         return "ID from genesis state (" + IDFromState + ") and provided (" + IDFromParam + ") don't match";
     }
 
