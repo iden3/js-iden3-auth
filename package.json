@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "snarkjs": "^0.4.15",
-    "web3": "^1.7.1"
+    "ethers": "^5.4.0"
   },
   "devDependencies": {
   }
