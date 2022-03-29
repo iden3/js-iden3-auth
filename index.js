@@ -41,13 +41,13 @@ function verifyState(rpcURL, contractAddress, id, state) {
 
     // The ERC-20 Contract ABI, which is a common contract interface
     // for tokens (this is the Human-Readable ABI format)
-    const daiAbi = [
+    const abi = [
         "function getState() view returns (string)",
         "function getTransitionTimestamp() view returns (int)",
     ];
 
-    const daiContract = new ethers.Contract(contractAddress, daiAbi, ethersProvider);
-    const stateContract = daiContract.getState(id) + '';
+    const contract = new ethers.Contract(contractAddress, abi, ethersProvider);
+    const stateContract = contract.getState(id) + '';
 
     if (stateContract === '0') {
         const error = checkGenesisStateID(id, state);
@@ -61,7 +61,7 @@ function verifyState(rpcURL, contractAddress, id, state) {
         // The non-empty state is returned, and it’s not equal to the state that the user has provided.
         // Get the time of the latest state and compare it to the transition time of state provided by the user.
         // The verification party can make a decision if it can accept this state based on that time frame
-        const timestamp = daiContract.getTransitionTimestamp(id);
+        const timestamp = contract.getTransitionTimestamp(id);
         if (!timestamp) {
             return {Error: 'No information of transition for non-latest state'};
         }
