@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 
 const ETHER_RPC_URL = 'https://ropsten.etherscan.io/address/0xE4F771f86B34BF7B323d9130c385117Ec39377c3';
 
-async function calculateProof(message, contractAddress, publicSignals, proof) {
+async function verifyProof(message, contractAddress, publicSignals, proof) {
 
     // Verification of circuits public signals
     const token = extractMetadata(message);
