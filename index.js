@@ -1,7 +1,15 @@
 import 'snarkjs';
 import { ethers } from 'ethers';
 
-const ETHER_RPC_URL = 'https://ropsten.etherscan.io/address/0xE4F771f86B34BF7B323d9130c385117Ec39377c3';
+// переделать на ENV переменную infura
+const ETHER_RPC_URL = 'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873';
+
+verifyState(
+    ETHER_RPC_URL,
+    '0xE4F771f86B34BF7B323d9130c385117Ec39377c3',
+    '0x0000357c5daf75f44de1594e001389b9fae265773192a77a73203bdc0c0ca2',
+    ''
+);
 
 async function verifyProof(message, contractAddress, publicSignals, proof) {
 
@@ -35,28 +43,21 @@ function extractMetadata(message) {
  * @param id is base58 identifier  e.g. id:11A2HgCZ1pUcY8HoNDMjNWEBQXZdUnL3YVnVCUvR5s
  * @param state is bigint string representation of identity state
  */
-function verifyState(rpcURL, contractAddress, id, state) {
+async function verifyState(rpcURL, contractAddress, id, state) {
 
+    const stateABI = [{"inputs":[{"internalType":"address","name":"_verifierContractAddr","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint64","name":"blockN","type":"uint64"},{"indexed":false,"internalType":"uint64","name":"timestamp","type":"uint64"},{"indexed":false,"internalType":"uint256","name":"state","type":"uint256"}],"name":"StateUpdated","type":"event"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"getState","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint64","name":"blockN","type":"uint64"}],"name":"getStateDataByBlock","outputs":[{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"getStateDataById","outputs":[{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint64","name":"timestamp","type":"uint64"}],"name":"getStateDataByTime","outputs":[{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"state","type":"uint256"}],"name":"getTransitionInfo","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"newState","type":"uint256"},{"internalType":"uint256","name":"genesisState","type":"uint256"},{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256[2]","name":"a","type":"uint256[2]"},{"internalType":"uint256[2][2]","name":"b","type":"uint256[2][2]"},{"internalType":"uint256[2]","name":"c","type":"uint256[2]"}],"name":"initState","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newState","type":"uint256"},{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256[2]","name":"a","type":"uint256[2]"},{"internalType":"uint256[2][2]","name":"b","type":"uint256[2][2]"},{"internalType":"uint256[2]","name":"c","type":"uint256[2]"}],"name":"setState","outputs":[],"stateMutability":"nonpayable","type":"function"}];
     const ethersProvider = new ethers.providers.JsonRpcProvider(rpcURL);
+    const contract = new ethers.Contract(contractAddress, StateABI, ethersProvider);
 
-    // The ERC-20 Contract ABI, which is a common contract interface
-    // for tokens (this is the Human-Readable ABI format)
-    const abi = [
-        "function getState() view returns (string)",
-        "function getTransitionTimestamp() view returns (int)",
-    ];
-
-    const contract = new ethers.Contract(contractAddress, abi, ethersProvider);
-    const stateContract = contract.getState(id) + '';
-
-    if (stateContract === '0') {
+    const contractState = await contract.getState(id);
+    if (contractState.toNumber() === 0) {
         const error = checkGenesisStateID(id, state);
         if (error) {
             return {Error: error};
         }
         return {Latest: true, State: state};
     }
-    if (stateContract != state) {
+    if (contractState != state) {
 
         // The non-empty state is returned, and it’s not equal to the state that the user has provided.
         // Get the time of the latest state and compare it to the transition time of state provided by the user.
