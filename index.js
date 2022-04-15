@@ -13,11 +13,19 @@ const ETHER_RPC_URL = 'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3a
 // ));
 
 // TestVerifyStateTransitionCheck: latest state - not equal
+// console.log(await verifyState(
+//     ETHER_RPC_URL,
+//     '0x456D5eD5dca5A4B46cDeF12ff0Fc9F0c60A29Afe',
+//     367594446074802395435725357511631230269128032558677653124422983977269133312n,
+//     15897377538691446922446254839699772977046010197592168446070901098705306666881n,
+// ));
+
+// TestVerifyGenesisState
 console.log(await verifyState(
     ETHER_RPC_URL,
-    '0x456D5eD5dca5A4B46cDeF12ff0Fc9F0c60A29Afe',
-    367594446074802395435725357511631230269128032558677653124422983977269133312n,
-    15897377538691446922446254839699772977046010197592168446070901098705306666881n,
+    '0xE4F771f86B34BF7B323d9130c385117Ec39377c3',
+    371135506535866236563870411357090963344408827476607986362864968105378316288n,
+    16751774198505232045539489584666775489135471631443877047826295522719290880931n,
 ));
 
 async function verifyProof(message, contractAddress, publicSignals, proof) {
@@ -99,12 +107,8 @@ async function verifyState(rpcURL, contractAddress, id, state) {
 }
 
 function checkGenesisStateID(id, state) {
-
-console.log(id);
-console.log(state);
-return null;
-
-    const stateHash = merkletree.NewHashFromBigInt(state);
+    let stateHash = longIntToByteArray(state.toString());
+    stateHash = changeEndiannessHex(stateHash);
     const idFromState = core.IdGenesisFromIdenState(stateHash).String();
 
     if (idFromState !== id) {
@@ -112,4 +116,23 @@ return null;
     }
 
     return null;
+}
+
+function longIntToByteArray(number) {
+
+    // Represent the input as a 32-bytes array
+    const byteArray = Array(32).fill(0);
+
+    for (let index = 0; index < byteArray.length; index++) {
+        const byte       = number & 0xff;
+        byteArray[index] = byte;
+        number           = (number - byte) / 256;
+    }
+
+    return byteArray;
+};
+
+function changeEndiannessHex(val) {
+    return ((val & 0xFF) << 8)
+        | ((val >> 8) & 0xFF);
 }
