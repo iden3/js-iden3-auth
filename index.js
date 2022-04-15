@@ -4,19 +4,12 @@ import { ethers } from 'ethers';
 // переделать на ENV переменную infura
 const ETHER_RPC_URL = 'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873';
 
-// verifyState(
-//     ETHER_RPC_URL,
-//     '0xE4F771f86B34BF7B323d9130c385117Ec39377c3',
-//     '0x0000357C5DAF75F44DE1594E001389B9FAE265773192A77A73203BDC0C0CA2', // base58 decoded of "113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj"
-//     '5816868615164565912277677884704888703982258184820398645933682814085602171910'
-// );
-
-verifyState(
+console.log(await verifyState(
     ETHER_RPC_URL,
     '0xE4F771f86B34BF7B323d9130c385117Ec39377c3',
-    '0x93091c0f5cceeee677639242ca10116924bb0b0337035385aa275f02370000', // hex of 259789390735913800425840589583206248151905278055521460389980943556380393472
-    '0x20a4e05b959c981ae21db9695bea64bf4e7d6008d9a77bf44fb71506325ce470' // hex of 14765322533580957814676911851067597009232239218105294460702004369607798613104
-);
+    259789390735913800425840589583206248151905278055521460389980943556380393472n,
+    14765322533580957814676911851067597009232239218105294460702004369607798613104n
+));
 
 async function verifyProof(message, contractAddress, publicSignals, proof) {
 
@@ -66,7 +59,7 @@ async function verifyState(rpcURL, contractAddress, id, state) {
         return {Latest: true, State: state};
     }
 
-    if (contractState.toBigInt() != state) {
+    if (contractState.toBigInt() !== state) {
 
         // The non-empty state is returned, and it’s not equal to the state that the user has provided.
         // Get the time of the latest state and compare it to the transition time of state provided by the user.
