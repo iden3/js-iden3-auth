@@ -4,11 +4,20 @@ import { ethers } from 'ethers';
 // переделать на ENV переменную infura
 const ETHER_RPC_URL = 'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873';
 
+// TestVerifyPublishedLatestState
+// console.log(await verifyState(
+//     ETHER_RPC_URL,
+//     '0xE4F771f86B34BF7B323d9130c385117Ec39377c3',
+//     259789390735913800425840589583206248151905278055521460389980943556380393472n,
+//     14765322533580957814676911851067597009232239218105294460702004369607798613104n,
+// ));
+
+// TestVerifyStateTransitionCheck: latest state - not equal
 console.log(await verifyState(
     ETHER_RPC_URL,
-    '0xE4F771f86B34BF7B323d9130c385117Ec39377c3',
-    259789390735913800425840589583206248151905278055521460389980943556380393472n,
-    14765322533580957814676911851067597009232239218105294460702004369607798613104n
+    '0x456D5eD5dca5A4B46cDeF12ff0Fc9F0c60A29Afe',
+    367594446074802395435725357511631230269128032558677653124422983977269133312n,
+    15897377538691446922446254839699772977046010197592168446070901098705306666881n,
 ));
 
 async function verifyProof(message, contractAddress, publicSignals, proof) {
@@ -64,7 +73,7 @@ async function verifyState(rpcURL, contractAddress, id, state) {
         // The non-empty state is returned, and it’s not equal to the state that the user has provided.
         // Get the time of the latest state and compare it to the transition time of state provided by the user.
         // The verification party can make a decision if it can accept this state based on that time frame
-        const timestamp = contract.getTransitionTimestamp(id);
+        const timestamp = await contract.getTransitionTimestamp(id);
         if (!timestamp) {
             return {Error: 'No information of transition for non-latest state'};
         }
