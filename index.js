@@ -73,12 +73,25 @@ async function verifyState(rpcURL, contractAddress, id, state) {
         // The non-empty state is returned, and it’s not equal to the state that the user has provided.
         // Get the time of the latest state and compare it to the transition time of state provided by the user.
         // The verification party can make a decision if it can accept this state based on that time frame
-        const timestamp = await contract.getTransitionTimestamp(id);
-        if (!timestamp) {
+        // type TransitionInfo struct {
+        //     ReplacedAtTimestamp *big.Int
+        //     CreatedAtTimestamp *big.Int
+        //     ReplacedAtBlock uint64
+        //     CreatedAtBlock uint64
+        //     ReplacedBy *big.Int
+        //     ID *big.Int
+        // }
+        const transitionInfo = await contract.getTransitionInfo(contractState);
+
+        if (transitionInfo[5].toBigInt() === 0n) {
+            return {Error: 'Transition info contains invalid id'};
+        }
+
+        if (transitionInfo[0].toBigInt() === 0n) {
             return {Error: 'No information of transition for non-latest state'};
         }
 
-        return {Latest: false, State: state, TransitionTimestamp: timestamp};
+        return {Latest: false, State: state, TransitionTimestamp: transitionInfo[0].toBigInt()};
     }
 
     // The non-empty state is returned and equals to the state in provided proof which means that the user state is fresh enough, so we work with the latest user state.
