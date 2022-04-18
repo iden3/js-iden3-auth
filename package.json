@@ -32,9 +32,8 @@
     "url": "https://github.com/iden3/js-iden3-auth"
   },
   "dependencies": {
-    "snarkjs": "^0.4.15",
-    "ethers": "^5.4.0"
-  },
-  "devDependencies": {
+    "bigint-buffer": "^1.1.5",
+    "ethers": "^5.4.0",
+    "snarkjs": "^0.4.15"
   }
 }

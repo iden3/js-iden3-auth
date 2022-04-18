@@ -1,5 +1,6 @@
 import 'snarkjs';
 import { ethers } from 'ethers';
+import { toBufferLE } from 'bigint-buffer';
 
 // переделать на ENV переменную infura
 const ETHER_RPC_URL = 'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873';
@@ -107,32 +108,40 @@ async function verifyState(rpcURL, contractAddress, id, state) {
 }
 
 function checkGenesisStateID(id, state) {
-    let stateHash = longIntToByteArray(state.toString());
-    stateHash = changeEndiannessHex(stateHash);
-    const idFromState = core.IdGenesisFromIdenState(stateHash).String();
 
-    if (idFromState !== id) {
-        return "ID from genesis state (" + idFromState + ") and provided (" + id + ") don't match";
+    const idBytes = toBufferLE(id, 31);
+
+    // TypeBJP0 specifies the BJ-P0
+    // - first 2 bytes: `00000000 00000000`
+    // - curve of k_op: babyjubjub
+    // - hash function: `Poseidon` with 4+4 elements
+    const typeBJP0 = Buffer.alloc(2);
+    const stateBytes = toBufferLE(state, 32);
+    const idGenesisBytes = stateBytes.slice(-27); // we take last 27 bytes, because of swapped endianness
+    const idFromStateBytes = Buffer.concat([
+        typeBJP0,
+        idGenesisBytes,
+        calculateChecksum(typeBJP0, idGenesisBytes),
+    ]);
+
+    if (!idBytes.equals(idFromStateBytes)) {
+        return "ID from genesis state (" + JSON.stringify(idFromStateBytes.toJSON().data) + ") and provided (" + JSON.stringify(idBytes.toJSON().data) + ") don't match";
     }
 
     return null;
 }
 
-function longIntToByteArray(number) {
+function calculateChecksum(type, genesis) {
+    const checksumBytes = Buffer.concat([type, genesis]);
 
-    // Represent the input as a 32-bytes array
-    const byteArray = Array(32).fill(0);
-
-    for (let index = 0; index < byteArray.length; index++) {
-        const byte       = number & 0xff;
-        byteArray[index] = byte;
-        number           = (number - byte) / 256;
+    let sum = 0;
+    for (let val of checksumBytes.values()) {
+        sum += val;
     }
 
-    return byteArray;
-};
+    const checksum = Buffer.alloc(2);
+    checksum[0] = sum >> 8;
+    checksum[1] = sum & 0xff;
 
-function changeEndiannessHex(val) {
-    return ((val & 0xFF) << 8)
-        | ((val >> 8) & 0xFF);
+    return checksum;
 }
