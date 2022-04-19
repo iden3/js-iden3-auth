@@ -5,22 +5,20 @@ async function verifyProofs(message) {
         return res.json();
     });
     for (const scope in message.data.scope) {
-        const error = verifyProof(scope.proofData, scope.publicSignals, verificationKey);
-        if (error) {
-            return error;
+        switch (scope.type) {
+            case 'zeroknowledge':
+                const isValid = zkpVerifyProof(scope.proofData, scope.publicSignals, verificationKey);
+                if (!isValid) {
+                    return `Proof with type ${scope.type} is not valid`;
+                }
+            default:
+                return `Proof type ${scope.type} is not supported`;
         }
     }
 
     return null;
 }
 
-async function verifyProof(proofData, publicSignals, verificationKey) {
-    const proofType = '';
-    switch (proofType) {
-        case 'zeroknowledge':
-            const res = await snarkjs.groth16.verify(verificationKey, publicSignals, proofData);
-            return res ? null : `Proof with type ${proofType} is not valid`;
-        default:
-            return `Proof type ${proofType} is not supported`;
-    }
+async function zkpVerifyProof(proofData, publicSignals, verificationKey) {
+    return await snarkjs.groth16.verify(verificationKey, publicSignals, proofData);
 }
