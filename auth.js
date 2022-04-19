@@ -4,7 +4,7 @@ async function verifyProofs(message) {
     const verificationKey = await fetch('test/verification_key.json').then(function (res) {
         return res.json();
     });
-    for (const scope in message.data.scope) {
+    for (const scope of message.data.scope) {
         switch (scope.type) {
             case 'zeroknowledge':
                 const isValid = zkpVerifyProof(scope.proofData, scope.publicSignals, verificationKey);
