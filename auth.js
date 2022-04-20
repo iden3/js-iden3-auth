@@ -8,17 +8,17 @@ async function verifyProofs(message) {
         return `Message type of ${message.type} is not supported`;
     }
     if (!message.data || !message.data.scope) {
-        return `Message should contain list of scope`;
+        return `Message should contain list of ZKP proofs`;
     }
-    for (const scope of message.data.scope) {
-        switch (scope.type) {
+    for (const zkpProof of message.data.scope) {
+        switch (zkpProof.type) {
             case 'zeroknowledge':
-                const isValid = zkpVerifyProof(scope.proofData, scope.publicSignals, scope.circuitData.verificationKey);
+                const isValid = zkpVerifyProof(zkpProof.proofData, zkpProof.publicSignals, zkpProof.circuitData.verificationKey);
                 if (!isValid) {
-                    return `Proof with type ${scope.type} is not valid`;
+                    return `Proof with type ${zkpProof.type} is not valid`;
                 }
             default:
-                return `Proof type ${scope.type} is not supported`;
+                return `Proof type ${zkpProof.type} is not supported`;
         }
     }
 
