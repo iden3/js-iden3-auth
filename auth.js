@@ -4,9 +4,6 @@ const PROTOCOL_NAME                       = 'https://iden3-communication.io'
 const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
 
 async function verifyProofs(message) {
-    const verificationKey = await fetch('test/verification_key.json').then(function (res) {
-        return res.json();
-    });
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
         return `Message type of ${message.type} is not supported`;
     }
@@ -16,7 +13,7 @@ async function verifyProofs(message) {
     for (const scope of message.data.scope) {
         switch (scope.type) {
             case 'zeroknowledge':
-                const isValid = zkpVerifyProof(scope.proofData, scope.publicSignals, verificationKey);
+                const isValid = zkpVerifyProof(scope.proofData, scope.publicSignals, scope.circuitData.verificationKey);
                 if (!isValid) {
                     return `Proof with type ${scope.type} is not valid`;
                 }
