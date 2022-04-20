@@ -34,6 +34,6 @@
   "dependencies": {
     "bigint-buffer": "^1.1.5",
     "ethers": "^5.4.0",
-    "snarkjs": "^0.4.15"
+    "snarkjs": "^0.4.16"
   }
 }
