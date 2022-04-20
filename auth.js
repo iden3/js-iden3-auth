@@ -5,7 +5,7 @@ const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-resp
 
 async function verifyProofs(message) {
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
-        return `Message type of ${message.type} is not supported`;
+        return `Message of type ${message.type} is not supported`;
     }
     if (!message.data || !message.data.scope) {
         return `Message should contain list of proofs`;
