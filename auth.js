@@ -10,6 +10,9 @@ async function verifyProofs(message) {
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
         return `Message type of ${message.type} is not supported`;
     }
+    if (!message.data || !message.data.scope) {
+        return `Message should contain list of scope`;
+    }
     for (const scope of message.data.scope) {
         switch (scope.type) {
             case 'zeroknowledge':
