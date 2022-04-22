@@ -1,4 +1,4 @@
-import { circuits } from "./constants.js";
+import { circuits } from './constants.js';
 
 export class CircuitData {
     constructor(id, description, verificationKey, metadata) { }
@@ -14,19 +14,19 @@ export class CircuitData {
 const supportedCircuits = {
     [circuits.AuthCircuitID]: new CircuitData(
         circuits.AuthCircuitID,
-        "circuit for verification of  basic authentication",
+        'circuit for verification of  basic authentication',
         circuits.AuthenticationVerificationKey,
-        circuits.AuthenticationPublicSignalsSchema
+        circuits.AuthenticationPublicSignalsSchema,
     ),
     [circuits.AtomicQueryMTPCircuitID]: new CircuitData(
         circuits.AtomicQueryMTPCircuitID,
-        "circuit for atomic query on standard iden3 credential",
+        'circuit for atomic query on standard iden3 credential',
         circuits.AtomicQueryMTPVerificationKey,
         circuits.AtomicQueryMTPPublicSignalsSchema,
     ),
     [circuits.AtomicQuerySigCircuitID]: new CircuitData(
         circuits.AtomicQuerySigCircuitID,
-        "circuit for atomic query on standard iden3 credential",
+        'circuit for atomic query on standard iden3 credential',
         circuits.AtomicQuerySigVerificationKey,
         circuits.AtomicQuerySigPublicSignalsSchema,
     ),
@@ -34,23 +34,21 @@ const supportedCircuits = {
 
 
 export class Circuits {
-
     /**
      * Get Circuit
-     * @param {string} id 
+     * @param {string} id
      */
     static getCircuit(id) {
         return supportedCircuits[id];
     }
     /**
      * Register Circuits
-     * @param {*} id 
-     * @param {*} circuit 
+     * @param {*} id
+     * @param {*} circuit
      */
     static registerCircuit(id, circuit) {
-        supportedCircuits[id] = circuit
+        supportedCircuits[id] = circuit;
     }
-
 }
 
 

@@ -14,7 +14,8 @@
     "build": "rollup -c config/rollup.cjs.config.js",
     "buildcli": "rollup -c config/rollup.cli.config.js",
     "buildiife": "BROWSER=true rollup -c config/rollup.iife.config.js",
-    "buildiifemin": "BROWSER=true rollup -c config/rollup.iife_min.config.js"
+    "buildiifemin": "BROWSER=true rollup -c config/rollup.iife_min.config.js",
+    "lint": "eslint --ext *js"
   },
   "bin": {
     "snarkjs": "build/cli.cjs"
@@ -32,8 +33,14 @@
     "url": "https://github.com/iden3/js-iden3-auth"
   },
   "dependencies": {
+    "base58-js": "^1.0.0",
     "bigint-buffer": "^1.1.5",
+    "bs58": "^5.0.0",
     "ethers": "^5.4.0",
     "snarkjs": "^0.4.16"
+  },
+  "devDependencies": {
+    "eslint": "^8.13.0",
+    "eslint-config-google": "^0.14.0"
   }
 }
