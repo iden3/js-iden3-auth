@@ -1,9 +1,9 @@
+import { circuits } from './circuits/constants.js';
 
 const PROTOCOL_NAME                       = 'https://iden3-communication.io'
 const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
 const AUTHORIZATION_REQUEST_MESSAGE_TYPE  = PROTOCOL_NAME + '/authorization-request/v1';
 
-const AUTH_CIRCUIT_ID           = 'auth';
 const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 async function verifyProofs(message) {
@@ -81,7 +81,7 @@ function messageWithDefaultZKAuth(message, challenge) {
 
     const authProofRequest = {
         type     : ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitID: AUTH_CIRCUIT_ID,
+        circuitID: circuits.AuthCircuitID,
         rules    : rules,
     };
 
