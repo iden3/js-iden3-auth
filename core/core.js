@@ -1,10 +1,10 @@
-
-
+// eslint-disable-next-line camelcase
+import { base58_to_binary } from 'base58-js';
 
 /**
  * Core
  */
-export class Id {
+export class Core {
     /**
          * idFromString
          * @param {*} s

@@ -19,7 +19,8 @@
 
     "indent": ["error", 4],
     "require-jsdoc":"off",
-    "valid-jsdoc": "off"
+    "valid-jsdoc": "off",
+    "max-len": ["error", 120]
     // [
     // "",
     //   {

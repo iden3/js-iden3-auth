@@ -10,7 +10,7 @@
     "require": "./build/main.cjs"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "jest",
     "build": "rollup -c config/rollup.cjs.config.js",
     "buildcli": "rollup -c config/rollup.cli.config.js",
     "buildiife": "BROWSER=true rollup -c config/rollup.iife.config.js",
@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "eslint": "^8.13.0",
-    "eslint-config-google": "^0.14.0"
+    "eslint-config-google": "^0.14.0",
+    "jest": "^27.5.1"
   }
 }
