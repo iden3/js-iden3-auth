@@ -1,59 +1,54 @@
+// eslint-disable-next-line camelcase
+import { binary_to_base58 } from 'base58-js';
+import { toBigIntLE } from 'bigint-buffer';
+import { Core } from './core.js';
+
 // ID is a byte array with
 // [  type  | root_genesis | checksum ]
 // [2 bytes |   27 bytes   | 2 bytes  ]
 // where the root_genesis are the first 28 bytes from the hash root_genesis
 
 export class Id {
-
+    #bytes = [];
     constructor(typ, genesis) {
-        const checksum = Core.CalculateChecksum(typ, genesis)
-        this.bytes = [...typ, ...checksum]
+        const checksum = Core.calculateChecksum(typ, genesis);
+        this.#bytes = Uint8Array.from([...typ, ...genesis, ...checksum]);
     }
 
-    string(){
-return 
+    static fromBytes(bytes) {
+        const { typ, genesis } = Core.decomposeBytes(bytes);
+        return new Id(typ, genesis);
     }
 
-}
+    /**
+    * String returns a base58 from the ID
+     * @returns {string}
+     */
+    string() {
+        return binary_to_base58(Uint8Array.from(this.#bytes));
+    }
 
-// String returns a base58 from the ID
-func(id * ID) String() string {
-    return base58.Encode(id[:])
-}
+    /**
+     * Bytes returns the bytes from the ID
+     * @returns {Uint8Array}
+     */
+    bytes() {
+        return this.#bytes;
+    }
 
-// Bytes returns the bytes from the ID
-func(id * ID) Bytes()[]byte {
-    return id[:]
-}
+    /**
+     * bigInt
+     * @returns {bigint}
+     */
+    bigInt() {
+        return toBigIntLE(Buffer.from(this.#bytes));
+    }
 
-func(id * ID) BigInt() * big.Int {
-    var idElem merkletree.ElemBytes
-    copy(idElem[:], id[:])
-    return idElem.BigInt()
-}
-
-func(id * ID) Equal(id2 * ID) bool {
-    return bytes.Equal(id[:], id2[:])
-}
-
-// func (id ID) MarshalJSON() ([]byte, error) {
-//         fmt.Println(id.String())
-//         return json.Marshal(id.String())
-// }
-
-func(id ID) MarshalText()([]byte, error) {
-    // return json.Marshal(id.String())
-    return []byte(id.String()), nil
-}
-
-func(id * ID) UnmarshalText(b[]byte) error {
-    var err error
-    var idFromString ID
-    idFromString, err = IDFromString(string(b))
-    copy(id[:], idFromString[:])
-    return err
-}
-
-func(id * ID) Equals(id2 * ID) bool {
-    return bytes.Equal(id[:], id2[:])
+    /**
+     *Equal
+     * @param {bytes[]} id
+     */
+    equal(id) {
+        return JSON.stringify(this.#bytes) === JSON.stringify(id);
+    }
 }

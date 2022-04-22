@@ -1,5 +1,5 @@
+import { Core } from '../core/core.js';
 import { verifyState } from '../state.js';
-import { Core } from './id.js';
 
 export class UserToken {
     /**
@@ -41,7 +41,7 @@ export class UserToken {
     async verifyState(url, addr) {
         const id = Core.idFromString(this.id);
 
-        const stateBigInt = (big.Int).SetString(this.state, 10);
+        const stateBigInt = BigInt(this.state);
 
         return await verifyState(url, addr, id.BigInt(), stateBigInt);
     }
