@@ -1,4 +1,4 @@
-name: RUN ES LINT
+name: RUN ES LINT ANS TESTS
 on: push
 jobs:
   build:
