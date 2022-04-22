@@ -62,7 +62,6 @@ function createAuthorizationRequest(challenge, aud, callbackURL) {
             audience   : aud,
             scope      : [],
         },
-        message: null,
     };
     messageWithDefaultZKAuth(message, challenge);
 
@@ -87,4 +86,13 @@ function messageWithDefaultZKAuth(message, challenge) {
     };
 
     message.data.scope.push(authProofRequest);
+}
+
+/**
+ * Adds zkp proof to scope of request
+ * @param {Object} message
+ * @param {Object} proof
+ */
+function messageWithZeroKnowledgeProofRequest(message, proof) {
+    message.data.scope.push(proof);
 }
