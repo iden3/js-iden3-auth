@@ -1,9 +1,11 @@
+import { UserToken } from './circuits/token';
 
-const PROTOCOL_NAME                       = 'https://iden3-communication.io'
+/* eslint-disable no-unused-vars */
+const PROTOCOL_NAME = 'https://iden3-communication.io';
 const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
-const AUTHORIZATION_REQUEST_MESSAGE_TYPE  = PROTOCOL_NAME + '/authorization-request/v1';
+const AUTHORIZATION_REQUEST_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-request/v1';
 
-const AUTH_CIRCUIT_ID           = 'auth';
+const AUTH_CIRCUIT_ID = 'auth';
 const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 async function verifyProofs(message) {
@@ -15,13 +17,13 @@ async function verifyProofs(message) {
     }
     for (const proof of message.data.scope) {
         switch (proof.type) {
-            case ZERO_KNOWLEDGE_PROOF_TYPE:
-                const isValid = zkpVerifyProof(proof);
-                if (!isValid) {
-                    return `Proof with type ${proof.type} is not valid`;
-                }
-            default:
-                return `Proof type ${proof.type} is not supported`;
+        case ZERO_KNOWLEDGE_PROOF_TYPE:
+            const isValid = zkpVerifyProof(proof);
+            if (!isValid) {
+                return `Proof with type ${proof.type} is not valid`;
+            }
+        default:
+            return `Proof type ${proof.type} is not supported`;
         }
     }
 
@@ -35,12 +37,14 @@ async function extractMetadata(message) {
     if (!message.data || !message.data.scope) {
         return `Message should contain list of proofs`;
     }
+    const token = new UserToken();
     for (const proof of message.data.scope) {
         switch (proof.type) {
-            case 'zeroknowledge':
-                 // TODO: update token here.
-            default:
-                return `Proof type ${proof.type} is not supported`;
+        case 'zeroknowledge':
+            token.update(proof.circuitId, proof.metadata);
+            break;
+        default:
+            return `Proof type ${proof.type} is not supported`;
         }
     }
 
@@ -56,11 +60,11 @@ async function extractMetadata(message) {
  */
 function createAuthorizationRequest(challenge, aud, callbackURL) {
     const message = {
-        type   : AUTHORIZATION_REQUEST_MESSAGE_TYPE,
-        data   : {
+        type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+        data: {
             callbackURL: callbackURL,
-            audience   : aud,
-            scope      : [],
+            audience: aud,
+            scope: [],
         },
         message: null,
     };
@@ -75,15 +79,14 @@ function createAuthorizationRequest(challenge, aud, callbackURL) {
  * @param {number} challenge
  */
 function messageWithDefaultZKAuth(message, challenge) {
-
     const rules = {
         challenge: challenge,
     };
 
     const authProofRequest = {
-        type     : ZERO_KNOWLEDGE_PROOF_TYPE,
+        type: ZERO_KNOWLEDGE_PROOF_TYPE,
         circuitID: AUTH_CIRCUIT_ID,
-        rules    : rules,
+        rules: rules,
     };
 
     message.data.scope.push(authProofRequest);

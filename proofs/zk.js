@@ -43,7 +43,7 @@ async function VerifyProof(proof) {
  * 
  * @param {[]string} signals 
  * @param {[]byte} schema 
- * @returns {ProofMetadata}
+ * @return {ProofMetadata}
  */
 function parsePublicSignals(signals, schema) {
     const proofMetadata = new ProofMetadata();

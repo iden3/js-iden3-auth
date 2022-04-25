@@ -1,0 +1,37 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["google"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "object-curly-spacing": [
+      "error",
+      "always",
+      {
+        "objectsInObjects": false
+      }
+    ],
+
+    "indent": ["error", 4],
+    "require-jsdoc":"off",
+    "valid-jsdoc": "off",
+    "max-len": ["error", 120]
+    // [
+    // "",
+    //   {
+    //     "prefer": {
+    //       "arg": "param",
+    //       "argument": "param",
+    //       "class": "constructor",
+    //       "return": "returns",
+    //       "virtual": "abstract"
+    //     }
+    //   }
+    // ]
+  }
+}

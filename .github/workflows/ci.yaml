@@ -1,0 +1,16 @@
+name: RUN ES LINT ANS TESTS
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "17.9"
+      - name: Install modules
+        run: npm install
+      - name: Run ESLint
+        run: npm run lint
+      - name: Run Tests
+        run: npm run test
