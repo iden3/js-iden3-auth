@@ -1,9 +1,9 @@
+import { circuits } from './circuits/constants.js';
 
 const PROTOCOL_NAME                       = 'https://iden3-communication.io'
 const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
 const AUTHORIZATION_REQUEST_MESSAGE_TYPE  = PROTOCOL_NAME + '/authorization-request/v1';
 
-const AUTH_CIRCUIT_ID           = 'auth';
 const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 async function verifyProofs(message) {
@@ -62,7 +62,6 @@ function createAuthorizationRequest(challenge, aud, callbackURL) {
             audience   : aud,
             scope      : [],
         },
-        message: null,
     };
     messageWithDefaultZKAuth(message, challenge);
 
@@ -82,9 +81,18 @@ function messageWithDefaultZKAuth(message, challenge) {
 
     const authProofRequest = {
         type     : ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitID: AUTH_CIRCUIT_ID,
+        circuitID: circuits.AuthCircuitID,
         rules    : rules,
     };
 
     message.data.scope.push(authProofRequest);
+}
+
+/**
+ * Adds zkp proof to scope of request
+ * @param {Object} message
+ * @param {Object} proof
+ */
+function messageWithZeroKnowledgeProofRequest(message, proof) {
+    message.data.scope.push(proof);
 }
