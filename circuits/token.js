@@ -54,7 +54,7 @@ const protocolName = 'https://iden3-communication.io';
 // AuthorizationRequestMessageType defines auth request type of the communication protocol
 const authorizationRequestMessageType = protocolName + '/authorization-request/v1';
 // AuthorizationResponseMessageType defines auth response type of the communication protocol
-const authorizationResponseMessageType = protocolName + '/authorization-response/v1';
+export const authorizationResponseMessageType = protocolName + '/authorization-response/v1';
 
 
 /**
