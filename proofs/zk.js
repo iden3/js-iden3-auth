@@ -6,13 +6,13 @@ import 'snarkjs';
 export const identifierAttribute = "user_identifier";
 export const challengeAttribute = "challenge";
 export const stateAttribute = "user_state";
-export const zeroKnowledgeProofType = "zeroknowledge";
+export const ZERO_KNOWLEDGE_PROOF_TYPE = "zeroknowledge";
 
 /**
- *  ExtractMetadata extracts metadata from proof with zeroknowledge type
+ *  extractMetadata extracts metadata from proof with zeroknowledge type
  */
-function ExtractMetadata(proof) {
-    if (proof.type !== zeroKnowledgeProofType) {
+export function extractProofMetadata(proof) {
+    if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
         throw new Error(`Proofs type ${metadata.type} is not zeroknowledge`)
     }
     const circuit = Circuits.getCircuit(proof.circuitId)
@@ -24,11 +24,11 @@ function ExtractMetadata(proof) {
 }
 
 /**
- *  VerifyProof verifies proof with zeroknowledge type
+ *  verifyProof verifies proof with zeroknowledge type
  */
-async function VerifyProof(proof) {
+export async function verifyProof(proof) {
 
-    if (proof.type !== zeroKnowledgeProofType) {
+    if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
         throw new Error(`Proofs type ${proof.type} is not zeroknowledge`)
     }
     const circuit = Circuits.getCircuit(proof.circuitId)

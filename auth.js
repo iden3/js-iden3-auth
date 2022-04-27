@@ -1,5 +1,7 @@
-import 'snarkjs';
-import { UserToken } from './circuits/token';
+import { UserToken } from './token.js';
+import { circuits } from './circuits/constants.js';
+
+import {ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata} from './proofs/zk.js';
 
 /* eslint-disable no-unused-vars */
 const PROTOCOL_NAME = 'https://iden3-communication.io';
@@ -11,49 +13,50 @@ export const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 export async function verifyProofs(message) {
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
-        return `Message of type ${message.type} is not supported`;
+        throw new Error(`Message of type ${message.type} is not supported`);
     }
     if (!message.data || !message.data.scope) {
-        return `Message should contain list of proofs`;
+        throw new Error(`Message should contain list of proofs`);
     }
     for (const proof of message.data.scope) {
         switch (proof.type) {
         case ZERO_KNOWLEDGE_PROOF_TYPE:
-            const isValid = zkpVerifyProof(proof);
+            const isValid = verifyProof(proof);
             if (!isValid) {
-                return `Proof with type ${proof.type} is not valid`;
+                throw new Error(`Proof with type ${proof.type} is not valid`);
             }
         default:
-            return `Proof type ${proof.type} is not supported`;
+            throw new Error(`Proof type ${proof.type} is not supported`);
         }
     }
 
     return null;
 }
 
-async function zkpVerifyProof(proof) {
-    return await snarkjs.groth16.verify(proof.circuitData.verificationKey, proof.publicSignals, proof.proofData);
-}
-
+/**
+ * 
+ * @param {Object} message 
+ * @return {UserToken}
+ */
 async function extractMetadata(message) {
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
-        return `Message of type ${message.type} is not supported`;
+        throw new Error(`Message of type ${message.type} is not supported`);
     }
     if (!message.data || !message.data.scope) {
-        return `Message should contain list of proofs`;
+        throw new Error( `Message should contain list of proofs`);
     }
     const token = new UserToken();
     for (const proof of message.data.scope) {
         switch (proof.type) {
         case ZERO_KNOWLEDGE_PROOF_TYPE:
-            token.update(proof.circuitId, proof.metadata);
+            let metadata = extractProofMetadata(proof)
+            token.update(proof.circuitId, metadata);
             break;
         default:
-            return `Proof type ${proof.type} is not supported`;
+            throw new Error( `Proof type ${proof.type} is not supported`);
         }
     }
-
-    return null;
+    return token;
 }
 
 /**
@@ -99,7 +102,7 @@ export function messageWithDefaultZKAuth(message, challenge) {
 
     const authProofRequest = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitID: AUTH_CIRCUIT_ID,
+        circuitID: circuits.AuthCircuitID,
         rules: rules,
     };
 
