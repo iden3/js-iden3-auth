@@ -4,12 +4,11 @@ import { circuits } from './circuits/constants.js';
 import {ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata} from './proofs/zk.js';
 
 /* eslint-disable no-unused-vars */
-const PROTOCOL_NAME = 'https://iden3-communication.io';
-const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
-const AUTHORIZATION_REQUEST_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-request/v1';
+export const PROTOCOL_NAME = 'https://iden3-communication.io';
+export const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
+export const AUTHORIZATION_REQUEST_MESSAGE_TYPE  = PROTOCOL_NAME + '/authorization-request/v1';
 
 export const AUTH_CIRCUIT_ID = 'auth';
-export const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 export async function verifyProofs(message) {
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {

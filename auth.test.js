@@ -1,18 +1,18 @@
 import {
     AUTH_CIRCUIT_ID,
-    ZERO_KNOWLEDGE_PROOF_TYPE,
+    AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
     createAuthorizationRequest,
     messageWithZeroKnowledgeProofRequest,
     verifyProofs
 } from './auth.js';
 
 import {
-    authorizationResponseMessageType,
-} from './circuits/token.js';
-
-import {
     circuits,
 } from './circuits/constants.js';
+
+import {
+    ZERO_KNOWLEDGE_PROOF_TYPE,
+} from './proofs/zk.js';
 
 test('test createAuthorizationRequest', () => {
     const challenge = 10;
@@ -68,7 +68,7 @@ test('test verifyProofs', () => {
     };
 
     const message = {
-        type: authorizationResponseMessageType,
+        type: AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
         data: {
             scope: [zkpProof],
         },
