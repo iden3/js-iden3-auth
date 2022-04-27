@@ -43,7 +43,7 @@ test('test createAuthorizationRequest', () => {
 test('test verifyProofs', () => {
     const zkpProof = {
         type      : ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitID : circuits.KycBySignaturesCircuitID,
+        circuitId : circuits.KycBySignaturesCircuitID,
         proofData : {
             A: [
                 "10441536817202584897377823144827964642356918402871315490038163167310235469676",

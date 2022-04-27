@@ -30,6 +30,12 @@ const supportedCircuits = {
         circuits.AtomicQuerySigVerificationKey,
         circuits.AtomicQuerySigPublicSignalsSchema,
     ),
+    [circuits.KycBySignaturesCircuitID]: new CircuitData(
+        circuits.KycBySignaturesCircuitID,
+        'circuit for kyc claims verification',
+        circuits.KycBySignaturesVerificationKey,
+        circuits.KycBySignaturesPublicSignalsSchema,
+    ),
 };
 
 

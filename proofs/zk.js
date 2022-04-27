@@ -13,13 +13,13 @@ export const ZERO_KNOWLEDGE_PROOF_TYPE = "zeroknowledge";
  */
 export function extractProofMetadata(proof) {
     if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
-        throw new Error(`Proofs type ${metadata.type} is not zeroknowledge`)
+        throw new Error(`Proofs type ${metadata.type} is not zeroknowledge`);
     }
-    const circuit = Circuits.getCircuit(proof.circuitId)
+    const circuit = Circuits.getCircuit(proof.circuitId);
     if (!circuit) {
-        throw new Error(`Circuit with id ${proof.circuitId} not found`)
+        throw new Error(`Circuit with id ${proof.circuitId} not found`);
     }
-    const proofData = parsePublicSignals(proof.pubSignals, circuit.GetPublicSignalsSchema())
+    const proofData = parsePublicSignals(proof.pubSignals, circuit.GetPublicSignalsSchema());
     return proofData;
 }
 
@@ -29,11 +29,11 @@ export function extractProofMetadata(proof) {
 export async function verifyProof(proof) {
 
     if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
-        throw new Error(`Proofs type ${proof.type} is not zeroknowledge`)
+        throw new Error(`Proofs type ${proof.type} is not zeroknowledge`);
     }
-    const circuit = Circuits.getCircuit(proof.circuitId)
+    const circuit = Circuits.getCircuit(proof.circuitId);
     if (!circuit) {
-        throw new Error(`Circuit with id ${proof.circuitId} not found`)
+        throw new Error(`Circuit with id ${proof.circuitId} not found`);
     }
 
     return await snarkjs.groth16.verify(circuit.GetVerificationKey(), proof.publicSignals, proof.proofData);
