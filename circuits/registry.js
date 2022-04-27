@@ -3,10 +3,10 @@ import { circuits } from './constants.js';
 export class CircuitData {
     constructor(id, description, verificationKey, metadata) { }
 
-    GetPublicSignalsSchema() {
+    getPublicSignalsSchema() {
         return this.metadata;
     }
-    GetVerificationKey() {
+    getVerificationKey() {
         return this.verificationKey;
     }
 }
