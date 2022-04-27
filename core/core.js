@@ -2,7 +2,7 @@
 // eslint-disable-next-line camelcase
 import { base58_to_binary } from 'base58-js';
 import CryptoJS from 'crypto-js';
-import { Id } from './id';
+import { Id } from './id.js';
 import { toBufferLE } from 'bigint-buffer';
 
 

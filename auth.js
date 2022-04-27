@@ -1,7 +1,7 @@
-import { UserToken } from './token';
-import { circuits } from './circuits/constants';
+import { UserToken } from './token.js';
+import { circuits } from './circuits/constants.js';
 
-import {ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata} from './proofs/zk';
+import {ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata} from './proofs/zk.js';
 
 
 /* eslint-disable no-unused-vars */
