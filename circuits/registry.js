@@ -5,7 +5,10 @@ export class CircuitData {
     constructor(id, description, verificationKey, metadata) {
         this.id = id;
         this.description = description;
-        this.verificationKey = verificationKey;
+        this.verificationKey = (typeof verificationKey === 'string')
+            ? JSON.parse(verificationKey)
+            : verificationKey
+        ;
         this.metadata = metadata;
     }
 

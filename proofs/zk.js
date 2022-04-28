@@ -35,7 +35,7 @@ export async function verifyProof(proof) {
         throw new Error(`Circuit with id ${proof.circuitId} not found`);
     }
 
-    return await snarkjs.groth16.verify(circuit.getVerificationKey(), proof.publicSignals, proof.proofData);
+    return await snarkjs.groth16.verify(circuit.getVerificationKey(), proof.pubSignals, proof.proofData);
 }
 
 /**
