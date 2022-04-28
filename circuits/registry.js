@@ -1,14 +1,22 @@
 import { circuits } from './constants.js';
 
 export class CircuitData {
-    constructor(id, description, verificationKey, metadata) { }
+
+    constructor(id, description, verificationKey, metadata) {
+        this.id = id;
+        this.description = description;
+        this.verificationKey = verificationKey;
+        this.metadata = metadata;
+    }
 
     getPublicSignalsSchema() {
         return this.metadata;
     }
+
     getVerificationKey() {
         return this.verificationKey;
     }
+
 }
 
 const supportedCircuits = {
