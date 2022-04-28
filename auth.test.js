@@ -1,5 +1,5 @@
 import {
-    AUTH_CIRCUIT_ID,
+    AUTH_CIRCUIT_ID, AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
     createAuthorizationRequest,
     messageWithZeroKnowledgeProofRequest,
@@ -14,7 +14,7 @@ import {
     ZERO_KNOWLEDGE_PROOF_TYPE,
 } from './proofs/zk.js';
 
-test('test createAuthorizationRequest', () => {
+test('createAuthorizationRequest', () => {
     const challenge = 10;
     const aud = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
     const request = createAuthorizationRequest(challenge, aud, 'https://test.com/callback');
@@ -40,7 +40,7 @@ test('test createAuthorizationRequest', () => {
     expect(request.data.scope.length).toEqual(2);
 });
 
-test('test verifyProofs', async () => {
+test('TestVerify', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
         circuitId: circuits.KycBySignaturesCircuitID,
@@ -82,7 +82,24 @@ test('test verifyProofs', async () => {
         },
     };
 
-    const error = await verifyProofs(message);
+    verifyProofs(message).then((error) => {
+        expect(error).toBeNull();
+    });
+});
 
-    expect(error).toBeNull();
+test('TestVerifyWrongMessage', () => {
+    const zkpProof = {
+        type: ZERO_KNOWLEDGE_PROOF_TYPE,
+        circuitId: circuits.KycBySignaturesCircuitID,
+        rules: { },
+    };
+
+    const message = {
+        type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+        data: {
+            scope: [zkpProof],
+        },
+    };
+
+    expect(verifyProofs(message)).rejects.toThrow(Error);
 });
