@@ -24,6 +24,7 @@ export async function verifyProofs(message) {
             if (!isValid) {
                 throw new Error(`Proof with type ${proof.type} is not valid`);
             }
+            break;
         default:
             throw new Error(`Proof type ${proof.type} is not supported`);
         }
