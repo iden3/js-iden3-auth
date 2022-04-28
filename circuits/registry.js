@@ -3,32 +3,32 @@ import { circuits } from './constants.js';
 export class CircuitData {
     constructor(id, description, verificationKey, metadata) { }
 
-    GetPublicSignalsSchema() {
+    getPublicSignalsSchema() {
         return this.metadata;
     }
-    GetVerificationKey() {
+    getVerificationKey() {
         return this.verificationKey;
     }
 }
 
 const supportedCircuits = {
-    [circuits.AuthCircuitID]: new CircuitData(
-        circuits.AuthCircuitID,
+    [circuits.authCircuitId]: new CircuitData(
+        circuits.authCircuitId,
         'circuit for verification of  basic authentication',
         circuits.AuthenticationVerificationKey,
-        circuits.AuthenticationPublicSignalsSchema,
+        circuits.authenticationPublicSignalsSchema,
     ),
-    [circuits.AtomicQueryMTPCircuitID]: new CircuitData(
-        circuits.AtomicQueryMTPCircuitID,
+    [circuits.atomicQueryMTPCircuitId]: new CircuitData(
+        circuits.atomicQueryMTPCircuitId,
         'circuit for atomic query on standard iden3 credential',
         circuits.AtomicQueryMTPVerificationKey,
-        circuits.AtomicQueryMTPPublicSignalsSchema,
+        circuits.atomicQueryMTPPublicSignalsSchema,
     ),
-    [circuits.AtomicQuerySigCircuitID]: new CircuitData(
-        circuits.AtomicQuerySigCircuitID,
+    [circuits.atomicQuerySigCircuitId]: new CircuitData(
+        circuits.atomicQuerySigCircuitId,
         'circuit for atomic query on standard iden3 credential',
         circuits.AtomicQuerySigVerificationKey,
-        circuits.AtomicQuerySigPublicSignalsSchema,
+        circuits.atomicQuerySigPublicSignalsSchema,
     ),
 };
 

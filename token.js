@@ -1,4 +1,4 @@
-import { Core } from './core/core.js';
+import { Id } from './core/id.js';
 import { verifyState } from './state.js';
 
 export class UserToken {
@@ -39,10 +39,10 @@ export class UserToken {
     }
 
     async verifyState(url, addr) {
-        const id = Core.idFromString(this.id);
+        const id = Id.idFromString(this.id);
 
         const stateBigInt = BigInt(this.state);
 
-        return await verifyState(url, addr, id.BigInt(), stateBigInt);
+        return await verifyState(url, addr, id.bigInt(), stateBigInt);
     }
 }
