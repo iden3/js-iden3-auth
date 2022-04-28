@@ -95,7 +95,7 @@ test('TestVerify', () => {
 test('TestVerifyMessageWithAuthProof', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.KycBySignaturesCircuitID,
+        circuitId: circuits.AuthCircuitID,
         proofData: {
             pi_a: [
                 '2370534291294441687575434871070063634049522739054135650290327914016792634144',

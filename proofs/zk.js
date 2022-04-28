@@ -1,11 +1,12 @@
 
 
 import { Circuits } from '../circuits/registry.js';
+import { AuthenticationMetadata, ProofMetadata } from '../proofs/metadata.js';
 import * as snarkjs from 'snarkjs';
 
-export const IDENTIFIER_ATTRIBUTE = 'user_identifier';
+export const IDENTIFIER_ATTRIBUTE = 'userID';
 export const CHALLENGE_ATTRIBUTE = 'challenge';
-export const STATE_ATTRIBUTE = 'user_state';
+export const STATE_ATTRIBUTE = 'userState';
 export const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 /**
@@ -45,31 +46,29 @@ export async function verifyProof(proof) {
  * @return {ProofMetadata}
  */
 function parsePublicSignals(signals, schema) {
-    const proofMetadata = { };
 
     const metaData = JSON.parse(schema);
-
     const identifierIndex = metaData[IDENTIFIER_ATTRIBUTE];
-    if (!identifierIndex) {
+    if (identifierIndex === undefined) {
         throw new Error('No user identifier attribute in provided proof');
     }
     const stateIndex = metaData[STATE_ATTRIBUTE];
-    if (stateIndex) {
-        proofMetadata.authData.userState = signals[stateIndex];
-    }
+    const userState = stateIndex ? signals[stateIndex] : null;
     const challengeIndex = metaData[CHALLENGE_ATTRIBUTE];
-    if (!challengeIndex) {
+    if (challengeIndex === undefined) {
         throw new Error('No user challenge attribute in provided proof');
     }
 
-    proofMetadata.authData.userIdentifier = convertID(signals[identifierIndex]);
-
-    proofMetadata.authData.authenticationChallenge = signals[challengeIndex];
+    const authData = new AuthenticationMetadata(
+        signals[identifierIndex],
+        userState,
+        signals[challengeIndex]
+    );
+    const proofMetadata = new ProofMetadata(authData);
 
     Object.keys(metaData)
         .filter((k) => ![IDENTIFIER_ATTRIBUTE, CHALLENGE_ATTRIBUTE].includes(k))
-        .forEach((k) => proofMetadata.AdditionalData[k] = signals[metaData[k]]);
+        .forEach((k) => proofMetadata.additionalData[k] = signals[metaData[k]]);
 
     return proofMetadata;
 }
-

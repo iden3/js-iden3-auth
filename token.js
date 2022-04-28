@@ -38,8 +38,8 @@ export class UserToken {
         this.challenge = authenticationChallenge;
         this.id = userIdentifier;
 
-        if (metadata.AdditionalData) {
-            this.scope[scopeId] = metadata.AdditionalData;
+        if (metadata.additionalData) {
+            this.scope[scopeId] = metadata.additionalData;
         }
     }
 
