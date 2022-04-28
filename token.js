@@ -9,7 +9,12 @@ export class UserToken {
      * @param {*} state
      * @param {*} scope
      */
-    constructor(id, challenge, state, scope) { }
+    constructor(id, challenge, state, scope) {
+        this.id = id;
+        this.challenge = challenge;
+        this.state = state;
+        this.scope = scope;
+    }
 
     update(scopeId, metadata) {
         const {
