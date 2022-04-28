@@ -40,7 +40,7 @@ test('test createAuthorizationRequest', () => {
     expect(request.data.scope.length).toEqual(2);
 });
 
-test('test verifyProofs', () => {
+test('test verifyProofs', async () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
         circuitId: circuits.KycBySignaturesCircuitID,
@@ -82,7 +82,7 @@ test('test verifyProofs', () => {
         },
     };
 
-    const error = verifyProofs(message);
+    const error = await verifyProofs(message);
 
     expect(error).toBeNull();
 });

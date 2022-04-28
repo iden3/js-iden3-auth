@@ -20,7 +20,7 @@ export async function verifyProofs(message) {
     for (const proof of message.data.scope) {
         switch (proof.type) {
         case ZERO_KNOWLEDGE_PROOF_TYPE:
-            const isValid = verifyProof(proof);
+            const isValid = await verifyProof(proof);
             if (!isValid) {
                 throw new Error(`Proof with type ${proof.type} is not valid`);
             }
