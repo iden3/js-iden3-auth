@@ -45,7 +45,7 @@ export async function verifyProof(proof) {
  * @return {ProofMetadata}
  */
 function parsePublicSignals(signals, schema) {
-    const proofMetadata = new ProofMetadata();
+    const proofMetadata = { };
 
     const metaData = JSON.parse(schema);
 
