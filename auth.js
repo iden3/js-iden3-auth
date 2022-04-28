@@ -1,7 +1,7 @@
 import { UserToken } from './token.js';
 import { circuits } from './circuits/constants.js';
 
-import {ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata} from './proofs/zk.js';
+import { ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata } from './proofs/zk.js';
 
 
 /* eslint-disable no-unused-vars */
@@ -33,8 +33,8 @@ async function verifyProofs(message) {
 }
 
 /**
- * 
- * @param {Object} message 
+ *
+ * @param {Object} message
  * @return {UserToken}
  */
 async function extractMetadata(message) {
@@ -48,7 +48,7 @@ async function extractMetadata(message) {
     for (const proof of message.data.scope) {
         switch (proof.type) {
         case ZERO_KNOWLEDGE_PROOF_TYPE:
-            let metadata = extractProofMetadata(proof)
+            const metadata = extractProofMetadata(proof);
             token.update(proof.circuitId, metadata);
             break;
         default:
@@ -92,7 +92,7 @@ function messageWithDefaultZKAuth(message, challenge) {
 
     const authProofRequest = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitID: circuits.AuthCircuitID,
+        circuitId: circuits.authCircuitId,
         rules: rules,
     };
 
