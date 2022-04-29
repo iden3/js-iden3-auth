@@ -43,10 +43,6 @@ export class UserToken {
     }
 
     async verifyState(url, addr) {
-        const id = Core.idFromString(this.id);
-
-        const stateBigInt = BigInt(this.state);
-
-        return await verifyState(url, addr, id.BigInt(), stateBigInt);
+        return await verifyState(url, addr, Core.idFromString(this.id).bigInt(), this.state);
     }
 }

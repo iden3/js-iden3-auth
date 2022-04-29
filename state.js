@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
 
+import { ethers } from 'ethers';
+
 /**
  * Verify identity state
  * @param rpcURL url to connect to the blockchain

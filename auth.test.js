@@ -141,6 +141,7 @@ test('TestVerifyMessageWithAuthProof', () => {
     extractMetadata(message).then(token => {
         expect(token.state).toBe('5816868615164565912277677884704888703982258184820398645933682814085602171910');
         expect(token.id).toBe('113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj');
+        expect(token.verifyState('https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873', '0x035C4DBC897D203483D942696CE1dF5a9f933FcC')).toBeTruthy();
     });
 });
 
