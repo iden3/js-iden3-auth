@@ -15,6 +15,9 @@ import {
     ZERO_KNOWLEDGE_PROOF_TYPE,
 } from './proofs/zk.js';
 
+beforeAll((done) => done());
+afterAll((done) => done());
+
 test('createAuthorizationRequest', () => {
     const challenge = 10;
     const aud = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
