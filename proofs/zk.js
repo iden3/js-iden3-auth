@@ -1,11 +1,13 @@
 
-
+import { Id } from '../core/id.js';
+import { Core } from '../core/core.js';
 import { Circuits } from '../circuits/registry.js';
-import 'snarkjs';
+import { AuthenticationMetadata, ProofMetadata } from '../proofs/metadata.js';
+import * as snarkjs from 'snarkjs';
 
-export const identifierAttribute = 'user_identifier';
-export const challengeAttribute = 'challenge';
-export const stateAttribute = 'user_state';
+export const IDENTIFIER_ATTRIBUTE = 'userID';
+export const CHALLENGE_ATTRIBUTE = 'challenge';
+export const STATE_ATTRIBUTE = 'userState';
 export const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
 /**
@@ -35,7 +37,7 @@ export async function verifyProof(proof) {
         throw new Error(`Circuit with id ${proof.circuitId} not found`);
     }
 
-    return await snarkjs.groth16.verify(circuit.getVerificationKey(), proof.publicSignals, proof.proofData);
+    return await snarkjs.groth16.verify(circuit.getVerificationKey(), proof.pubSignals, proof.proofData);
 }
 
 /**
@@ -45,31 +47,33 @@ export async function verifyProof(proof) {
  * @return {ProofMetadata}
  */
 function parsePublicSignals(signals, schema) {
-    const proofMetadata = new ProofMetadata();
-
     const metaData = JSON.parse(schema);
-
-    const identifierIndex = metaData[identifierAttribute];
-    if (!identifierIndex) {
+    const identifierIndex = metaData[IDENTIFIER_ATTRIBUTE];
+    if (identifierIndex === undefined) {
         throw new Error('No user identifier attribute in provided proof');
     }
-    const stateIndex = metaData[stateAttribute];
-    if (stateIndex) {
-        proofMetadata.authData.userState = signals[stateIndex];
-    }
-    const challengeIndex = metaData[challengeAttribute];
-    if (!challengeIndex) {
+    const stateIndex = metaData[STATE_ATTRIBUTE];
+    const userState = stateIndex ? signals[stateIndex] : null;
+    const challengeIndex = metaData[CHALLENGE_ATTRIBUTE];
+    if (challengeIndex === undefined) {
         throw new Error('No user challenge attribute in provided proof');
     }
 
-    proofMetadata.authData.userIdentifier = convertID(signals[identifierIndex]);
-
-    proofMetadata.authData.authenticationChallenge = signals[challengeIndex];
+    const authData = new AuthenticationMetadata(
+        convertId(signals[identifierIndex]),
+        userState,
+        signals[challengeIndex],
+    );
+    const proofMetadata = new ProofMetadata(authData);
 
     Object.keys(metaData)
-        .filter((k) => ![identifierAttribute, challengeAttribute].includes(k))
-        .forEach((k) => proofMetadata.AdditionalData[k] = signals[metaData[k]]);
+        .filter((k) => ![IDENTIFIER_ATTRIBUTE, CHALLENGE_ATTRIBUTE].includes(k))
+        .forEach((k) => proofMetadata.additionalData[k] = signals[metaData[k]]);
 
     return proofMetadata;
 }
 
+function convertId(id) {
+    const bytes = Core.intToBytes(BigInt(id));
+    return Id.idFromBytes(bytes).string();
+}

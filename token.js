@@ -9,7 +9,12 @@ export class UserToken {
      * @param {*} state
      * @param {*} scope
      */
-    constructor(id, challenge, state, scope) { }
+    constructor(id, challenge, state, scope) {
+        this.id = id;
+        this.challenge = challenge;
+        this.state = state;
+        this.scope = scope || { };
+    }
 
     update(scopeId, metadata) {
         const {
@@ -17,11 +22,10 @@ export class UserToken {
             userIdentifier,
             userState,
         } = metadata.authData;
-
-        if (!this.challenge && this.challenge !== authenticationChallenge) {
+        if (this.challenge && this.challenge !== authenticationChallenge) {
             throw new Error('Different challenges were used for authentication');
         }
-        if (!this.id && this.id !== userIdentifier) {
+        if (this.id && this.id !== userIdentifier) {
             throw new Error('Different identifiers were used for authentication');
         }
 
@@ -33,16 +37,12 @@ export class UserToken {
         this.challenge = authenticationChallenge;
         this.id = userIdentifier;
 
-        if (metadata.AdditionalData) {
-            this.scope[scopeId] = metadata.AdditionalData;
+        if (metadata.additionalData) {
+            this.scope[scopeId] = metadata.additionalData;
         }
     }
 
     async verifyState(url, addr) {
-        const id = Id.idFromString(this.id);
-
-        const stateBigInt = BigInt(this.state);
-
-        return await verifyState(url, addr, id.bigInt(), stateBigInt);
+        return await verifyState(url, addr, Id.idFromString(this.id).bigInt(), this.state);
     }
 }

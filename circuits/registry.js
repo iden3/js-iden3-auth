@@ -1,11 +1,20 @@
 import { circuits } from './constants.js';
 
 export class CircuitData {
-    constructor(id, description, verificationKey, metadata) { }
+    constructor(id, description, verificationKey, metadata) {
+        this.id = id;
+        this.description = description;
+        this.verificationKey = (typeof verificationKey === 'string') ?
+            JSON.parse(verificationKey) :
+            verificationKey
+        ;
+        this.metadata = metadata;
+    }
 
     getPublicSignalsSchema() {
         return this.metadata;
     }
+
     getVerificationKey() {
         return this.verificationKey;
     }
@@ -15,20 +24,26 @@ const supportedCircuits = {
     [circuits.authCircuitId]: new CircuitData(
         circuits.authCircuitId,
         'circuit for verification of  basic authentication',
-        circuits.AuthenticationVerificationKey,
+        circuits.authenticationVerificationKey,
         circuits.authenticationPublicSignalsSchema,
     ),
     [circuits.atomicQueryMTPCircuitId]: new CircuitData(
         circuits.atomicQueryMTPCircuitId,
         'circuit for atomic query on standard iden3 credential',
-        circuits.AtomicQueryMTPVerificationKey,
+        circuits.atomicQueryMTPVerificationKey,
         circuits.atomicQueryMTPPublicSignalsSchema,
     ),
     [circuits.atomicQuerySigCircuitId]: new CircuitData(
         circuits.atomicQuerySigCircuitId,
         'circuit for atomic query on standard iden3 credential',
-        circuits.AtomicQuerySigVerificationKey,
+        circuits.atomicQuerySigVerificationKey,
         circuits.atomicQuerySigPublicSignalsSchema,
+    ),
+    [circuits.kycBySignaturesCircuitID]: new CircuitData(
+        circuits.kycBySignaturesCircuitID,
+        'circuit for kyc claims verification',
+        circuits.kycBySignaturesVerificationKey,
+        circuits.kycBySignaturesPublicSignalsSchema,
     ),
 };
 
