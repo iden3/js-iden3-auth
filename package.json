@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "base58-js": "^1.0.0",
-    "bigint-buffer": "^1.0.1",
+    "bigint-buffer": "^1.1.5",
     "bs58": "^5.0.0",
     "crypto-js": "^4.1.1",
     "ethers": "^5.4.0",
