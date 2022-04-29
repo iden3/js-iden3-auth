@@ -44,7 +44,7 @@ test('createAuthorizationRequest', () => {
 test('TestVerify', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.KycBySignaturesCircuitID,
+        circuitId: circuits.kycBySignaturesCircuitID,
         proofData: {
             pi_a: [
                 '10441536817202584897377823144827964642356918402871315490038163167310235469676',
@@ -151,7 +151,7 @@ test('TestVerifyMessageWithAuthProof', () => {
 test('TestVerifyWrongMessage', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.KycBySignaturesCircuitID,
+        circuitId: circuits.kycBySignaturesCircuitID,
         rules: { },
     };
 

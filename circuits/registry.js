@@ -24,26 +24,26 @@ const supportedCircuits = {
     [circuits.authCircuitId]: new CircuitData(
         circuits.authCircuitId,
         'circuit for verification of  basic authentication',
-        circuits.AuthenticationVerificationKey,
+        circuits.authenticationVerificationKey,
         circuits.authenticationPublicSignalsSchema,
     ),
     [circuits.atomicQueryMTPCircuitId]: new CircuitData(
         circuits.atomicQueryMTPCircuitId,
         'circuit for atomic query on standard iden3 credential',
-        circuits.AtomicQueryMTPVerificationKey,
+        circuits.atomicQueryMTPVerificationKey,
         circuits.atomicQueryMTPPublicSignalsSchema,
     ),
     [circuits.atomicQuerySigCircuitId]: new CircuitData(
         circuits.atomicQuerySigCircuitId,
         'circuit for atomic query on standard iden3 credential',
-        circuits.AtomicQuerySigVerificationKey,
+        circuits.atomicQuerySigVerificationKey,
         circuits.atomicQuerySigPublicSignalsSchema,
     ),
-    [circuits.KycBySignaturesCircuitID]: new CircuitData(
-        circuits.KycBySignaturesCircuitID,
+    [circuits.kycBySignaturesCircuitID]: new CircuitData(
+        circuits.kycBySignaturesCircuitID,
         'circuit for kyc claims verification',
-        circuits.KycBySignaturesVerificationKey,
-        circuits.KycBySignaturesPublicSignalsSchema,
+        circuits.kycBySignaturesVerificationKey,
+        circuits.kycBySignaturesPublicSignalsSchema,
     ),
 };
 
