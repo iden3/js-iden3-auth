@@ -14,5 +14,3 @@ jobs:
         run: npm run lint
       - name: Run Tests
         run: npm run test
-      - name: Run ECHO
-        run: echo $?
