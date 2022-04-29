@@ -3,11 +3,13 @@
   "type": "module",
   "version": "0.1.0",
   "description": "iden3-auth implementation in JavaScript",
-  "main": "./build/main.cjs",
-  "module": "./main.js",
+  "main": "./index.js",
+  "module": "./index.js",
   "exports": {
-    "import": "./main.js",
-    "require": "./build/main.cjs"
+    ".": {
+      "require": "./index.js",
+      "default": "./index.js"
+    }
   },
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
