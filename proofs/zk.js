@@ -47,7 +47,6 @@ export async function verifyProof(proof) {
  * @return {ProofMetadata}
  */
 function parsePublicSignals(signals, schema) {
-
     const metaData = JSON.parse(schema);
     const identifierIndex = metaData[IDENTIFIER_ATTRIBUTE];
     if (identifierIndex === undefined) {
@@ -63,7 +62,7 @@ function parsePublicSignals(signals, schema) {
     const authData = new AuthenticationMetadata(
         convertId(signals[identifierIndex]),
         userState,
-        signals[challengeIndex]
+        signals[challengeIndex],
     );
     const proofMetadata = new ProofMetadata(authData);
 

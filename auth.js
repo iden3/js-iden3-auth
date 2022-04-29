@@ -6,7 +6,7 @@ import { ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata } from './
 /* eslint-disable no-unused-vars */
 export const PROTOCOL_NAME = 'https://iden3-communication.io';
 export const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
-export const AUTHORIZATION_REQUEST_MESSAGE_TYPE  = PROTOCOL_NAME + '/authorization-request/v1';
+export const AUTHORIZATION_REQUEST_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-request/v1';
 
 export const AUTH_CIRCUIT_ID = 'auth';
 

@@ -1,13 +1,12 @@
 import { circuits } from './constants.js';
 
 export class CircuitData {
-
     constructor(id, description, verificationKey, metadata) {
         this.id = id;
         this.description = description;
-        this.verificationKey = (typeof verificationKey === 'string')
-            ? JSON.parse(verificationKey)
-            : verificationKey
+        this.verificationKey = (typeof verificationKey === 'string') ?
+            JSON.parse(verificationKey) :
+            verificationKey
         ;
         this.metadata = metadata;
     }
@@ -19,7 +18,6 @@ export class CircuitData {
     getVerificationKey() {
         return this.verificationKey;
     }
-
 }
 
 const supportedCircuits = {
