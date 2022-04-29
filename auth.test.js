@@ -15,6 +15,9 @@ import {
     ZERO_KNOWLEDGE_PROOF_TYPE,
 } from './proofs/zk.js';
 
+beforeAll((done) => done());
+afterAll((done) => done());
+
 test('createAuthorizationRequest', () => {
     const challenge = 10;
     const aud = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
@@ -41,7 +44,7 @@ test('createAuthorizationRequest', () => {
     expect(request.data.scope.length).toEqual(2);
 });
 
-test('TestVerify', () => {
+test('TestVerify', async () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
         circuitId: circuits.kycBySignaturesCircuitID,
@@ -87,12 +90,11 @@ test('TestVerify', () => {
         },
     };
 
-    verifyProofs(message).then((error) => {
-        expect(error).toBeNull();
-    });
+    const error = await verifyProofs(message);
+    expect(error).toBeNull();
 });
 
-test('TestVerifyMessageWithAuthProof', () => {
+test('TestVerifyMessageWithAuthProof', async () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
         circuitId: circuits.authCircuitId,
@@ -134,25 +136,23 @@ test('TestVerifyMessageWithAuthProof', () => {
         },
     };
 
-    verifyProofs(message).then((error) => {
-        expect(error).toBeNull();
-    });
+    const error = await verifyProofs(message);
+    expect(error).toBeNull();
+    const token = extractMetadata(message);
 
-    extractMetadata(message).then((token) => {
-        expect(token.state).toBe('5816868615164565912277677884704888703982258184820398645933682814085602171910');
-        expect(token.id).toBe('113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj');
-        expect(token.verifyState(
-            'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873',
-            '0x035C4DBC897D203483D942696CE1dF5a9f933FcC'),
-        ).toBeTruthy();
-    });
+    expect(token.state).toBe('5816868615164565912277677884704888703982258184820398645933682814085602171910');
+    expect(token.id).toBe('113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj');
+    expect(token.verifyState(
+        'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873',
+        '0x035C4DBC897D203483D942696CE1dF5a9f933FcC'),
+    ).toBeTruthy();
 });
 
 test('TestVerifyWrongMessage', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.kycBySignaturesCircuitID,
-        rules: { },
+        circuitId: circuits.KycBySignaturesCircuitID,
+        rules: {},
     };
 
     const message = {

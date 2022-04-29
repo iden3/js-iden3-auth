@@ -38,7 +38,7 @@ export async function verifyProofs(message) {
  * @param {Object} message
  * @return {UserToken}
  */
-export async function extractMetadata(message) {
+export function extractMetadata(message) {
     if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
         throw new Error(`Message of type ${message.type} is not supported`);
     }
