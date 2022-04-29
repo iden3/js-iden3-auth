@@ -10,7 +10,7 @@
     "require": "./build/main.cjs"
   },
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
     "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "build": "rollup -c config/rollup.cjs.config.js",
     "buildcli": "rollup -c config/rollup.cli.config.js",
