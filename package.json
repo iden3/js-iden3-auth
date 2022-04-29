@@ -10,7 +10,7 @@
     "require": "./build/main.cjs"
   },
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles",
     "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "build": "rollup -c config/rollup.cjs.config.js",
     "buildcli": "rollup -c config/rollup.cli.config.js",
@@ -45,6 +45,6 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.13.0",
     "eslint-config-google": "^0.14.0",
-    "jest": "^27.5.1"
+    "jest": "^28.0.3"
   }
 }

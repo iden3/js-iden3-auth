@@ -138,7 +138,7 @@ test('TestVerifyMessageWithAuthProof', async () => {
 
     const error = await verifyProofs(message);
     expect(error).toBeNull();
-    const token = await extractMetadata(message);
+    const token = extractMetadata(message);
 
     expect(token.state).toBe('5816868615164565912277677884704888703982258184820398645933682814085602171910');
     expect(token.id).toBe('113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj');

@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 
 import { ethers } from 'ethers';
+import { toBufferLE } from 'bigint-buffer';
 
 /**
  * Verify identity state
