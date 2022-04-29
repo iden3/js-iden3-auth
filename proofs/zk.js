@@ -1,4 +1,5 @@
 
+import { Id } from '../core/id.js';
 import { Core } from '../core/core.js';
 import { Circuits } from '../circuits/registry.js';
 import { AuthenticationMetadata, ProofMetadata } from '../proofs/metadata.js';
@@ -75,5 +76,5 @@ function parsePublicSignals(signals, schema) {
 
 function convertId(id) {
     const bytes = Core.intToBytes(BigInt(id));
-    return Core.idFromBytes(bytes).string();
+    return Id.idFromBytes(bytes).string();
 }

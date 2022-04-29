@@ -16,7 +16,7 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
     const contractState = await contract.getState(id);
 
     if (contractState.toBigInt() === 0n) {
-        const error = checkGenesisStateID(id, state);
+        const error = checkGenesisStateId(id, state);
         if (error) {
             return { Error: error };
         }
@@ -53,7 +53,7 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
     return { Latest: true, State: state };
 }
 
-export function checkGenesisStateID(id, state) {
+export function checkGenesisStateId(id, state) {
     const idBytes = toBufferLE(id, 31);
 
     // TypeBJP0 specifies the BJ-P0

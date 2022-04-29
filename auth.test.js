@@ -22,7 +22,7 @@ test('createAuthorizationRequest', () => {
     expect(request.data.scope.length).toEqual(1);
     const proof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitID: AUTH_CIRCUIT_ID,
+        circuitId: AUTH_CIRCUIT_ID,
         rules: {
             challenge: 12345678,
             countryBlacklist: [840],
@@ -95,7 +95,7 @@ test('TestVerify', () => {
 test('TestVerifyMessageWithAuthProof', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.AuthCircuitID,
+        circuitId: circuits.authCircuitId,
         proofData: {
             pi_a: [
                 '2370534291294441687575434871070063634049522739054135650290327914016792634144',
