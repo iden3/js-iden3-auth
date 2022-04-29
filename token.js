@@ -13,7 +13,7 @@ export class UserToken {
         this.id = id;
         this.challenge = challenge;
         this.state = state;
-        this.scope = scope;
+        this.scope = scope || { };
     }
 
     update(scopeId, metadata) {
@@ -22,11 +22,10 @@ export class UserToken {
             userIdentifier,
             userState,
         } = metadata.authData;
-
-        if (!this.challenge && this.challenge !== authenticationChallenge) {
+        if (!!this.challenge && this.challenge !== authenticationChallenge) {
             throw new Error('Different challenges were used for authentication');
         }
-        if (!this.id && this.id !== userIdentifier) {
+        if (!!this.id && this.id !== userIdentifier) {
             throw new Error('Different identifiers were used for authentication');
         }
 
