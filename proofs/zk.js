@@ -1,5 +1,5 @@
 
-
+import { Core } from '../core/core.js';
 import { Circuits } from '../circuits/registry.js';
 import { AuthenticationMetadata, ProofMetadata } from '../proofs/metadata.js';
 import * as snarkjs from 'snarkjs';
@@ -60,7 +60,7 @@ function parsePublicSignals(signals, schema) {
     }
 
     const authData = new AuthenticationMetadata(
-        signals[identifierIndex],
+        convertId(signals[identifierIndex]),
         userState,
         signals[challengeIndex]
     );
@@ -71,4 +71,9 @@ function parsePublicSignals(signals, schema) {
         .forEach((k) => proofMetadata.additionalData[k] = signals[metaData[k]]);
 
     return proofMetadata;
+}
+
+function convertId(id) {
+    const bytes = Core.intToBytes(BigInt(id));
+    return Core.idFromBytes(bytes).string();
 }
