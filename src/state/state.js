@@ -38,7 +38,6 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
         //     ID *big.Int
         // }
         const transitionInfo = await contract.getTransitionInfo(contractState);
-        debugger;
 
         if (transitionInfo[5].toBigInt() === 0n) {
             return { Error: 'Transition info contains invalid id' };
