@@ -22,7 +22,7 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
             return { Error: error };
         }
 
-        return { latest: true, state };
+        return { latest: true, state, transition_timestamp: 0 };
     }
 
     if (contractState.toBigInt() !== state) {
@@ -47,7 +47,7 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
             return { Error: 'No information of transition for non-latest state' };
         }
 
-        return { latest: false, state: state, transitionTimestamp: transitionInfo[0].toBigInt() };
+        return { latest: false, state: state, transition_timestamp: transitionInfo[0].toBigInt() };
     }
 
     // The non-empty state is returned and equals to the state in provided proof which means that the user state is fresh enough, so we work with the latest user state.

@@ -7,11 +7,12 @@ import { ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata } from '..
 export const PROTOCOL_NAME = 'https://iden3-communication.io';
 export const AUTHORIZATION_RESPONSE_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-response/v1';
 export const AUTHORIZATION_REQUEST_MESSAGE_TYPE = PROTOCOL_NAME + '/authorization-request/v1';
+export const CREDENTIAL_REQUEST_MESSAGE_TYPE = PROTOCOL_NAME + '/credential-fetch-request/v1';
 
 export const AUTH_CIRCUIT_ID = 'auth';
 
 export async function verifyProofs(message) {
-    if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
+    if (![AUTHORIZATION_RESPONSE_MESSAGE_TYPE, CREDENTIAL_REQUEST_MESSAGE_TYPE].includes(message.type)) {
         throw new Error(`Message of type ${message.type} is not supported`);
     }
     if (!message.data || !message.data.scope) {
@@ -39,11 +40,11 @@ export async function verifyProofs(message) {
  * @return {UserToken}
  */
 export function extractMetadata(message) {
-    if (message.type !== AUTHORIZATION_RESPONSE_MESSAGE_TYPE) {
+    if (![AUTHORIZATION_RESPONSE_MESSAGE_TYPE, CREDENTIAL_REQUEST_MESSAGE_TYPE].includes(message.type)) {
         throw new Error(`Message of type ${message.type} is not supported`);
     }
     if (!message.data || !message.data.scope) {
-        throw new Error( `Message should contain list of proofs`);
+        throw new Error(`Message should contain list of proofs`);
     }
     const token = new UserToken();
     for (const proof of message.data.scope) {
@@ -53,7 +54,7 @@ export function extractMetadata(message) {
             token.update(proof.circuit_id, metadata);
             break;
         default:
-            throw new Error( `Proof type ${proof.type} is not supported`);
+            throw new Error(`Proof type ${proof.type} is not supported`);
         }
     }
     return token;
