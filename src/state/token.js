@@ -1,4 +1,4 @@
-import { Id } from './core/id.js';
+import { Id } from '../core/id.js';
 import { verifyState } from './state.js';
 
 export class UserToken {
@@ -12,8 +12,8 @@ export class UserToken {
     constructor(id, challenge, state, scope) {
         this.id = id;
         this.challenge = challenge;
-        this.state = state;
-        this.scope = scope || { };
+        this.userState = state;
+        this.scope = scope || {};
     }
 
     update(scopeId, metadata) {
@@ -30,8 +30,8 @@ export class UserToken {
         }
 
         // TODO: make a decision if (each proof must contain user state
-        if (!this.state && userState) {
-            this.state = userState;
+        if (!this.userState && userState) {
+            this.userState = userState;
         }
 
         this.challenge = authenticationChallenge;
@@ -43,6 +43,6 @@ export class UserToken {
     }
 
     async verifyState(url, addr) {
-        return await verifyState(url, addr, Id.idFromString(this.id).bigInt(), this.state);
+        return await verifyState(url, addr, Id.idFromString(this.id).bigInt(), this.userState);
     }
 }

@@ -4,7 +4,7 @@
 export class ProofMetadata {
     constructor(authData) {
         this.authData = authData;
-        this.additionalData = { };
+        this.additionalData = {};
     }
 }
 

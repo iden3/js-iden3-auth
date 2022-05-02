@@ -22,7 +22,7 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
             return { Error: error };
         }
 
-        return { Latest: true, State: state };
+        return { latest: true, state };
     }
 
     if (contractState.toBigInt() !== state) {
@@ -38,6 +38,7 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
         //     ID *big.Int
         // }
         const transitionInfo = await contract.getTransitionInfo(contractState);
+        debugger;
 
         if (transitionInfo[5].toBigInt() === 0n) {
             return { Error: 'Transition info contains invalid id' };
@@ -47,22 +48,23 @@ export async function verifyState(rpcURL, contractAddress, id, state) {
             return { Error: 'No information of transition for non-latest state' };
         }
 
-        return { Latest: false, State: state, TransitionTimestamp: transitionInfo[0].toBigInt() };
+        return { latest: false, state: state, transitionTimestamp: transitionInfo[0].toBigInt() };
     }
 
     // The non-empty state is returned and equals to the state in provided proof which means that the user state is fresh enough, so we work with the latest user state.
-    return { Latest: true, State: state };
+    return { latest: true, state };
 }
 
 export function checkGenesisStateId(id, state) {
     const idBytes = toBufferLE(id, 31);
+    const stateId = BigInt(state);
 
     // TypeBJP0 specifies the BJ-P0
     // - first 2 bytes: `00000000 00000000`
     // - curve of k_op: babyjubjub
     // - hash function: `Poseidon` with 4+4 elements
     const typeBJP0 = Buffer.alloc(2);
-    const stateBytes = toBufferLE(state, 32);
+    const stateBytes = toBufferLE(stateId, 32);
     const idGenesisBytes = stateBytes.slice(-27); // we take last 27 bytes, because of swapped endianness
     const idFromStateBytes = Buffer.concat([
         typeBJP0,
@@ -71,7 +73,7 @@ export function checkGenesisStateId(id, state) {
     ]);
 
     if (!idBytes.equals(idFromStateBytes)) {
-        return 'ID from genesis state (' + JSON.stringify(idFromStateBytes.toJSON().data) + ') and provided (' + JSON.stringify(idBytes.toJSON().data) + ') don\'t match';
+        return `ID from genesis state (${JSON.stringify(idFromStateBytes.toJSON().data)}) and provided (${JSON.stringify(idBytes.toJSON().data)}) don't match`;
     }
 
     return null;

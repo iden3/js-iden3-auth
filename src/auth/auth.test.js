@@ -9,11 +9,11 @@ import {
 
 import {
     circuits,
-} from './circuits/constants.js';
+} from '../circuits/constants.js';
 
 import {
     ZERO_KNOWLEDGE_PROOF_TYPE,
-} from './proofs/zk.js';
+} from '../proofs/zk.js';
 
 beforeAll((done) => done());
 afterAll((done) => done());
@@ -25,7 +25,7 @@ test('createAuthorizationRequest', () => {
     expect(request.data.scope.length).toEqual(1);
     const proof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: AUTH_CIRCUIT_ID,
+        circuit_id: AUTH_CIRCUIT_ID,
         rules: {
             challenge: 12345678,
             countryBlacklist: [840],
@@ -47,8 +47,8 @@ test('createAuthorizationRequest', () => {
 test('TestVerify', async () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.kycBySignaturesCircuitID,
-        proofData: {
+        circuit_id: circuits.kycBySignaturesCircuitId,
+        proof_data: {
             pi_a: [
                 '10441536817202584897377823144827964642356918402871315490038163167310235469676',
                 '3188873104904010906845899057040012497857652125001996465924027367142766788060',
@@ -72,7 +72,7 @@ test('TestVerify', async () => {
                 '1',
             ],
         },
-        pubSignals: [
+        pub_signals: [
             '12345',
             '372902514040400364441393275265861152892555341750332828757240276565437644800',
             '19443506635601976434000063402326775248489014592264899338419890539515181882284',
@@ -97,8 +97,8 @@ test('TestVerify', async () => {
 test('TestVerifyMessageWithAuthProof', async () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.authCircuitId,
-        proofData: {
+        circuit_id: circuits.authCircuitId,
+        proof_data: {
             pi_a: [
                 '2370534291294441687575434871070063634049522739054135650290327914016792634144',
                 '18704664440065881255248484392571034267692380947539795837185393466696768539729',
@@ -122,7 +122,7 @@ test('TestVerifyMessageWithAuthProof', async () => {
                 '1',
             ],
         },
-        pubSignals: [
+        pub_signals: [
             '1',
             '5816868615164565912277677884704888703982258184820398645933682814085602171910',
             '286312392162647260160287083374160163061246635086990474403590223113720496128',
@@ -140,7 +140,7 @@ test('TestVerifyMessageWithAuthProof', async () => {
     expect(error).toBeNull();
     const token = extractMetadata(message);
 
-    expect(token.state).toBe('5816868615164565912277677884704888703982258184820398645933682814085602171910');
+    expect(token.userState).toBe('5816868615164565912277677884704888703982258184820398645933682814085602171910');
     expect(token.id).toBe('113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj');
     expect(token.verifyState(
         'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873',
@@ -151,7 +151,7 @@ test('TestVerifyMessageWithAuthProof', async () => {
 test('TestVerifyWrongMessage', () => {
     const zkpProof = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.KycBySignaturesCircuitID,
+        circuit_id: circuits.KycBySignaturesCircuitID,
         rules: {},
     };
 

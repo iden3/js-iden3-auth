@@ -39,8 +39,8 @@ const supportedCircuits = {
         circuits.atomicQuerySigVerificationKey,
         circuits.atomicQuerySigPublicSignalsSchema,
     ),
-    [circuits.kycBySignaturesCircuitID]: new CircuitData(
-        circuits.kycBySignaturesCircuitID,
+    [circuits.kycBySignaturesCircuitId]: new CircuitData(
+        circuits.kycBySignaturesCircuitId,
         'circuit for kyc claims verification',
         circuits.kycBySignaturesVerificationKey,
         circuits.kycBySignaturesPublicSignalsSchema,

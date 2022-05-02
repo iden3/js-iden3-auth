@@ -17,11 +17,11 @@ export function extractProofMetadata(proof) {
     if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
         throw new Error(`Proofs type ${metadata.type} is not zeroknowledge`);
     }
-    const circuit = Circuits.getCircuit(proof.circuitId);
+    const circuit = Circuits.getCircuit(proof.circuit_id);
     if (!circuit) {
-        throw new Error(`Circuit with id ${proof.circuitId} not found`);
+        throw new Error(`Circuit with id ${proof.circuit_id} not found`);
     }
-    const proofData = parsePublicSignals(proof.pubSignals, circuit.getPublicSignalsSchema());
+    const proofData = parsePublicSignals(proof.pub_signals, circuit.getPublicSignalsSchema());
     return proofData;
 }
 
@@ -32,12 +32,12 @@ export async function verifyProof(proof) {
     if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
         throw new Error(`Proofs type ${proof.type} is not zeroknowledge`);
     }
-    const circuit = Circuits.getCircuit(proof.circuitId);
+    const circuit = Circuits.getCircuit(proof.circuit_id);
     if (!circuit) {
-        throw new Error(`Circuit with id ${proof.circuitId} not found`);
+        throw new Error(`Circuit with id ${proof.circuit_id} not found`);
     }
 
-    return await snarkjs.groth16.verify(circuit.getVerificationKey(), proof.pubSignals, proof.proofData);
+    return await snarkjs.groth16.verify(circuit.getVerificationKey(), proof.pub_signals, proof.proof_data);
 }
 
 /**

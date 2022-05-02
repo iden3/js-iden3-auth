@@ -1,7 +1,7 @@
-import { UserToken } from './token.js';
-import { circuits } from './circuits/constants.js';
+import { UserToken } from '../state/token.js';
+import { circuits } from '../circuits/constants.js';
 
-import { ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata } from './proofs/zk.js';
+import { ZERO_KNOWLEDGE_PROOF_TYPE, verifyProof, extractProofMetadata } from '../proofs/zk.js';
 
 /* eslint-disable no-unused-vars */
 export const PROTOCOL_NAME = 'https://iden3-communication.io';
@@ -50,7 +50,7 @@ export function extractMetadata(message) {
         switch (proof.type) {
         case ZERO_KNOWLEDGE_PROOF_TYPE:
             const metadata = extractProofMetadata(proof);
-            token.update(proof.circuitId, metadata);
+            token.update(proof.circuit_id, metadata);
             break;
         default:
             throw new Error( `Proof type ${proof.type} is not supported`);
@@ -102,7 +102,7 @@ export function messageWithDefaultZKAuth(message, challenge) {
 
     const authProofRequest = {
         type: ZERO_KNOWLEDGE_PROOF_TYPE,
-        circuitId: circuits.authCircuitId,
+        circuit_id: circuits.authCircuitId,
         rules: rules,
     };
 
