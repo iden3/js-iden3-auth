@@ -1,9 +1,0 @@
-export * as auth from './auth/auth.js';
-export * as token from './state/token.js';
-export * as state from './state/state.js';
-export * as id from './core/id.js';
-export * as core from './core/core.js';
-export * as constants from './circuits/constants.js';
-export * as registry from './circuits/registry.js';
-export * as metadata from './proofs/metadata.js';
-export * as zk from './proofs/zk.js';

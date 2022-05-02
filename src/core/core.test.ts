@@ -1,5 +1,5 @@
-import { Core } from './core.js';
-import { Id } from './id.js';
+import { Core } from './core';
+import { Id } from './id';
 
 test('test id parsers', () => {
     const typ0Hex = Uint8Array.from([0, 0]);

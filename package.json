@@ -1,6 +1,5 @@
 {
   "name": "js-iden3-auth",
-  "type": "module",
   "version": "0.1.0",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
@@ -13,13 +12,14 @@
     }
   },
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup",
     "buildcli": "rollup -c config/rollup.cli.config.js",
     "buildiife": "BROWSER=true rollup -c config/rollup.iife.config.js",
     "buildiifemin": "BROWSER=true rollup -c config/rollup.iife_min.config.js",
-    "lint": "eslint --ext *js"
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "eslint --ext *ts"
   },
   "bin": {
     "snarkjs": "build/cli.cjs"
@@ -48,8 +48,18 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.13.0",
     "eslint-config-google": "^0.14.0",
-    "jest": "^28.0.3",
-    "@types/node": "^14.17.4",
+    "jest": "^27.2.5",
+    "@types/jest": "27.4.1",
+    "@types/node": "^16.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.3.2",
+    "ts-jest": "^27.0.3",
+    "ts-loader": "^9.2.3",
+    "ts-node": "^10.0.0",
+    "tsconfig-paths": "^3.10.1",
     "typescript": "^4.3.5"
   }
 }
