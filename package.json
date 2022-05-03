@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup",
     "buildcli": "rollup -c config/rollup.cli.config.js",
