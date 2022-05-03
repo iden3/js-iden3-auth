@@ -160,17 +160,6 @@ export async function verifyState(
   }
 
   if (contractState.toBigInt() !== state) {
-    // The non-empty state is returned, and it’s not equal to the state that the user has provided.
-    // Get the time of the latest state and compare it to the transition time of state provided by the user.
-    // The verification party can make a decision if it can accept this state based on that time frame
-    // type TransitionInfo struct {
-    //     ReplacedAtTimestamp *big.Int
-    //     CreatedAtTimestamp *big.Int
-    //     ReplacedAtBlock uint64
-    //     CreatedAtBlock uint64
-    //     ReplacedBy *big.Int
-    //     ID *big.Int
-    // }
     const transitionInfo = await contract.getTransitionInfo(contractState);
 
     if (transitionInfo[5].toBigInt() === 0n) {
@@ -188,20 +177,15 @@ export async function verifyState(
     };
   }
 
-  // The non-empty state is returned and equals to the state in provided proof which means that the user state is fresh enough, so we work with the latest user state.
   return { latest: true, state, transition_timestamp: 0 };
 }
 
 export function checkGenesisStateId(id: bigint, state: string): string {
   const idBytes = toBufferLE(id, 31);
-  const stateId = BigInt(state);
+  const stateInt = BigInt(state);
 
-  // TypeBJP0 specifies the BJ-P0
-  // - first 2 bytes: `00000000 00000000`
-  // - curve of k_op: babyjubjub
-  // - hash function: `Poseidon` with 4+4 elements
   const typeBJP0 = Buffer.alloc(2);
-  const stateBytes = toBufferLE(stateId, 32);
+  const stateBytes = toBufferLE(stateInt, 32);
   const idGenesisBytes = stateBytes.slice(-27); // we take last 27 bytes, because of swapped endianness
   const idFromStateBytes = Buffer.concat([
     typeBJP0,

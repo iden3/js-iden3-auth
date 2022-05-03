@@ -27,15 +27,6 @@ export interface Scope {
   proof_data?: ProofData;
 }
 
-// export interface ProofMetadata {
-//   authData: {
-//     authenticationChallenge: number;
-//     userIdentifier: string;
-//     userState: string;
-//   };
-//   additionalData: any;
-// }
-
 export class ProofMetadata {
   public additionalData: any;
   constructor(public authData: AuthenticationMetadata) {
