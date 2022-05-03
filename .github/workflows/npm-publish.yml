@@ -1,4 +1,4 @@
-name: js-test-auth-1
+name: js-iden3-auth
 
 on:
   release:
