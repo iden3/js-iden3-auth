@@ -1,10 +1,9 @@
 export interface Message {
   type: string;
-  circuit_id?: string;
-  data: MessageDataData;
+  data: MessageData;
 }
 
-export interface MessageDataData {
+export interface MessageData {
   schema?: string;
   claim_id?: string;
   scope: Scope[];
