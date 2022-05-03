@@ -2,15 +2,16 @@ name: RUN ES LINT ANS TESTS
 on: push
 jobs:
   build:
+    timeout-minutes: 7
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "17.6"
+          node-version: '16.15'
       - name: Install modules
         run: npm install
       - name: Run ESLint
         run: npm run lint
-      # - name: Run Tests
-      #   run: npm run test
+      - name: Run Tests
+        run: npm run test
