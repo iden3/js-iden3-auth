@@ -1,6 +1,5 @@
 import { Message, Scope } from './../models/models';
 import {
-  AUTH_CIRCUIT_ID,
   AUTHORIZATION_REQUEST_MESSAGE_TYPE,
   AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
   createAuthorizationRequest,
@@ -27,7 +26,7 @@ test('createAuthorizationRequest', () => {
   expect(request.data.scope.length).toEqual(1);
   const proof = {
     type: ZERO_KNOWLEDGE_PROOF_TYPE,
-    circuit_id: AUTH_CIRCUIT_ID,
+    circuit_id: circuits.kycBySignaturesCircuitId,
     rules: {
       challenge: 12345678,
       countryBlacklist: [840],
