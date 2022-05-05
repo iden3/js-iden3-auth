@@ -12,8 +12,16 @@ import { circuits } from '../circuits/constants';
 
 import { ZERO_KNOWLEDGE_PROOF_TYPE } from '../proofs/zk';
 
-beforeAll((done) => done());
-afterAll((done) => done());
+import { getCurveFromName } from 'ffjavascript';
+
+beforeAll(async () => {
+
+});
+
+afterAll(async () => {
+  const curve = await getCurveFromName('bn128');
+  curve.terminate();
+});
 
 test('createAuthorizationRequest', () => {
   const challenge = 10;
