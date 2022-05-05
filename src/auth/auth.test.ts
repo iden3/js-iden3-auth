@@ -14,10 +14,6 @@ import { ZERO_KNOWLEDGE_PROOF_TYPE } from '../proofs/zk';
 
 import { getCurveFromName } from 'ffjavascript';
 
-beforeAll(async () => {
-
-});
-
 afterAll(async () => {
   const curve = await getCurveFromName('bn128');
   curve.terminate();
