@@ -1,4 +1,4 @@
-import { Message, Scope } from './../models/models';
+import { Message, Scope } from '../src/models/models';
 import {
   AUTHORIZATION_REQUEST_MESSAGE_TYPE,
   AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
@@ -6,11 +6,11 @@ import {
   messageWithZeroKnowledgeProofRequest,
   verifyProofs,
   extractMetadata,
-} from './auth';
+} from '../src/auth/auth';
 
-import { circuits } from '../circuits/constants';
+import { circuits } from '../src/circuits/constants';
 
-import { ZERO_KNOWLEDGE_PROOF_TYPE } from '../proofs/zk';
+import { ZERO_KNOWLEDGE_PROOF_TYPE } from '../src/proofs/zk';
 
 import { getCurveFromName } from 'ffjavascript';
 
