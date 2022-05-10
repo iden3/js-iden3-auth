@@ -1,20 +1,16 @@
-import { AuthenticationMetadata, Scope } from './../models/models';
+import { AuthenticationMetadata, ZKPResponse } from '../protocol/models';
 
 import { Id } from '../core/id';
 import { Core } from '../core/core';
 import { Circuits } from '../circuits/registry';
 import * as snarkjs from 'snarkjs';
-import { ProofMetadata } from '../models/models';
+import { ProofMetadata } from '../protocol/models';
 
 export const IDENTIFIER_ATTRIBUTE = 'userID';
 export const CHALLENGE_ATTRIBUTE = 'challenge';
 export const STATE_ATTRIBUTE = 'userState';
-export const ZERO_KNOWLEDGE_PROOF_TYPE = 'zeroknowledge';
 
-export function extractProofMetadata(proof: Scope): ProofMetadata {
-  if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
-    throw new Error(`Proofs type ${proof.type} is not zeroknowledge`);
-  }
+export function extractProofMetadata(proof: ZKPResponse): ProofMetadata {
   const circuit = Circuits.getCircuit(proof.circuit_id);
   if (!circuit) {
     throw new Error(`Circuit with id ${proof.circuit_id} not found`);
@@ -26,10 +22,7 @@ export function extractProofMetadata(proof: Scope): ProofMetadata {
   return proofData;
 }
 
-export async function verifyProof(proof: Scope): Promise<boolean> {
-  if (proof.type !== ZERO_KNOWLEDGE_PROOF_TYPE) {
-    throw new Error(`Proofs type ${proof.type} is not zeroknowledge`);
-  }
+export async function verifyProof(proof: ZKPResponse): Promise<boolean> {
   const circuit = Circuits.getCircuit(proof.circuit_id);
   if (!circuit) {
     throw new Error(`Circuit with id ${proof.circuit_id} not found`);
