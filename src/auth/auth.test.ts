@@ -278,13 +278,6 @@ test('TestVerifyWithAtomicMTPProof', async () => {
   const token = extractMetadata(message);
   console.log(token)
 
-  var s = '';
-  var i = 10;
-  for (let index = 0; index < 64; index++) {
-    i = i + 1; 
-    s += "\"value_"+index +"\": " + i+", "
-  }
-  console.log(s);
 });
 
 
