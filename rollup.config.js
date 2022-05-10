@@ -15,10 +15,6 @@ export default [
             sourcemap: "inline",
             format: "cjs",
         },
-        // external: [
-        //     ...Object.keys(pkg.dependencies),
-        //     ...builtin,
-        // ],
         plugins: [
             nodeResolve(),
             typescript({
