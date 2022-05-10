@@ -42,9 +42,7 @@ export class Core {
   }
 
   static hashBytes(str: string): Uint8Array {
-    // const hash = CryptoJS.SHA256(str);
     const hash = new sha256().update(str).digest();
-    // const buffer = Buffer.from(hash.toString(CryptoJS.enc.Hex), 'hex');
     return new Uint8Array(hash);
   }
 
