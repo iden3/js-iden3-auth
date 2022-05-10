@@ -62,7 +62,6 @@ export default [
             }),
             typescript({
                 tsconfig: './tsconfig.json'
-            }),
-            // visualizer(),
+            })
         ]
     }]
