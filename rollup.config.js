@@ -17,6 +17,11 @@ export default [
         },
         plugins: [
             nodeResolve(),
+            // TODO: implement this plugin??
+            //npm install -D rollup-plugin-cjs-es
+            // cjs({
+            //     nested: true
+            //   })
             typescript({
                 tsconfig: './tsconfig-cjs.json'
             }),
@@ -44,8 +49,6 @@ export default [
         plugins: [
             virtual({
                 fs: empty,
-                os: empty,
-                crypto: empty,
                 readline: empty,
                 ejs: empty,
             }),
@@ -56,7 +59,6 @@ export default [
             }),
             commonJS(),
             replace({
-                // The current default is false, but they are changing it next version
                 preventAssignment: false,
                 'process.browser': true
             }),

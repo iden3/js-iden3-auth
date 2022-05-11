@@ -1,7 +1,7 @@
 // eslint-disable-next-line camelcase
 import { binary_to_base58, base58_to_binary } from 'base58-js';
-import { toBigIntLE } from 'bigint-buffer';
 import { Core } from './core';
+import { fromLittleEndian } from './util';
 
 // ID is a byte array with
 // [  type  | root_genesis | checksum ]
@@ -31,7 +31,7 @@ export class Id {
   }
 
   bigInt(): bigint {
-    return toBigIntLE(Buffer.from(this._bytes));
+    return fromLittleEndian(this._bytes);
   }
 
   equal(id: Id): boolean {

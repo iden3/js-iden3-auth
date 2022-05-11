@@ -1,8 +1,8 @@
-import { toBufferLE } from 'bigint-buffer';
 import { sha256 } from 'cross-sha256';
+import { toLittleEndian } from './util';
 export class Core {
   static intToBytes(int: bigint): Uint8Array {
-    return Uint8Array.from(toBufferLE(int, 31));
+    return Uint8Array.from(toLittleEndian(int));
   }
 
   static checkChecksum(bytes: Uint8Array): boolean {
