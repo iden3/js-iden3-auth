@@ -3,7 +3,7 @@ import commonJS from '@rollup/plugin-commonjs';
 import virtual from '@rollup/plugin-virtual';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
-import execute from 'rollup-plugin-execute'
+import sourcemaps from 'rollup-plugin-sourcemaps';
 
 const empty = 'export default {}';
 
@@ -16,22 +16,12 @@ export default [
             format: 'cjs',
         },
         plugins: [
-            nodeResolve(),
-            // TODO: implement this plugin??
-            //npm install -D rollup-plugin-cjs-es
-            // cjs({
-            //     nested: true
-            //   })
             typescript({
                 tsconfig: './tsconfig-cjs.json'
             }),
-            execute(`
-            cat >dist/cjs/package.json <<!EOF
-{
-    "type": "commonjs"
-}
-!EOF
-            `)
+            commonJS(),
+            nodeResolve(),
+            sourcemaps(),
         ]
     },
 
