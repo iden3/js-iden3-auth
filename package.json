@@ -1,6 +1,6 @@
 {
   "name": "js-iden3-auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
   "module": "dist/mjs/index.js",
@@ -11,6 +11,10 @@
       "require": "./dist/cjs/index.js"
     }
   },
+  "files": [
+    "dist/*.js",
+    "dist/**/*.js"
+  ],
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",

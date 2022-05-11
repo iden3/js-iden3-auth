@@ -6,7 +6,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "inlineSourceMap": false,
-    "lib": ["esnext"],
+    "lib": ["es2020", "esnext"],
     "listEmittedFiles": false,
     "listFiles": false,
     "moduleResolution": "node",
