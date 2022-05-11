@@ -15,6 +15,10 @@
       "require": "./dist/cjs/index.js"
     }
   },
+  "files": [
+    "dist/*.js",
+    "dist/**/*.js"
+  ],
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
