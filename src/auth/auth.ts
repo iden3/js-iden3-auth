@@ -1,22 +1,19 @@
-import { Message, Scope } from './../models/models';
+import {
+  AuthorizationRequestMessage,
+  AuthorizationResponseBody,
+  Message,
+  ZKPRequest,
+} from '../protocol/models';
+import {
+  AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+  AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
+  CREDENTIAL_REQUEST_MESSAGE_TYPE,
+} from '../protocol/constants';
+
 import { UserToken } from '../auth/token';
 import { circuits } from '../circuits/constants';
 
-import {
-  ZERO_KNOWLEDGE_PROOF_TYPE,
-  verifyProof,
-  extractProofMetadata,
-} from '../proofs/zk';
-
-export const PROTOCOL_NAME = 'https://iden3-communication.io';
-export const AUTHORIZATION_RESPONSE_MESSAGE_TYPE =
-  PROTOCOL_NAME + '/authorization-response/v1';
-export const AUTHORIZATION_REQUEST_MESSAGE_TYPE =
-  PROTOCOL_NAME + '/authorization-request/v1';
-export const CREDENTIAL_REQUEST_MESSAGE_TYPE =
-  PROTOCOL_NAME + '/credential-fetch-request/v1';
-
-export const AUTH_CIRCUIT_ID = 'auth';
+import { verifyProof, extractProofMetadata } from '../proofs/zk';
 
 export async function verifyProofs(message: Message): Promise<boolean> {
   if (
@@ -27,19 +24,16 @@ export async function verifyProofs(message: Message): Promise<boolean> {
   ) {
     throw new Error(`Message of type ${message.type} is not supported`);
   }
-  if (!message.data || !message.data.scope) {
+  const msgData = message.data as AuthorizationResponseBody;
+  if (!msgData || !msgData.scope) {
     throw new Error(`Message should contain list of proofs`);
   }
-  for (const proof of message.data.scope) {
-    switch (proof.type) {
-      case ZERO_KNOWLEDGE_PROOF_TYPE:
-        const isValid = await verifyProof(proof);
-        if (!isValid) {
-          throw new Error(`Proof with type ${proof.type} is not valid`);
-        }
-        break;
-      default:
-        throw new Error(`Proof type ${proof.type} is not supported`);
+  for (const proof of msgData.scope) {
+    const isValid = await verifyProof(proof);
+    if (!isValid) {
+      throw new Error(
+        `Proof with circuit id  ${proof.circuit_id} is not valid`,
+      );
     }
   }
 
@@ -55,19 +49,14 @@ export function extractMetadata(message: Message): UserToken {
   ) {
     throw new Error(`Message of type ${message.type} is not supported`);
   }
-  if (!message.data || !message.data.scope) {
+  const msgData = message.data as AuthorizationResponseBody;
+  if (!msgData || !msgData.scope) {
     throw new Error(`Message should contain list of proofs`);
   }
   const token = new UserToken();
-  for (const proof of message.data.scope) {
-    switch (proof.type) {
-      case ZERO_KNOWLEDGE_PROOF_TYPE:
-        const metadata = extractProofMetadata(proof);
-        token.update(proof.circuit_id, metadata);
-        break;
-      default:
-        throw new Error(`Proof type ${proof.type} is not supported`);
-    }
+  for (const proof of msgData.scope) {
+    const metadata = extractProofMetadata(proof);
+    token.update(proof.circuit_id, metadata);
   }
   return token;
 }
@@ -76,8 +65,8 @@ export function createAuthorizationRequest(
   challenge: number,
   aud: string,
   callbackUrl: string,
-): Message {
-  const message: Message = {
+): AuthorizationRequestMessage {
+  const message: AuthorizationRequestMessage = {
     type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     data: {
       callbackURL: callbackUrl,
@@ -91,22 +80,21 @@ export function createAuthorizationRequest(
 }
 
 export function messageWithZeroKnowledgeProofRequest(
-  message: Message,
-  proof: Scope,
+  message: AuthorizationRequestMessage,
+  proof: ZKPRequest,
 ): void {
   message.data.scope.push(proof);
 }
 
 export function messageWithDefaultZKAuth(
-  message: Message,
+  message: AuthorizationRequestMessage,
   challenge: number,
 ): void {
   const rules = {
     challenge,
   };
 
-  const authProofRequest = {
-    type: ZERO_KNOWLEDGE_PROOF_TYPE,
+  const authProofRequest: ZKPRequest = {
     circuit_id: circuits.authCircuitId,
     rules,
   };

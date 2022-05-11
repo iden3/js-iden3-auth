@@ -39,12 +39,6 @@ const supportedCircuits: Record<string, CircuitData> = {
     circuits.atomicQuerySigVerificationKey,
     circuits.atomicQuerySigPublicSignalsSchema,
   ),
-  [circuits.kycBySignaturesCircuitId]: new CircuitData(
-    circuits.kycBySignaturesCircuitId,
-    'circuit for kyc claims verification',
-    circuits.kycBySignaturesVerificationKey,
-    circuits.kycBySignaturesPublicSignalsSchema,
-  ),
 };
 
 export class Circuits {
