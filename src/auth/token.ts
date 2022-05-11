@@ -1,4 +1,4 @@
-import { ProofMetadata } from './../models/models';
+import { ProofMetadata } from '../protocol/models';
 import { Id } from '../core/id';
 import { verifyState } from '../state/state';
 
