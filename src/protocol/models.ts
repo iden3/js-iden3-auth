@@ -32,7 +32,7 @@ export interface CredentialFetchRequestBody {
   schema?: string;
   claim_id?: string;
 }
-// ProofData is a result of snarkJS groth16 proof generation 
+// ProofData is a result of snarkJS groth16 proof generation
 export interface ProofData {
   pi_a: string[];
   pi_b: string[][];
@@ -54,7 +54,7 @@ export interface ZKPResponse {
   proof_data?: ProofData;
 }
 
-// ProofMetadata is used for token 
+// ProofMetadata is used for token
 export class ProofMetadata {
   public additionalData: any;
   constructor(public authData: AuthenticationMetadata) {
