@@ -1,5 +1,6 @@
+import { Core } from '../core/core';
+import { toLittleEndian } from '../core/util';
 import { ethers } from 'ethers';
-import { toBufferLE } from 'bigint-buffer';
 
 export async function verifyState(
   rpcUrl: string,
@@ -181,38 +182,25 @@ export async function verifyState(
 }
 
 export function checkGenesisStateId(id: bigint, state: string): string {
-  const idBytes = toBufferLE(id, 31);
+  const idBytes = toLittleEndian(id, 31);
   const stateInt = BigInt(state);
 
-  const typeBJP0 = Buffer.alloc(2);
-  const stateBytes = toBufferLE(stateInt, 32);
-  const idGenesisBytes = stateBytes.slice(-27); // we take last 27 bytes, because of swapped endianness
-  const idFromStateBytes = Buffer.concat([
-    typeBJP0,
-    idGenesisBytes,
-    calculateChecksum(typeBJP0, idGenesisBytes),
+  const typeBJP0 = new Uint8Array(2);
+  const stateBytes = toLittleEndian(stateInt, 32);
+  const idGenesisBytes = stateBytes.slice(-27);
+
+  // we take last 27 bytes, because of swapped endianness
+  const idFromStateBytes = Uint8Array.from([
+    ...typeBJP0,
+    ...idGenesisBytes,
+    ...Core.calculateChecksum(typeBJP0, idGenesisBytes),
   ]);
 
-  if (!idBytes.equals(idFromStateBytes)) {
+  if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
     return `ID from genesis state (${JSON.stringify(
-      idFromStateBytes.toJSON().data,
-    )}) and provided (${JSON.stringify(idBytes.toJSON().data)}) don't match`;
+      idFromStateBytes,
+    )}) and provided (${JSON.stringify(idBytes)}) don't match`;
   }
 
   return null;
-}
-
-export function calculateChecksum(type: Buffer, genesis: Buffer): Buffer {
-  const checksumBytes = Buffer.concat([type, genesis]);
-
-  let sum = 0;
-  for (const val of checksumBytes.values()) {
-    sum += val;
-  }
-
-  const checksum = Buffer.alloc(2);
-  checksum[0] = sum >> 8;
-  checksum[1] = sum & 0xff;
-
-  return checksum;
 }
