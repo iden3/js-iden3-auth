@@ -104,17 +104,6 @@ test('TestVerifyMessageWithAuthProof', async () => {
   expect(token.userState).toBe(
     '18656147546666944484453899241916469544090258810192803949522794490493271005313',
   );
-  expect(
-    await token.verifyState(
-      'https://ropsten.infura.io/v3/182bafeca1a4413e8608bf34fd3aa873',
-      '0x035C4DBC897D203483D942696CE1dF5a9f933FcC',
-    ),
-  ).toEqual({
-    latest: true,
-    state:
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-    transition_timestamp: 0,
-  });
 });
 
 test('TestVerifyWithAtomicMTPProof', async () => {
