@@ -69,7 +69,7 @@ export function createAuthorizationRequest(
   const message: AuthorizationRequestMessage = {
     type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     data: {
-      callbackURL: callbackUrl,
+      callbackUrl: callbackUrl,
       audience: aud,
       scope: [],
     },

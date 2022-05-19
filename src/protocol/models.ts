@@ -18,7 +18,7 @@ export interface AuthorizationResponseMessage {
 //AuthorizationRequestBody is body for AuthorizationRequestMessage
 export interface AuthorizationRequestBody {
   audience?: string;
-  callbackURL?: string;
+  callbackUrl?: string;
   scope: ZKPRequest[];
 }
 
