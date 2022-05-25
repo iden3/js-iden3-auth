@@ -38,8 +38,11 @@
     "base58-js": "^1.0.0",
     "cross-sha256": "^1.2.0",
     "ethers": "^5.4.0",
+    "keccak256": "^1.0.6",
+    "nested-property": "^4.0.0",
     "rollup": "^2.72.1",
-    "snarkjs": "^0.4.16"
+    "snarkjs": "^0.4.16",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",

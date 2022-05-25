@@ -6,33 +6,49 @@ import {
 } from '../src/protocol/models';
 import {
   createAuthorizationRequest,
-  messageWithZeroKnowledgeProofRequest,
-  verifyProofs,
-  extractMetadata,
+  createAuthorizationRequestWithMessage,
+  Verifier,
 } from '../src/auth/auth';
 
 import { AUTHORIZATION_RESPONSE_MESSAGE_TYPE } from '../src/protocol/constants';
-
-import { circuits } from '../src/circuits/constants';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getCurveFromName } from 'ffjavascript';
+import { FSKeyLoader } from '../src/loaders/key';
+import { ISchemaLoader, DefaultSchemaLoader } from '../src/loaders/schema';
+import { IStateResolver, ResolvedState } from '../src/state/resolver';
 
 afterAll(async () => {
   const curve = await getCurveFromName('bn128');
   curve.terminate();
 });
 
+var verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./data');
+var schemaLoader: ISchemaLoader = new DefaultSchemaLoader('ipfs.io');
+
+class MockResolver implements IStateResolver {
+  resolve(id: bigint, state: bigint): Promise<ResolvedState> {
+    throw { latest: true };
+  }
+}
+var mockStateResolver: MockResolver = new MockResolver();
+
 test('createAuthorizationRequest', () => {
-  const challenge = 10;
-  const aud = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const callback = 'https://test.com/callback';
   const request: AuthorizationRequestMessage = createAuthorizationRequest(
-    challenge,
-    aud,
-    'https://test.com/callback',
+    'kyc age verification',
+    sender,
+    callback,
   );
-  expect(request.data.scope.length).toEqual(1);
+  expect(request.body.scope.length).toEqual(0);
+  expect(request.body.callbackUrl).toEqual(callback);
+  expect(request.body.reason).toEqual(callback);
+  expect(request.from).toEqual(sender);
+
   const proofRequest: ZKPRequest = {
-    circuit_id: circuits.atomicQueryMTPCircuitId,
+    id: 24,
+    circuit_id: 'credentialAtomicQueryMTP',
     rules: {
       challenge: 84239,
       query: {
@@ -49,105 +65,123 @@ test('createAuthorizationRequest', () => {
       },
     },
   };
-  messageWithZeroKnowledgeProofRequest(request, proofRequest);
-  expect(request.data.scope.length).toEqual(2);
+  request.body.scope.push(proofRequest);
+  expect(request.body.scope.length).toEqual(1);
 });
 
-test('TestVerifyMessageWithAuthProof', async () => {
-  const zkpProof = {
-    circuit_id: circuits.authCircuitId,
-    proof_data: {
-      pi_a: [
-        '6807142976568489254129987481389970790048870221943660648833750801722749769662',
-        '13811182779758948993435669124001052501939669904238445458453308627013829993881',
-        '1',
-      ],
-      pi_b: [
-        [
-          '1100658387420856656999617260396587549490320987275888589013664343574809180330',
-          '6271619554100652532302412650545865559102683218896584596952129504406572338279',
-        ],
-        [
-          '14732910796480272245291363689840710264816417845998668210234805961967222411399',
-          '697511497805383174761860295477525070010524578030535203059896030784240207952',
-        ],
-        ['1', '0'],
-      ],
-      pi_c: [
-        '3322888400314063147927477851922827359406772099015587732727269650428166130415',
-        '11791447421105500417246293414158106577578665220990150855390594651727173683574',
-        '1',
-      ],
-      protocol: 'groth16',
-      curve: 'bn128',
-    },
-    pub_signals: [
-      '1',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
-    ],
-  };
+test('TestVerifyMessageWithoutProoof', async () => {
+  const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const userId = '1135GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const callback = 'https://test.com/callback';
+  const msg = 'message to sign';
+  const request: AuthorizationRequestMessage =
+    createAuthorizationRequestWithMessage(
+      'kyc verification',
+      msg,
+      sender,
+      callback,
+    );
 
-  const message = {
+  const response: AuthorizationResponseMessage = {
+    id: uuidv4(),
+    thid: request.thid,
+    typ: request.typ,
     type: AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
-    data: {
-      scope: [zkpProof],
+    from: userId,
+    to: sender,
+    body: {
+      message: request.body.message,
+      scope: [],
     },
   };
 
-  const verified = await verifyProofs(message);
-  expect(verified).toBeTruthy();
-  const token = extractMetadata(message);
-
-  expect(token.id).toBe('119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ');
-  expect(token.challenge).toBe(1);
-  expect(token.userState).toBe(
-    '18656147546666944484453899241916469544090258810192803949522794490493271005313',
+  let verifier = new Verifier(
+    verificationKeyLoader,
+    schemaLoader,
+    mockStateResolver,
   );
+
+  expect(await verifier.verifyAuthResponse(response, request)).not.toThrow();
 });
 
 test('TestVerifyWithAtomicMTPProof', async () => {
+  const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const callback = 'https://test.com/callback';
+  const userId = '1135GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const request: AuthorizationRequestMessage = createAuthorizationRequest(
+    'kyc verification',
+    sender,
+    callback,
+  );
+  expect(request.body.scope.length).toEqual(0);
+  expect(request.body.callbackUrl).toEqual(callback);
+  expect(request.body.reason).toEqual(callback);
+  expect(request.from).toEqual(sender);
+
+  const proofRequest: ZKPRequest = {
+    id: 24,
+    circuit_id: 'credentialAtomicQueryMTP',
+    rules: {
+      query: {
+        allowedIssuers: ['*'],
+        schema: {
+          type: 'KYCCountryOfResidenceCredential',
+          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
+        },
+        req: {
+          countryCode: {
+            $nin: [840, 120, 340, 509],
+          },
+        },
+      },
+    },
+  };
+  request.body.scope.push(proofRequest);
+
+  expect(request.body.scope.length).toEqual(1);
+
   const mtpProof: ZKPResponse = {
-    circuit_id: circuits.atomicQueryMTPCircuitId,
+    id: proofRequest.id,
+    circuit_id: 'credentialAtomicQueryMTP',
     proof_data: {
       pi_a: [
-        '14563891483923817735351071227705334357482245819917832755440492751795326413295',
-        '20001980078286652597494447537480393118263491043298930761329275311111441096085',
+        '20973485107186613835294420504168844900060429745180277370078136645423323796988',
+        '20876512355517454358387352357430469269532511208427702435640954212414846794988',
         '1',
       ],
       pi_b: [
         [
-          '21460159041971667208875402098144855602171917038488503689296027024135429671707',
-          '9175445768113769703996084712672842329219702292512170837734652428035591323144',
+          '15359787792291301524429511563163819833209670586891499149880103897821631812320',
+          '952148097741318750401406678248864482408113418728045541853254838790211944557',
         ],
         [
-          '10903477940480645465545606090437044024923801481176394282103911000841141137655',
-          '8424415251889807111172788947141884111799125271291264519130017760779659719833',
+          '3866547068988378419787216494850441937393748849859411619995030091666678234233',
+          '12737260954983772047680437941193675886215315463965099527215354428856166589220',
         ],
         ['1', '0'],
       ],
       pi_c: [
-        '13152557649540629470947504987414571133512125556520386893434586449071845933586',
-        '10523070098476215003191956451600442017991123271856887288630451951750613360903',
+        '14032051669376519932957072147382739134658885782661390170658631107795386034990',
+        '3426651920168576141328466441385872894824417141788260830832563707950605034542',
         '1',
       ],
       protocol: 'groth16',
       curve: 'bn128',
     },
     pub_signals: [
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      '1',
-      '18605292738057394742004097311192572049290380262377486632479765119429313092475',
-      '26599707002460144379092755370384635496563807452878989192352627271768342528',
-      '1642074362',
-      '180410020913331409885634153623124536270',
+      '227999792560601581143923121210388382198276828932112237742319153709274234880',
+      '10099789665300975457802178862296098271243359660315802759495016285352640212814',
+      '12345',
+      '8390795654739203972616926774091445498451520813142121365678565136228528725312',
+      '206811791431269707427589302274952473147879888022142096363950465656014110720',
+      '1653057062',
+      '106590880073303418818490710639556704462',
       '2',
-      '0',
-      '10',
-      '0',
-      '0',
-      '0',
+      '4',
+      '840',
+      '120',
+      '340',
+      '509',
       '0',
       '0',
       '0',
@@ -211,184 +245,108 @@ test('TestVerifyWithAtomicMTPProof', async () => {
     ],
   };
 
-  const authProof = {
-    circuit_id: circuits.authCircuitId,
-    proof_data: {
-      pi_a: [
-        '6807142976568489254129987481389970790048870221943660648833750801722749769662',
-        '13811182779758948993435669124001052501939669904238445458453308627013829993881',
-        '1',
-      ],
-      pi_b: [
-        [
-          '1100658387420856656999617260396587549490320987275888589013664343574809180330',
-          '6271619554100652532302412650545865559102683218896584596952129504406572338279',
-        ],
-        [
-          '14732910796480272245291363689840710264816417845998668210234805961967222411399',
-          '697511497805383174761860295477525070010524578030535203059896030784240207952',
-        ],
-        ['1', '0'],
-      ],
-      pi_c: [
-        '3322888400314063147927477851922827359406772099015587732727269650428166130415',
-        '11791447421105500417246293414158106577578665220990150855390594651727173683574',
-        '1',
-      ],
-      protocol: 'groth16',
-      curve: 'bn128',
-    },
-    pub_signals: [
-      '1',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
-    ],
-  };
-  const message: AuthorizationResponseMessage = {
+  const response: AuthorizationResponseMessage = {
+    id: uuidv4(),
+    thid: request.thid,
+    typ: request.typ,
     type: AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
-    data: {
-      scope: [mtpProof, authProof],
+    from: userId,
+    to: sender,
+    body: {
+      message: request.body.message,
+      scope: [mtpProof],
     },
   };
 
-  const verified = await verifyProofs(message);
-  expect(verified).toBeTruthy();
+  let verifier = new Verifier(
+    verificationKeyLoader,
+    schemaLoader,
+    mockStateResolver,
+  );
 
-  const token = extractMetadata(message);
-  expect(token).toEqual({
-    id: '119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ',
-    challenge: 1,
-    userState:
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-    scope: {
-      credentialAtomicQueryMTP: {
-        userState:
-          '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-        issuerClaimIdenState:
-          '18605292738057394742004097311192572049290380262377486632479765119429313092475',
-        issuerID:
-          '26599707002460144379092755370384635496563807452878989192352627271768342528',
-        timestamp: '1642074362',
-        claimSchema: '180410020913331409885634153623124536270',
-        slotIndex: '2',
-        operator: '0',
-        value_0: '10',
-        value_1: '0',
-        value_2: '0',
-        value_3: '0',
-        value_4: '0',
-        value_5: '0',
-        value_6: '0',
-        value_7: '0',
-        value_8: '0',
-        value_9: '0',
-        value_10: '0',
-        value_11: '0',
-        value_12: '0',
-        value_13: '0',
-        value_14: '0',
-        value_15: '0',
-        value_16: '0',
-        value_17: '0',
-        value_18: '0',
-        value_19: '0',
-        value_20: '0',
-        value_21: '0',
-        value_22: '0',
-        value_23: '0',
-        value_24: '0',
-        value_25: '0',
-        value_26: '0',
-        value_27: '0',
-        value_28: '0',
-        value_29: '0',
-        value_30: '0',
-        value_31: '0',
-        value_32: '0',
-        value_33: '0',
-        value_34: '0',
-        value_35: '0',
-        value_36: '0',
-        value_37: '0',
-        value_38: '0',
-        value_39: '0',
-        value_40: '0',
-        value_41: '0',
-        value_42: '0',
-        value_43: '0',
-        value_44: '0',
-        value_45: '0',
-        value_46: '0',
-        value_47: '0',
-        value_48: '0',
-        value_49: '0',
-        value_50: '0',
-        value_51: '0',
-        value_52: '0',
-        value_53: '0',
-        value_54: '0',
-        value_55: '0',
-        value_56: '0',
-        value_57: '0',
-        value_58: '0',
-        value_59: '0',
-        value_60: '0',
-        value_61: '0',
-        value_62: '0',
-        value_63: '0',
-      },
-      auth: {
-        userState:
-          '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      },
-    },
-  });
+  expect(await verifier.verifyAuthResponse(response, request)).not.toThrow();
+  
 });
 
-test('TestVerifyWithAtomicSigProof', async () => {
-  const sigProof: ZKPResponse = {
-    circuit_id: circuits.atomicQuerySigCircuitId,
+
+test('TestVerifyJWZ', async () => {
+  const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const callback = 'https://test.com/callback';
+  const userId = '1135GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const request: AuthorizationRequestMessage = createAuthorizationRequest(
+    'kyc verification',
+    sender,
+    callback,
+  );
+  expect(request.body.scope.length).toEqual(0);
+  expect(request.body.callbackUrl).toEqual(callback);
+  expect(request.body.reason).toEqual(callback);
+  expect(request.from).toEqual(sender);
+
+  const proofRequest: ZKPRequest = {
+    id: 24,
+    circuit_id: 'credentialAtomicQueryMTP',
+    rules: {
+      query: {
+        allowedIssuers: ['*'],
+        schema: {
+          type: 'KYCCountryOfResidenceCredential',
+          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
+        },
+        req: {
+          countryCode: {
+            $nin: [840, 120, 340, 509],
+          },
+        },
+      },
+    },
+  };
+  request.body.scope.push(proofRequest);
+
+  expect(request.body.scope.length).toEqual(1);
+
+  const mtpProof: ZKPResponse = {
+    id: proofRequest.id,
+    circuit_id: 'credentialAtomicQueryMTP',
     proof_data: {
       pi_a: [
-        '1488456198277173867661803167279729032792624154299809535479139810450208085804',
-        '9811034571283288656264374082369091089294184381655818490061981465520280644099',
+        '20973485107186613835294420504168844900060429745180277370078136645423323796988',
+        '20876512355517454358387352357430469269532511208427702435640954212414846794988',
         '1',
       ],
       pi_b: [
         [
-          '13681354712371365579602068955518190907734292243300799145386142304285387190248',
-          '19642020020503110008281046192437788751455352298111438354251429185186525636938',
+          '15359787792291301524429511563163819833209670586891499149880103897821631812320',
+          '952148097741318750401406678248864482408113418728045541853254838790211944557',
         ],
         [
-          '18027737448042663605647662927822589790701241972444434677331650112736257064866',
-          '18923462657673777837321044737582380572508740613132447083192792887982785512304',
+          '3866547068988378419787216494850441937393748849859411619995030091666678234233',
+          '12737260954983772047680437941193675886215315463965099527215354428856166589220',
         ],
         ['1', '0'],
       ],
       pi_c: [
-        '828611771379429881138968663246435638713557278809347995796848761749026576833',
-        '15003422674439031650056257919485333677483689815727200225661349760606202441045',
+        '14032051669376519932957072147382739134658885782661390170658631107795386034990',
+        '3426651920168576141328466441385872894824417141788260830832563707950605034542',
         '1',
       ],
       protocol: 'groth16',
       curve: 'bn128',
     },
     pub_signals: [
-      '6317996369756476782464660619835940615734517981889733696047139451453239145426',
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      '1',
-      '26599707002460144379092755370384635496563807452878989192352627271768342528',
-      '6317996369756476782464660619835940615734517981889733696047139451453239145426',
-      '18605292738057394742004097311192572049290380262377486632479765119429313092475',
-      '1642074362',
-      '180410020913331409885634153623124536270',
+      '227999792560601581143923121210388382198276828932112237742319153709274234880',
+      '10099789665300975457802178862296098271243359660315802759495016285352640212814',
+      '12345',
+      '8390795654739203972616926774091445498451520813142121365678565136228528725312',
+      '206811791431269707427589302274952473147879888022142096363950465656014110720',
+      '1653057062',
+      '106590880073303418818490710639556704462',
       '2',
-      '0',
-      '10',
-      '0',
-      '0',
-      '0',
+      '4',
+      '840',
+      '120',
+      '340',
+      '509',
       '0',
       '0',
       '0',
@@ -452,140 +410,203 @@ test('TestVerifyWithAtomicSigProof', async () => {
     ],
   };
 
-  const authProof = {
-    circuit_id: circuits.authCircuitId,
+  const response: AuthorizationResponseMessage = {
+    id: uuidv4(),
+    thid: request.thid,
+    typ: request.typ,
+    type: AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
+    from: userId,
+    to: sender,
+    body: {
+      message: request.body.message,
+      scope: [mtpProof],
+    },
+  };
+
+  let verifier = new Verifier(
+    verificationKeyLoader,
+    schemaLoader,
+    mockStateResolver,
+  );
+  request.id = "7f38a193-0918-4a48-9fac-36adfdb8b542"
+	request.thid = "7f38a193-0918-4a48-9fac-36adfdb8b542" // because it's used in the response
+
+
+ let token = 'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aCIsImNyaXQiOlsiY2lyY3VpdElkIl0sInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zLXprcC1qc29uIn0.eyJpZCI6IjI4NDk0MDA3LTljNDktNGYxYS05Njk0LTc3MDBjMDg4NjViZiIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1wbGFpbi1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiI3ZjM4YTE5My0wOTE4LTRhNDgtOWZhYy0zNmFkZmRiOGI1NDIiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRfaWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFAiLCJwcm9vZiI6eyJwaV9hIjpbIjIwOTczNDg1MTA3MTg2NjEzODM1Mjk0NDIwNTA0MTY4ODQ0OTAwMDYwNDI5NzQ1MTgwMjc3MzcwMDc4MTM2NjQ1NDIzMzIzNzk2OTg4IiwiMjA4NzY1MTIzNTU1MTc0NTQzNTgzODczNTIzNTc0MzA0NjkyNjk1MzI1MTEyMDg0Mjc3MDI0MzU2NDA5NTQyMTI0MTQ4NDY3OTQ5ODgiLCIxIl0sInBpX2IiOltbIjE1MzU5Nzg3NzkyMjkxMzAxNTI0NDI5NTExNTYzMTYzODE5ODMzMjA5NjcwNTg2ODkxNDk5MTQ5ODgwMTAzODk3ODIxNjMxODEyMzIwIiwiOTUyMTQ4MDk3NzQxMzE4NzUwNDAxNDA2Njc4MjQ4ODY0NDgyNDA4MTEzNDE4NzI4MDQ1NTQxODUzMjU0ODM4NzkwMjExOTQ0NTU3Il0sWyIzODY2NTQ3MDY4OTg4Mzc4NDE5Nzg3MjE2NDk0ODUwNDQxOTM3MzkzNzQ4ODQ5ODU5NDExNjE5OTk1MDMwMDkxNjY2Njc4MjM0MjMzIiwiMTI3MzcyNjA5NTQ5ODM3NzIwNDc2ODA0Mzc5NDExOTM2NzU4ODYyMTUzMTU0NjM5NjUwOTk1MjcyMTUzNTQ0Mjg4NTYxNjY1ODkyMjAiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE0MDMyMDUxNjY5Mzc2NTE5OTMyOTU3MDcyMTQ3MzgyNzM5MTM0NjU4ODg1NzgyNjYxMzkwMTcwNjU4NjMxMTA3Nzk1Mzg2MDM0OTkwIiwiMzQyNjY1MTkyMDE2ODU3NjE0MTMyODQ2NjQ0MTM4NTg3Mjg5NDgyNDQxNzE0MTc4ODI2MDgzMDgzMjU2MzcwNzk1MDYwNTAzNDU0MiIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjIyNzk5OTc5MjU2MDYwMTU4MTE0MzkyMzEyMTIxMDM4ODM4MjE5ODI3NjgyODkzMjExMjIzNzc0MjMxOTE1MzcwOTI3NDIzNDg4MCIsIjEwMDk5Nzg5NjY1MzAwOTc1NDU3ODAyMTc4ODYyMjk2MDk4MjcxMjQzMzU5NjYwMzE1ODAyNzU5NDk1MDE2Mjg1MzUyNjQwMjEyODE0IiwiMTIzNDUiLCI4MzkwNzk1NjU0NzM5MjAzOTcyNjE2OTI2Nzc0MDkxNDQ1NDk4NDUxNTIwODEzMTQyMTIxMzY1Njc4NTY1MTM2MjI4NTI4NzI1MzEyIiwiMjA2ODExNzkxNDMxMjY5NzA3NDI3NTg5MzAyMjc0OTUyNDczMTQ3ODc5ODg4MDIyMTQyMDk2MzYzOTUwNDY1NjU2MDE0MTEwNzIwIiwiMTY1MzA1NzA2MiIsIjEwNjU5MDg4MDA3MzMwMzQxODgxODQ5MDcxMDYzOTU1NjcwNDQ2MiIsIjIiLCI0IiwiODQwIiwiMTIwIiwiMzQwIiwiNTA5IiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIl19XX0sImZyb20iOiIxMTl0cWNlV2RSZDJGNlduQXlWdUZRUkZqSzNXVVhxMkxvclNQeUc5TEoiLCJ0byI6IjExMjVHSnFndzZZRXNLRndqNjNHWTg3TU14UEw5a3dES3hQVWl3TUxOWiJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjEwNDEyNDM2MTk3NDk0NDc5NTg3Mzk2NjY3Mzg1NzA3MzY4MjgyNTY4MDU1MTE4MjY5ODY0NDU3OTI3NDc2OTkwNjM2NDE5NzAyNDUxIiwiMTA3ODE3MzkwOTU0NDUyMDE5OTY0Njc0MTQ4MTc5NDE4MDU4Nzk5ODI0MTA2NzYzODYxNzY4NDUyOTYzNzYzNDQ5ODUxODc2NjMzMzQiLCIxIl0sInBpX2IiOltbIjE4MDY3ODY4NzQwMDA2MjI1NjE1NDQ3MTk0NDcxMzcwNjU4OTgwOTk5OTI2MzY5Njk1MjkzMTE1NzEyOTUxMzY2NzA3NzQ0MDY0NjA2IiwiMjE1OTkyNDE1NzA1NDc3MzEyMzQzMDQwMzk5ODkxNjY0MDY0MTU4OTk3MTc2NTkxNzE3NjAwNDM4OTk1MDkxNTIwMTE0Nzk2NjM3NTciXSxbIjY2OTk1NDA3MDUwNzQ5MjQ5OTc5NjcyNzUxODYzMjQ3NTU0NDIyNjA2MDc2NzE1MzY0MzQ0MDMwNjU1MjkxNjQ3Njk3MDI0NzczOTgiLCIxMTI1NzY0MzI5MzIwMTYyNzQ1MDI5MzE4NTE2NDI4ODQ4MjQyMDU1OTgwNjY0OTkzNzM3MTU2ODE2MDc0MjYwMTM4NjY3MTY1OTgwMCJdLFsiMSIsIjAiXV0sInBpX2MiOlsiNjIxNjQyMzUwMzI4OTQ5NjI5Mjk0NDA1MjAzMjE5MDM1MzYyNTQyMjQxMTQ4MzM4MzM3ODk3OTAyOTY2NzI0Mzc4NTMxOTIwODA5NSIsIjE0ODE2MjE4MDQ1MTU4Mzg4NzU4NTY3NjA4NjA1NTc2Mzg0OTk0MzM5NzE0MzkwMzcwMzAwOTYzNTgwNjU4Mzg2NTM0MTU4NjAzNzExIiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiNDk3Njk0Mzk0Mzk2NjM2NTA2MjEyMzIyMTk5OTgzODAxMzE3MTIyODE1NjQ5NTM2NjI3MDM3NzI2MTM4MDQ0OTc4Nzg3MTg5ODY3MiIsIjE4NjU2MTQ3NTQ2NjY2OTQ0NDg0NDUzODk5MjQxOTE2NDY5NTQ0MDkwMjU4ODEwMTkyODAzOTQ5NTIyNzk0NDkwNDkzMjcxMDA1MzEzIiwiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIl19';
+
+
+  expect(await verifier.verifyJWZ(token, request)).not.toThrow();
+  
+});
+
+
+test('TestFullVerify', async () => {
+  const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const callback = 'https://test.com/callback';
+  const userId = '1135GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
+  const request: AuthorizationRequestMessage = createAuthorizationRequest(
+    'kyc verification',
+    sender,
+    callback,
+  );
+  expect(request.body.scope.length).toEqual(0);
+  expect(request.body.callbackUrl).toEqual(callback);
+  expect(request.body.reason).toEqual(callback);
+  expect(request.from).toEqual(sender);
+
+  const proofRequest: ZKPRequest = {
+    id: 24,
+    circuit_id: 'credentialAtomicQueryMTP',
+    rules: {
+      query: {
+        allowedIssuers: ['*'],
+        schema: {
+          type: 'KYCCountryOfResidenceCredential',
+          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
+        },
+        req: {
+          countryCode: {
+            $nin: [840, 120, 340, 509],
+          },
+        },
+      },
+    },
+  };
+  request.body.scope.push(proofRequest);
+
+  expect(request.body.scope.length).toEqual(1);
+
+  const mtpProof: ZKPResponse = {
+    id: proofRequest.id,
+    circuit_id: 'credentialAtomicQueryMTP',
     proof_data: {
       pi_a: [
-        '6807142976568489254129987481389970790048870221943660648833750801722749769662',
-        '13811182779758948993435669124001052501939669904238445458453308627013829993881',
+        '20973485107186613835294420504168844900060429745180277370078136645423323796988',
+        '20876512355517454358387352357430469269532511208427702435640954212414846794988',
         '1',
       ],
       pi_b: [
         [
-          '1100658387420856656999617260396587549490320987275888589013664343574809180330',
-          '6271619554100652532302412650545865559102683218896584596952129504406572338279',
+          '15359787792291301524429511563163819833209670586891499149880103897821631812320',
+          '952148097741318750401406678248864482408113418728045541853254838790211944557',
         ],
         [
-          '14732910796480272245291363689840710264816417845998668210234805961967222411399',
-          '697511497805383174761860295477525070010524578030535203059896030784240207952',
+          '3866547068988378419787216494850441937393748849859411619995030091666678234233',
+          '12737260954983772047680437941193675886215315463965099527215354428856166589220',
         ],
         ['1', '0'],
       ],
       pi_c: [
-        '3322888400314063147927477851922827359406772099015587732727269650428166130415',
-        '11791447421105500417246293414158106577578665220990150855390594651727173683574',
+        '14032051669376519932957072147382739134658885782661390170658631107795386034990',
+        '3426651920168576141328466441385872894824417141788260830832563707950605034542',
         '1',
       ],
       protocol: 'groth16',
       curve: 'bn128',
     },
     pub_signals: [
-      '1',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
+      '227999792560601581143923121210388382198276828932112237742319153709274234880',
+      '10099789665300975457802178862296098271243359660315802759495016285352640212814',
+      '12345',
+      '8390795654739203972616926774091445498451520813142121365678565136228528725312',
+      '206811791431269707427589302274952473147879888022142096363950465656014110720',
+      '1653057062',
+      '106590880073303418818490710639556704462',
+      '2',
+      '4',
+      '840',
+      '120',
+      '340',
+      '509',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
     ],
   };
-  const message: AuthorizationResponseMessage = {
+
+  const response: AuthorizationResponseMessage = {
+    id: uuidv4(),
+    thid: request.thid,
+    typ: request.typ,
     type: AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
-    data: {
-      scope: [sigProof, authProof],
+    from: userId,
+    to: sender,
+    body: {
+      message: request.body.message,
+      scope: [mtpProof],
     },
   };
 
-  const verified = await verifyProofs(message);
-  expect(verified).toBeTruthy();
+  let verifier = new Verifier(
+    verificationKeyLoader,
+    schemaLoader,
+    mockStateResolver,
+  );
+  request.id = "7f38a193-0918-4a48-9fac-36adfdb8b542"
+	request.thid = "7f38a193-0918-4a48-9fac-36adfdb8b542" // because it's used in the response
 
-  const token = extractMetadata(message);
-  expect(token).toEqual({
-    id: '119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ',
-    challenge: 1,
-    userState:
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-    scope: {
-      credentialAtomicQuerySig: {
-        IssuerAuthState:
-          '6317996369756476782464660619835940615734517981889733696047139451453239145426',
-        userState:
-          '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-        issuerID:
-          '26599707002460144379092755370384635496563807452878989192352627271768342528',
-        issuerState:
-          '6317996369756476782464660619835940615734517981889733696047139451453239145426',
-        issuerClaimNonRevState:
-          '18605292738057394742004097311192572049290380262377486632479765119429313092475',
-        timestamp: '1642074362',
-        claimSchema: '180410020913331409885634153623124536270',
-        slotIndex: '2',
-        operator: '0',
-        value_0: '10',
-        value_1: '0',
-        value_2: '0',
-        value_3: '0',
-        value_4: '0',
-        value_5: '0',
-        value_6: '0',
-        value_7: '0',
-        value_8: '0',
-        value_9: '0',
-        value_10: '0',
-        value_11: '0',
-        value_12: '0',
-        value_13: '0',
-        value_14: '0',
-        value_15: '0',
-        value_16: '0',
-        value_17: '0',
-        value_18: '0',
-        value_19: '0',
-        value_20: '0',
-        value_21: '0',
-        value_22: '0',
-        value_23: '0',
-        value_24: '0',
-        value_25: '0',
-        value_26: '0',
-        value_27: '0',
-        value_28: '0',
-        value_29: '0',
-        value_30: '0',
-        value_31: '0',
-        value_32: '0',
-        value_33: '0',
-        value_34: '0',
-        value_35: '0',
-        value_36: '0',
-        value_37: '0',
-        value_38: '0',
-        value_39: '0',
-        value_40: '0',
-        value_41: '0',
-        value_42: '0',
-        value_43: '0',
-        value_44: '0',
-        value_45: '0',
-        value_46: '0',
-        value_47: '0',
-        value_48: '0',
-        value_49: '0',
-        value_50: '0',
-        value_51: '0',
-        value_52: '0',
-        value_53: '0',
-        value_54: '0',
-        value_55: '0',
-        value_56: '0',
-        value_57: '0',
-        value_58: '0',
-        value_59: '0',
-        value_60: '0',
-        value_61: '0',
-        value_62: '0',
-        value_63: '0',
-      },
-      auth: {
-        userState:
-          '18656147546666944484453899241916469544090258810192803949522794490493271005313',
-      },
-    },
-  });
+
+ let token = 'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aCIsImNyaXQiOlsiY2lyY3VpdElkIl0sInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zLXprcC1qc29uIn0.eyJpZCI6IjI4NDk0MDA3LTljNDktNGYxYS05Njk0LTc3MDBjMDg4NjViZiIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1wbGFpbi1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiI3ZjM4YTE5My0wOTE4LTRhNDgtOWZhYy0zNmFkZmRiOGI1NDIiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRfaWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFAiLCJwcm9vZiI6eyJwaV9hIjpbIjIwOTczNDg1MTA3MTg2NjEzODM1Mjk0NDIwNTA0MTY4ODQ0OTAwMDYwNDI5NzQ1MTgwMjc3MzcwMDc4MTM2NjQ1NDIzMzIzNzk2OTg4IiwiMjA4NzY1MTIzNTU1MTc0NTQzNTgzODczNTIzNTc0MzA0NjkyNjk1MzI1MTEyMDg0Mjc3MDI0MzU2NDA5NTQyMTI0MTQ4NDY3OTQ5ODgiLCIxIl0sInBpX2IiOltbIjE1MzU5Nzg3NzkyMjkxMzAxNTI0NDI5NTExNTYzMTYzODE5ODMzMjA5NjcwNTg2ODkxNDk5MTQ5ODgwMTAzODk3ODIxNjMxODEyMzIwIiwiOTUyMTQ4MDk3NzQxMzE4NzUwNDAxNDA2Njc4MjQ4ODY0NDgyNDA4MTEzNDE4NzI4MDQ1NTQxODUzMjU0ODM4NzkwMjExOTQ0NTU3Il0sWyIzODY2NTQ3MDY4OTg4Mzc4NDE5Nzg3MjE2NDk0ODUwNDQxOTM3MzkzNzQ4ODQ5ODU5NDExNjE5OTk1MDMwMDkxNjY2Njc4MjM0MjMzIiwiMTI3MzcyNjA5NTQ5ODM3NzIwNDc2ODA0Mzc5NDExOTM2NzU4ODYyMTUzMTU0NjM5NjUwOTk1MjcyMTUzNTQ0Mjg4NTYxNjY1ODkyMjAiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE0MDMyMDUxNjY5Mzc2NTE5OTMyOTU3MDcyMTQ3MzgyNzM5MTM0NjU4ODg1NzgyNjYxMzkwMTcwNjU4NjMxMTA3Nzk1Mzg2MDM0OTkwIiwiMzQyNjY1MTkyMDE2ODU3NjE0MTMyODQ2NjQ0MTM4NTg3Mjg5NDgyNDQxNzE0MTc4ODI2MDgzMDgzMjU2MzcwNzk1MDYwNTAzNDU0MiIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjIyNzk5OTc5MjU2MDYwMTU4MTE0MzkyMzEyMTIxMDM4ODM4MjE5ODI3NjgyODkzMjExMjIzNzc0MjMxOTE1MzcwOTI3NDIzNDg4MCIsIjEwMDk5Nzg5NjY1MzAwOTc1NDU3ODAyMTc4ODYyMjk2MDk4MjcxMjQzMzU5NjYwMzE1ODAyNzU5NDk1MDE2Mjg1MzUyNjQwMjEyODE0IiwiMTIzNDUiLCI4MzkwNzk1NjU0NzM5MjAzOTcyNjE2OTI2Nzc0MDkxNDQ1NDk4NDUxNTIwODEzMTQyMTIxMzY1Njc4NTY1MTM2MjI4NTI4NzI1MzEyIiwiMjA2ODExNzkxNDMxMjY5NzA3NDI3NTg5MzAyMjc0OTUyNDczMTQ3ODc5ODg4MDIyMTQyMDk2MzYzOTUwNDY1NjU2MDE0MTEwNzIwIiwiMTY1MzA1NzA2MiIsIjEwNjU5MDg4MDA3MzMwMzQxODgxODQ5MDcxMDYzOTU1NjcwNDQ2MiIsIjIiLCI0IiwiODQwIiwiMTIwIiwiMzQwIiwiNTA5IiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIl19XX0sImZyb20iOiIxMTl0cWNlV2RSZDJGNlduQXlWdUZRUkZqSzNXVVhxMkxvclNQeUc5TEoiLCJ0byI6IjExMjVHSnFndzZZRXNLRndqNjNHWTg3TU14UEw5a3dES3hQVWl3TUxOWiJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjEwNDEyNDM2MTk3NDk0NDc5NTg3Mzk2NjY3Mzg1NzA3MzY4MjgyNTY4MDU1MTE4MjY5ODY0NDU3OTI3NDc2OTkwNjM2NDE5NzAyNDUxIiwiMTA3ODE3MzkwOTU0NDUyMDE5OTY0Njc0MTQ4MTc5NDE4MDU4Nzk5ODI0MTA2NzYzODYxNzY4NDUyOTYzNzYzNDQ5ODUxODc2NjMzMzQiLCIxIl0sInBpX2IiOltbIjE4MDY3ODY4NzQwMDA2MjI1NjE1NDQ3MTk0NDcxMzcwNjU4OTgwOTk5OTI2MzY5Njk1MjkzMTE1NzEyOTUxMzY2NzA3NzQ0MDY0NjA2IiwiMjE1OTkyNDE1NzA1NDc3MzEyMzQzMDQwMzk5ODkxNjY0MDY0MTU4OTk3MTc2NTkxNzE3NjAwNDM4OTk1MDkxNTIwMTE0Nzk2NjM3NTciXSxbIjY2OTk1NDA3MDUwNzQ5MjQ5OTc5NjcyNzUxODYzMjQ3NTU0NDIyNjA2MDc2NzE1MzY0MzQ0MDMwNjU1MjkxNjQ3Njk3MDI0NzczOTgiLCIxMTI1NzY0MzI5MzIwMTYyNzQ1MDI5MzE4NTE2NDI4ODQ4MjQyMDU1OTgwNjY0OTkzNzM3MTU2ODE2MDc0MjYwMTM4NjY3MTY1OTgwMCJdLFsiMSIsIjAiXV0sInBpX2MiOlsiNjIxNjQyMzUwMzI4OTQ5NjI5Mjk0NDA1MjAzMjE5MDM1MzYyNTQyMjQxMTQ4MzM4MzM3ODk3OTAyOTY2NzI0Mzc4NTMxOTIwODA5NSIsIjE0ODE2MjE4MDQ1MTU4Mzg4NzU4NTY3NjA4NjA1NTc2Mzg0OTk0MzM5NzE0MzkwMzcwMzAwOTYzNTgwNjU4Mzg2NTM0MTU4NjAzNzExIiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiNDk3Njk0Mzk0Mzk2NjM2NTA2MjEyMzIyMTk5OTgzODAxMzE3MTIyODE1NjQ5NTM2NjI3MDM3NzI2MTM4MDQ0OTc4Nzg3MTg5ODY3MiIsIjE4NjU2MTQ3NTQ2NjY2OTQ0NDg0NDUzODk5MjQxOTE2NDY5NTQ0MDkwMjU4ODEwMTkyODAzOTQ5NTIyNzk0NDkwNDkzMjcxMDA1MzEzIiwiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIl19';
+
+
+  expect(await verifier.fullVerify(token, request)).not.toThrow();
+  
 });
+

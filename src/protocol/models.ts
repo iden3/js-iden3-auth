@@ -1,37 +1,47 @@
 // Message is basic protocol message
 export interface Message {
+  id: string;
+  typ: string;
+  thid: string;
   type: string;
-  data: unknown;
+  body: unknown;
 }
 
 // AuthorizationRequestMessage is message that representes protocol authorization request
 export interface AuthorizationRequestMessage {
+  id: string;
+  typ: string;
   type: string;
-  data: AuthorizationRequestBody;
+  thid: string;
+  body: AuthorizationRequestBody;
+  from: string;
+  to?: string;
 }
 // AuthorizationResponseMessage is message that representes protocol authorization response
 export interface AuthorizationResponseMessage {
+  id: string;
+  typ: string;
   type: string;
-  data: AuthorizationResponseBody;
+  thid: string;
+  body: AuthorizationResponseBody;
+  from: string;
+  to: string;
 }
 
 //AuthorizationRequestBody is body for AuthorizationRequestMessage
 export interface AuthorizationRequestBody {
-  audience?: string;
-  callbackUrl?: string;
+  message?: string;
+  reason: string;
+  callbackUrl: string;
   scope: ZKPRequest[];
 }
 
 //AuthorizationRequestBody is body for AuthorizationResponseMessage
 export interface AuthorizationResponseBody {
+  message?: string;
   scope: ZKPResponse[];
 }
 
-//CredentialFethcRequestBody is body for CredentialFetchRequestMessage
-export interface CredentialFetchRequestBody {
-  schema?: string;
-  claim_id?: string;
-}
 // ProofData is a result of snarkJS groth16 proof generation
 export interface ProofData {
   pi_a: string[];
@@ -43,28 +53,23 @@ export interface ProofData {
 
 // ZKPRequest is a request for zkp proof
 export interface ZKPRequest {
+  id: number;
   circuit_id: string;
-  rules?: unknown;
+  optional?: boolean;
+  rules: unknown;
 }
 
 // ZKPResponse is a response with a zkp
 export interface ZKPResponse {
+  id: number;
   circuit_id: string;
-  pub_signals?: string[];
-  proof_data?: ProofData;
+  pub_signals: string[];
+  proof_data: ProofData;
 }
 
-// ProofMetadata is used for token
-export class ProofMetadata {
-  public additionalData: any;
-  constructor(public authData: AuthenticationMetadata) {
-    this.additionalData = {};
-  }
-}
-
-// AuthenticationMetadata is auth data in user token
-export interface AuthenticationMetadata {
-  userIdentifier: string;
-  userState: string;
-  authenticationChallenge: number;
+// Schema is a protocol schema
+export interface Schema {
+  hash?: string;
+  url: string;
+  type: string;
 }
