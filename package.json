@@ -35,9 +35,11 @@
     "url": "https://github.com/iden3/js-iden3-auth"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "base58-js": "^1.0.0",
     "cross-sha256": "^1.2.0",
     "ethers": "^5.4.0",
+    "ipfs-http-client": "^56.0.3",
     "keccak256": "^1.0.6",
     "nested-property": "^4.0.0",
     "rollup": "^2.72.1",
