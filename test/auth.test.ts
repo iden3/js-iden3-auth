@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getCurveFromName } from 'ffjavascript';
 import { FSKeyLoader } from '../src/loaders/key';
-import { ISchemaLoader, DefaultSchemaLoader } from '../src/loaders/schema';
+import { ISchemaLoader, UniversalSchemaLoader } from '../src/loaders/schema';
 import { IStateResolver, ResolvedState } from '../src/state/resolver';
 
 afterAll(async () => {
@@ -24,7 +24,7 @@ afterAll(async () => {
 });
 
 var verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./data');
-var schemaLoader: ISchemaLoader = new DefaultSchemaLoader('ipfs.io');
+var schemaLoader: ISchemaLoader = new UniversalSchemaLoader('ipfs.io');
 
 class MockResolver implements IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState> {
