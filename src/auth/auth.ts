@@ -1,4 +1,3 @@
-import { TextEncoder } from 'util';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
@@ -96,14 +95,14 @@ export class Verifier {
         );
       }
 
-      const circuitVerifier = Circuits.getCircuitPubSignals(circuitId);
-      if (!circuitVerifier) {
+      const CircuitVerifier = Circuits.getCircuitPubSignals(circuitId);
+      if (!CircuitVerifier) {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
       // verify query
 
-      const verifier = new circuitVerifier(proofResp.pub_signals);
+      const verifier = new CircuitVerifier(proofResp.pub_signals);
       verifier.verifyQuery(
         proofRequest.rules['query'] as Query,
         this.schemaLoader,
@@ -130,15 +129,16 @@ export class Verifier {
       );
     }
 
-    const circuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
-    if (!circuitVerifier) {
+    const CircuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
+
+    if (!CircuitVerifier) {
       throw new Error(
         `circuit ${token.circuitId} is not supported by the library`,
       );
     }
 
     // outputs unmarshaller
-    const verifier = new circuitVerifier(token.pubSignals);
+    const verifier = new CircuitVerifier(token.pubSignals);
 
     // state verification
     verifier.verifyStates(this.stateResolver);
