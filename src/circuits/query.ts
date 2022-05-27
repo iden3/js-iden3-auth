@@ -1,4 +1,4 @@
-import { Core } from 'core/core';
+import { Core } from '../core/core';
 import keccak256 from 'keccak256';
 import { ISchemaLoader } from 'loaders/schema';
 import nestedProperty from 'nested-property';

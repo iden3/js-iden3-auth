@@ -1,13 +1,11 @@
-import { Core } from 'core/core';
-import { Id } from 'core/id';
+import { Core } from '../core/core';
+import { Id } from '../core/id';
 import { ISchemaLoader } from 'loaders/schema';
 import { IStateResolver, ResolvedState } from 'state/resolver';
 import { checkQueryRequest, ClaimOutputs, Query } from './query';
-import { PubSignalsUnmarshaller, PubSignalsVerifier } from './registry';
+import { PubSignalsVerifier } from './registry';
 
-export class AtomicQueryMTPPubSignals
-  implements PubSignalsVerifier, PubSignalsUnmarshaller
-{
+export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
   userId: Id;
   userState: bigint;
   challenge: bigint;
@@ -19,7 +17,7 @@ export class AtomicQueryMTPPubSignals
   operator: number;
   timestamp: number;
 
-  unmarshall(pubSignals: string[]): Promise<void> {
+  constructor(pubSignals: string[]) {
     if (pubSignals.length != 73) {
       throw new Error(
         `invalid number of Output values expected ${73} got ${
@@ -48,8 +46,6 @@ export class AtomicQueryMTPPubSignals
       const val = pubSignals[9 + index];
       this.values.push(this.values[val]);
     }
-
-    return;
   }
 
   async verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void> {

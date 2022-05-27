@@ -1,13 +1,11 @@
 import { IStateResolver, ResolvedState } from 'state/resolver';
-import { PubSignalsUnmarshaller, PubSignalsVerifier } from './registry';
+import { PubSignalsVerifier } from './registry';
 import { checkQueryRequest, ClaimOutputs, Query } from './query';
-import { Core } from 'core/core';
-import { Id } from 'core/id';
+import { Core } from '../core/core';
+import { Id } from '../core/id';
 import { ISchemaLoader } from 'loaders/schema';
 
-export class AtomicQuerySigPubSignals
-  implements PubSignalsVerifier, PubSignalsUnmarshaller
-{
+export class AtomicQuerySigPubSignals implements PubSignalsVerifier {
   userId: Id;
   userState: bigint;
   challenge: bigint;
@@ -22,7 +20,7 @@ export class AtomicQuerySigPubSignals
   timestamp: number;
 
   // TODO: async here, return type
-  unmarshall(pubSignals: string[]): Promise<void> {
+  constructor(pubSignals: string[]) {
     if (pubSignals.length != 75) {
       throw new Error(
         `invalid number of Output values expected ${75} got ${
@@ -55,7 +53,6 @@ export class AtomicQuerySigPubSignals
       const val = pubSignals[11 + index];
       this.values.push(this.values[val]);
     }
-    return;
   }
 
   async verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void> {

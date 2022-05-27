@@ -14,8 +14,8 @@ import { verifyProof } from '../proofs/zk';
 import { IKeyLoader } from 'loaders/key';
 import { ISchemaLoader } from 'loaders/schema';
 import { IStateResolver } from 'state/resolver';
-import { Circuits } from 'circuits/registry';
-import { Query } from 'circuits/query';
+import { Query } from '../circuits/query';
+import { Circuits } from '../circuits/registry';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -103,15 +103,15 @@ export class Verifier {
 
       // verify query
 
-      circuitVerifier.unmarshall(proofResp.pub_signals);
-      circuitVerifier.verifyQuery(
+      const verifier = new circuitVerifier(proofResp.pub_signals);
+      verifier.verifyQuery(
         proofRequest.rules['query'] as Query,
         this.schemaLoader,
       );
 
       // verify states
 
-      circuitVerifier.verifyStates(this.stateResolver);
+      verifier.verifyStates(this.stateResolver);
     }
   }
 
@@ -138,10 +138,10 @@ export class Verifier {
     }
 
     // outputs unmarshaller
-    circuitVerifier.unmarshall(token.pubSignals);
+    const verifier = new circuitVerifier(token.pubSignals);
 
     // state verification
-    circuitVerifier.verifyStates(this.stateResolver);
+    verifier.verifyStates(this.stateResolver);
 
     return token;
   }
