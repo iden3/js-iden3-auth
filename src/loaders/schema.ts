@@ -1,32 +1,28 @@
 import axios from 'axios';
-import { TextDecoder, TextEncoder } from 'util';
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { TextEncoder } from 'util';
+import { create, IPFSHTTPClient as IpfsHttpClient } from 'ipfs-http-client';
 import { Schema } from 'protocol/models';
-import { Script } from 'vm';
 
-export type SchemaLoadResult = {
+export interface SchemaLoadResult {
   schema: Uint8Array;
   extension: string;
-};
+}
 
 export interface ISchemaLoader {
   load(schema: Schema): Promise<SchemaLoadResult>;
 }
 
 export class UniversalSchemaLoader implements ISchemaLoader {
-  private ipfsUrl: string;
-  constructor(ipfsUrl: string) {
-    this.ipfsUrl = ipfsUrl;
-  }
+  //TODO: ipfsUrl not used
+  constructor(private ipfsUrl: string) {}
   public async load(schema: Schema): Promise<SchemaLoadResult> {
-    let l = getLoader(schema.url);
-    let schemaRes = await l.load(schema);
+    const l = getLoader(schema.url);
+    const schemaRes = await l.load(schema);
     return schemaRes;
   }
 }
 
 export class HttpSchemaLoader implements ISchemaLoader {
-  constructor() {}
   public async load(schema: Schema): Promise<SchemaLoadResult> {
     const resp = await axios.get(schema.url);
 
@@ -39,14 +35,14 @@ export class HttpSchemaLoader implements ISchemaLoader {
   }
 }
 export class IpfsSchemaLoader implements ISchemaLoader {
-  private readonly client: IPFSHTTPClient;
+  private readonly client: IpfsHttpClient;
   constructor(private readonly url: string) {
     this.client = create({ url: this.url });
   }
   public async load(schema: Schema): Promise<SchemaLoadResult> {
     const uri = new URL(schema.url);
 
-    const schemaRes = await this.client.cat(uri.host);
+    const schemaRes = this.client.cat(uri.host);
 
     let schemaBytes: Uint8Array;
     for await (const num of schemaRes) {

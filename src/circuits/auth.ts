@@ -11,26 +11,28 @@ export class AuthPubSignals
   userState: bigint;
   userId: Id;
 
-  unmarshall(pubsignals: string[]): Promise<void> {
-    if (pubsignals.length != 3) {
+  unmarshall(pubSignals: string[]): Promise<void> {
+    if (pubSignals.length != 3) {
       throw new Error(
         `invalid number of Output values expected ${3} got ${
-          pubsignals.length
+          pubSignals.length
         }`,
       );
     }
-    this.challenge = BigInt(pubsignals[0]);
-    this.userState = BigInt(pubsignals[1]);
+    this.challenge = BigInt(pubSignals[0]);
+    this.userState = BigInt(pubSignals[1]);
 
-    const bytes: Uint8Array = Core.intToBytes(BigInt(pubsignals[2]));
+    const bytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[2]));
     this.userId = Id.idFromBytes(bytes);
     return;
   }
+
   async verifyQuery(query: Query): Promise<void> {
     throw new Error('Method not implemented.');
   }
+
   async verifyStates(resolver: IStateResolver): Promise<void> {
-    let userStateResolved: ResolvedState = await resolver.resolve(
+    const userStateResolved: ResolvedState = await resolver.resolve(
       this.userId.bigInt(),
       this.userState,
     );

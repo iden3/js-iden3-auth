@@ -19,40 +19,41 @@ export class AtomicQueryMTPPubSignals
   operator: number;
   timestamp: number;
 
-  unmarshall(pubsignals: string[]): Promise<void> {
-    if (pubsignals.length != 73) {
+  unmarshall(pubSignals: string[]): Promise<void> {
+    if (pubSignals.length != 73) {
       throw new Error(
         `invalid number of Output values expected ${73} got ${
-          pubsignals.length
+          pubSignals.length
         }`,
       );
     }
 
-    const userIdBytes: Uint8Array = Core.intToBytes(BigInt(pubsignals[0]));
+    const userIdBytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[0]));
     this.userId = Id.idFromBytes(userIdBytes);
-    this.userState = BigInt(pubsignals[1]);
-    this.challenge = BigInt(pubsignals[2]);
-    this.issuerClaimIdenState = BigInt(pubsignals[3]);
-    const issuerIdBytes: Uint8Array = Core.intToBytes(BigInt(pubsignals[4]));
+    this.userState = BigInt(pubSignals[1]);
+    this.challenge = BigInt(pubSignals[2]);
+    this.issuerClaimIdenState = BigInt(pubSignals[3]);
+    const issuerIdBytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[4]));
 
     this.issuerId = Id.idFromBytes(issuerIdBytes);
-    this.timestamp = parseInt(pubsignals[5], 10);
+    this.timestamp = parseInt(pubSignals[5], 10);
 
-    this.claimSchema = BigInt(pubsignals[6]);
+    this.claimSchema = BigInt(pubSignals[6]);
 
-    this.slotIndex = parseInt(pubsignals[7], 10);
-    this.operator = parseInt(pubsignals[8], 10);
+    this.slotIndex = parseInt(pubSignals[7], 10);
+    this.operator = parseInt(pubSignals[8], 10);
 
     this.values = [];
     for (let index = 0; index < 64; index++) {
-      const val = pubsignals[9 + index];
+      const val = pubSignals[9 + index];
       this.values.push(this.values[val]);
     }
 
     return;
   }
+
   async verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void> {
-    let outs: ClaimOutputs = {
+    const outs: ClaimOutputs = {
       issuerId: this.issuerId.string(),
       schemaHash: this.claimSchema,
       operator: this.operator,
@@ -61,8 +62,9 @@ export class AtomicQueryMTPPubSignals
     };
     return await checkQueryRequest(query, outs, schemaLoader);
   }
+
   async verifyStates(resolver: IStateResolver): Promise<void> {
-    let userStateResolved: ResolvedState = await resolver.resolve(
+    const userStateResolved: ResolvedState = await resolver.resolve(
       this.userId.bigInt(),
       this.userState,
     );
@@ -70,13 +72,12 @@ export class AtomicQueryMTPPubSignals
       throw new Error(`only latest states are supported`);
     }
 
-    let issuerStateResolved: ResolvedState = await resolver.resolve(
+    const issuerStateResolved: ResolvedState = await resolver.resolve(
       this.issuerId.bigInt(),
       this.issuerClaimIdenState,
     );
     if (!issuerStateResolved) {
       throw new Error(`issuer state is not valid`);
     }
-    return;
   }
 }
