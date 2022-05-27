@@ -1,3 +1,4 @@
+import { TextEncoder } from 'util';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
@@ -71,104 +72,105 @@ export class Verifier {
       );
     }
 
-    for (const proofRequst of request.body.scope) {
-      let proofResp = response.body.scope.find((proofResp) => {
-        return proofResp.id == proofRequst.id;
-      });
+    for (const proofRequest of request.body.scope) {
+      const proofResp = response.body.scope.find(
+        (proofResp) => proofResp.id === proofRequest.id,
+      );
       if (!proofResp) {
-        throw new Error(`proof is not given for requstid ${proofRequst.id}`);
+        throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
-      let key = await this.keyLoader.load(proofResp.circuit_id);
-      if (key.length == 0) {
+      const circuitId = proofResp.circuit_id;
+      const key = await this.keyLoader.load(circuitId);
+      if (!key.length) {
         throw new Error(
-          `verification key is not found for circuit ${proofResp.circuit_id}`,
+          `verification key is not found for circuit ${circuitId}`,
         );
       }
-
-      let jsonKey = JSON.parse(key.toString());
+      console.log(key, typeof key);
+      const jsonKey = JSON.parse(key.toString());
 
       const isValid = await verifyProof(proofResp, jsonKey);
       if (!isValid) {
         throw new Error(
-          `Proof with circuit id ${proofResp.circuit_id} and request id ${proofResp.id} is not valid`,
+          `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`,
         );
       }
 
-      let circuitVerifier =  Circuits.getCircuitPubSignals(proofResp.circuit_id);
-      if (!circuitVerifier){
-          throw new Error(`circuit ${proofResp.circuit_id} is not supported by the library`);
+      const circuitVerifier = Circuits.getCircuitPubSignals(circuitId);
+      if (!circuitVerifier) {
+        throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
-  
       // verify query
-      
-      circuitVerifier.unmarshall(proofResp.pub_signals)
-      circuitVerifier.verifyQuery(proofRequst.rules["query"] as Query,this.schemaLoader)
+
+      circuitVerifier.unmarshall(proofResp.pub_signals);
+      circuitVerifier.verifyQuery(
+        proofRequest.rules['query'] as Query,
+        this.schemaLoader,
+      );
 
       // verify states
 
-      circuitVerifier.verifyStates(this.stateResolver)
-
+      circuitVerifier.verifyStates(this.stateResolver);
     }
   }
+
   public async verifyJWZ(
     tokenStr: string,
     request: AuthorizationRequestMessage,
   ): Promise<MockToken> {
     // TODO : add jwz-parse
 
-    var token =  new MockToken("auth","circuitId");
+    const token = new MockToken('auth', 'circuitId');
 
-    let key = await this.keyLoader.load(token.circuitId);
-    if (key.length == 0) {
+    const key = await this.keyLoader.load(token.circuitId);
+    if (!key.length) {
       throw new Error(
         `verification key is not found for circuit ${token.circuitId}`,
       );
     }
 
+    const circuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
+    if (!circuitVerifier) {
+      throw new Error(
+        `circuit ${token.circuitId} is not supported by the library`,
+      );
+    }
 
-     let circuitVerifier =  Circuits.getCircuitPubSignals(token.circuitId);
-     if (!circuitVerifier){
-         throw new Error(`circuit ${token.circuitId} is not supported by the library`);
-     }
-      
-     // outputs unmarshaller
+    // outputs unmarshaller
+    circuitVerifier.unmarshall(token.pubSignals);
 
-     circuitVerifier.unmarshall(token.pubsignals)
-     
-     // state verification
-
-     circuitVerifier.verifyStates(this.stateResolver)
+    // state verification
+    circuitVerifier.verifyStates(this.stateResolver);
 
     return token;
   }
+
   public async fullVerify(
-    tokenStr :string,
+    tokenStr: string,
     request: AuthorizationRequestMessage,
   ) {
-    
-    let token = await this.verifyJWZ(tokenStr,request)
+    const token = await this.verifyJWZ(tokenStr, request);
 
-    let payload = token.getPayload()
+    const payload = token.getPayload();
 
-    let response = JSON.parse(payload.toString()) as AuthorizationResponseMessage
+    const response = JSON.parse(
+      payload.toString(),
+    ) as AuthorizationResponseMessage;
 
-    await this.verifyAuthResponse(response,request)
-
+    await this.verifyAuthResponse(response, request);
   }
 }
 
 export class MockToken {
-  alg: string;
-  circuitId: string;
-  pubsignals :string [];
+  pubSignals: string[];
 
-  constructor(alg: string, circuitId: string) {
+  constructor(public readonly alg: string, public readonly circuitId: string) {
     this.alg = alg;
     this.circuitId = circuitId;
   }
 
-  getPayload() {
-    return  Buffer.from("payload")
+  getPayload(): string {
+    return 'payload';
   }
 }

@@ -21,44 +21,44 @@ export class AtomicQuerySigPubSignals
   operator: number;
   timestamp: number;
 
-  unmarshall(pubsignals: string[]): Promise<void> {
-    if (pubsignals.length != 75) {
+  // TODO: async here, return type
+  unmarshall(pubSignals: string[]): Promise<void> {
+    if (pubSignals.length != 75) {
       throw new Error(
         `invalid number of Output values expected ${75} got ${
-          pubsignals.length
+          pubSignals.length
         }`,
       );
     }
 
-    this.issuerAuthState = BigInt(pubsignals[0]);
-    const userIdBytes: Uint8Array = Core.intToBytes(BigInt(pubsignals[1]));
+    this.issuerAuthState = BigInt(pubSignals[0]);
+    const userIdBytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[1]));
     this.userId = Id.idFromBytes(userIdBytes);
-    this.userState = BigInt(pubsignals[2]);
-    this.challenge = BigInt(pubsignals[3]);
+    this.userState = BigInt(pubSignals[2]);
+    this.challenge = BigInt(pubSignals[3]);
 
-    const issuerIdBytes: Uint8Array = Core.intToBytes(BigInt(pubsignals[4]));
+    const issuerIdBytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[4]));
 
     this.issuerId = Id.idFromBytes(issuerIdBytes);
-    this.issuerState = BigInt(pubsignals[5]);
-    this.issuerClaimNonRevState = BigInt(pubsignals[6]);
+    this.issuerState = BigInt(pubSignals[5]);
+    this.issuerClaimNonRevState = BigInt(pubSignals[6]);
 
-    this.timestamp = parseInt(pubsignals[7], 10);
+    this.timestamp = parseInt(pubSignals[7], 10);
 
-    this.claimSchema = BigInt(pubsignals[8]);
+    this.claimSchema = BigInt(pubSignals[8]);
 
-    this.slotIndex = parseInt(pubsignals[9], 10);
-    this.operator = parseInt(pubsignals[10], 10);
+    this.slotIndex = parseInt(pubSignals[9], 10);
+    this.operator = parseInt(pubSignals[10], 10);
 
     this.values = [];
     for (let index = 0; index < 64; index++) {
-      const val = pubsignals[11 + index];
+      const val = pubSignals[11 + index];
       this.values.push(this.values[val]);
     }
-
-    return;
   }
+
   async verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void> {
-    let outs: ClaimOutputs = {
+    const outs: ClaimOutputs = {
       issuerId: this.issuerId.string(),
       schemaHash: this.claimSchema,
       operator: this.operator,
@@ -68,7 +68,7 @@ export class AtomicQuerySigPubSignals
     return await checkQueryRequest(query, outs, schemaLoader);
   }
   async verifyStates(resolver: IStateResolver): Promise<void> {
-    let userStateResolved: ResolvedState = await resolver.resolve(
+    const userStateResolved: ResolvedState = await resolver.resolve(
       this.userId.bigInt(),
       this.userState,
     );
@@ -76,7 +76,7 @@ export class AtomicQuerySigPubSignals
       throw new Error(`only latest states are supported`);
     }
 
-    let issuerStateResolved: ResolvedState = await resolver.resolve(
+    const issuerStateResolved: ResolvedState = await resolver.resolve(
       this.issuerId.bigInt(),
       this.issuerState,
     );
