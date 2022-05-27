@@ -55,6 +55,7 @@ export class AtomicQuerySigPubSignals
       const val = pubSignals[11 + index];
       this.values.push(this.values[val]);
     }
+    return;
   }
 
   async verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void> {

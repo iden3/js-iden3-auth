@@ -13,10 +13,9 @@ export interface ISchemaLoader {
 }
 
 export class UniversalSchemaLoader implements ISchemaLoader {
-  //TODO: ipfsUrl not used
   constructor(private ipfsUrl: string) {}
   public async load(schema: Schema): Promise<SchemaLoadResult> {
-    const l = getLoader(schema.url);
+    const l = getLoader(schema.url, this.ipfsUrl);
     const schemaRes = await l.load(schema);
     return schemaRes;
   }
