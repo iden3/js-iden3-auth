@@ -80,15 +80,13 @@ export class Verifier {
       }
       const circuitId = proofResp.circuit_id;
       const key = await this.keyLoader.load(circuitId);
-      if (!key.length) {
+      if (!key) {
         throw new Error(
           `verification key is not found for circuit ${circuitId}`,
         );
       }
-      console.log(key, typeof key);
-      const jsonKey = JSON.parse(key.toString());
 
-      const isValid = await verifyProof(proofResp, jsonKey);
+      const isValid = await verifyProof(proofResp, key);
       if (!isValid) {
         throw new Error(
           `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`,
@@ -103,14 +101,14 @@ export class Verifier {
       // verify query
 
       const verifier = new CircuitVerifier(proofResp.pub_signals);
-      verifier.verifyQuery(
+      await verifier.verifyQuery(
         proofRequest.rules['query'] as Query,
         this.schemaLoader,
       );
-
+      
       // verify states
 
-      verifier.verifyStates(this.stateResolver);
+      await verifier.verifyStates(this.stateResolver);
     }
   }
 
@@ -123,7 +121,7 @@ export class Verifier {
     const token = new MockToken('auth', 'circuitId');
 
     const key = await this.keyLoader.load(token.circuitId);
-    if (!key.length) {
+    if (!key) {
       throw new Error(
         `verification key is not found for circuit ${token.circuitId}`,
       );

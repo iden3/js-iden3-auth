@@ -9,7 +9,7 @@ export interface IStateResolver {
 export type ResolvedState = {
   latest: boolean;
   state: any;
-  transition_timestamp: number | string;
+  transitionTimestamp: number | string;
 };
 export class EthStateResolver implements IStateResolver {
   private rpcUrl: string;
@@ -30,15 +30,12 @@ export class EthStateResolver implements IStateResolver {
 
     if (contractState.toBigInt() === 0n) {
       // TODO : throw error in checkGenesisStateId instead of returning
-      const error = checkGenesisStateId(id, state);
-      if (error) {
-        throw new Error(error);
-      }
-
-      return { latest: true, state, transition_timestamp: 0 };
+      const isGenesis = isGenesisStateId(id, state);
+      return { latest: true, state, transitionTimestamp: 0 };
     }
 
     if (contractState.toBigInt() !== state) {
+
       const transitionInfo = await contract.getTransitionInfo(contractState);
 
       if (transitionInfo[5].toBigInt() === 0n) {
@@ -52,15 +49,15 @@ export class EthStateResolver implements IStateResolver {
       return {
         latest: false,
         state: state,
-        transition_timestamp: transitionInfo[0].toBigInt(),
+        transitionTimestamp: transitionInfo[0].toBigInt(),
       };
     }
 
-    return { latest: true, state, transition_timestamp: 0 };
+    return { latest: true, state, transitionTimestamp: 0 };
   }
 }
 
-export function checkGenesisStateId(id: bigint, state: bigint): string {
+export function isGenesisStateId(id: bigint, state: bigint): boolean {
   const idBytes = toLittleEndian(id, 31);
 
   const typeBJP0 = new Uint8Array(2);
@@ -75,10 +72,12 @@ export function checkGenesisStateId(id: bigint, state: bigint): string {
   ]);
 
   if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
-    return `ID from genesis state (${JSON.stringify(
-      idFromStateBytes,
-    )}) and provided (${JSON.stringify(idBytes)}) don't match`;
+    throw new Error(
+      `ID from genesis state (${JSON.stringify(
+        idFromStateBytes,
+      )}) and provided (${JSON.stringify(idBytes)}) don't match`,
+    );
   }
 
-  return null;
+  return true;
 }

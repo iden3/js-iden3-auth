@@ -23,12 +23,12 @@ export class UniversalSchemaLoader implements ISchemaLoader {
 
 export class HttpSchemaLoader implements ISchemaLoader {
   public async load(schema: Schema): Promise<SchemaLoadResult> {
-    const resp = await axios.get(schema.url);
+    const resp = await axios.get(schema.url,{      responseType: 'arraybuffer',
+  });
 
-    const schemaBytes = new TextEncoder().encode(JSON.stringify(resp.data));
-
+    // const schemaBytes = new TextEncoder().encode(JSON.stringify(resp.data));
     return {
-      schema: schemaBytes,
+      schema:     resp.data as Uint8Array,
       extension: 'json-ld',
     };
   }
@@ -60,10 +60,10 @@ export function getLoader(url: string, ipfsConfigUrl?: string): ISchemaLoader {
   const uri = new URL(url);
 
   switch (uri.protocol) {
-    case 'http':
-    case 'https':
+    case 'http:':
+    case 'https:':
       return new HttpSchemaLoader();
-    case 'ipfs':
+    case 'ipfs:':
       return new IpfsSchemaLoader(ipfsConfigUrl);
 
     default:

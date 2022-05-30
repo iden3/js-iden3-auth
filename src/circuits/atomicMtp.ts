@@ -56,7 +56,6 @@ export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
       slotIndex: this.slotIndex,
       value: this.values,
     };
-    console.log(outs);
     return await checkQueryRequest(query, outs, schemaLoader);
   }
 
@@ -65,6 +64,7 @@ export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
       this.userId.bigInt(),
       this.userState,
     );
+
     if (!userStateResolved.latest) {
       throw new Error(`only latest states are supported`);
     }
