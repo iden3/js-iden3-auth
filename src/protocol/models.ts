@@ -64,7 +64,7 @@ export interface ZKPResponse {
   id: number;
   circuit_id: string;
   pub_signals: string[];
-  proof_data: ProofData;
+  proof: ProofData;
 }
 
 // Schema is a protocol schema
