@@ -23,12 +23,9 @@ export class UniversalSchemaLoader implements ISchemaLoader {
 
 export class HttpSchemaLoader implements ISchemaLoader {
   public async load(schema: Schema): Promise<SchemaLoadResult> {
-    const resp = await axios.get(schema.url,{      responseType: 'arraybuffer',
-  });
-
-    // const schemaBytes = new TextEncoder().encode(JSON.stringify(resp.data));
+    const resp = await axios.get(schema.url, { responseType: 'arraybuffer' });
     return {
-      schema:     resp.data as Uint8Array,
+      schema: resp.data as Uint8Array,
       extension: 'json-ld',
     };
   }
