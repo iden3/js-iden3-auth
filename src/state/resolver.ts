@@ -35,7 +35,6 @@ export class EthStateResolver implements IStateResolver {
     }
 
     if (contractState.toBigInt() !== state) {
-
       const transitionInfo = await contract.getTransitionInfo(contractState);
 
       if (transitionInfo[5].toBigInt() === 0n) {

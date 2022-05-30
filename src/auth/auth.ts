@@ -15,6 +15,9 @@ import { ISchemaLoader } from 'loaders/schema';
 import { IStateResolver } from 'state/resolver';
 import { Query } from '../circuits/query';
 import { Circuits } from '../circuits/registry';
+import { Token } from 'js-jwz';
+import { json } from 'stream/consumers';
+import { TextDecoder } from 'util';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -85,8 +88,8 @@ export class Verifier {
           `verification key is not found for circuit ${circuitId}`,
         );
       }
-
-      const isValid = await verifyProof(proofResp, key);
+      let jsonKey = JSON.parse(new TextDecoder().decode(key));
+      const isValid = await verifyProof(proofResp, jsonKey);
       if (!isValid) {
         throw new Error(
           `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`,
@@ -105,26 +108,26 @@ export class Verifier {
         proofRequest.rules['query'] as Query,
         this.schemaLoader,
       );
-      
+
       // verify states
 
       await verifier.verifyStates(this.stateResolver);
     }
   }
 
-  public async verifyJWZ(
-    tokenStr: string,
-    request: AuthorizationRequestMessage,
-  ): Promise<MockToken> {
-    // TODO : add jwz-parse
-
-    const token = new MockToken('auth', 'circuitId');
+  public async verifyJWZ(tokenStr: string): Promise<Token> {
+    const token = await Token.parse(tokenStr);
 
     const key = await this.keyLoader.load(token.circuitId);
     if (!key) {
       throw new Error(
         `verification key is not found for circuit ${token.circuitId}`,
       );
+    }
+
+    const isValid = token.verify(key);
+    if (!isValid) {
+      throw new Error(`zero-knowledge proof of jwz token is not valid`);
     }
 
     const CircuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
@@ -136,7 +139,7 @@ export class Verifier {
     }
 
     // outputs unmarshaller
-    const verifier = new CircuitVerifier(token.pubSignals);
+    const verifier = new CircuitVerifier(token.zkProof.pub_signals);
 
     // state verification
     verifier.verifyStates(this.stateResolver);
@@ -147,8 +150,8 @@ export class Verifier {
   public async fullVerify(
     tokenStr: string,
     request: AuthorizationRequestMessage,
-  ) {
-    const token = await this.verifyJWZ(tokenStr, request);
+  ): Promise<AuthorizationResponseMessage> {
+    const token = await this.verifyJWZ(tokenStr);
 
     const payload = token.getPayload();
 
@@ -157,18 +160,7 @@ export class Verifier {
     ) as AuthorizationResponseMessage;
 
     await this.verifyAuthResponse(response, request);
-  }
-}
 
-export class MockToken {
-  pubSignals: string[];
-
-  constructor(public readonly alg: string, public readonly circuitId: string) {
-    this.alg = alg;
-    this.circuitId = circuitId;
-  }
-
-  getPayload(): string {
-    return 'payload';
+    return response;
   }
 }

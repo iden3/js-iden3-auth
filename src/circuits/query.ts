@@ -58,7 +58,6 @@ export async function checkQueryRequest(
 
   const schemaHash = keccak256(Buffer.from(toHash));
 
-
   // only json ld-schema are supported
   const cq = parseRequest(
     query.req,
@@ -70,9 +69,10 @@ export async function checkQueryRequest(
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
   }
-  if (outputs.operator === operators.get("$noop")) { // for noop operator slot and value are not used in this case
-		return 
-	}
+  if (outputs.operator === operators.get('$noop')) {
+    // for noop operator slot and value are not used in this case
+    return;
+  }
 
   if (outputs.slotIndex !== cq.slotIndex) {
     throw new Error(`wrong claim slot was used in claim`);
