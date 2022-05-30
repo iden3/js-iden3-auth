@@ -19,7 +19,6 @@ export class AtomicQuerySigPubSignals implements PubSignalsVerifier {
   operator: number;
   timestamp: number;
 
-  // TODO: async here, return type
   constructor(pubSignals: string[]) {
     if (pubSignals.length != 75) {
       throw new Error(
@@ -51,7 +50,7 @@ export class AtomicQuerySigPubSignals implements PubSignalsVerifier {
     this.values = [];
     for (let index = 0; index < 64; index++) {
       const val = pubSignals[11 + index];
-      this.values.push(this.values[val]);
+      this.values.push(BigInt(val));
     }
   }
 

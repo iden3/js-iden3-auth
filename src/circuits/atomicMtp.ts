@@ -44,7 +44,7 @@ export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
     this.values = [];
     for (let index = 0; index < 64; index++) {
       const val = pubSignals[9 + index];
-      this.values.push(this.values[val]);
+      this.values.push(BigInt(val));
     }
   }
 
@@ -56,6 +56,7 @@ export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
       slotIndex: this.slotIndex,
       value: this.values,
     };
+    console.log(outs);
     return await checkQueryRequest(query, outs, schemaLoader);
   }
 
