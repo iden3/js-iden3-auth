@@ -16,7 +16,6 @@ import { IStateResolver } from 'state/resolver';
 import { Query } from '../circuits/query';
 import { Circuits } from '../circuits/registry';
 import { Token } from 'js-jwz';
-import { json } from 'stream/consumers';
 import { TextDecoder } from 'util';
 
 export function createAuthorizationRequest(
