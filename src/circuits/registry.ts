@@ -15,13 +15,13 @@ export interface PubSignals {
 }
 
 const auth = AuthPubSignals;
-const credentialAtomicMTP = AtomicQueryMTPPubSignals;
-const credentialAtomicSig = AtomicQuerySigPubSignals;
+const credentialAtomicQueryMTP = AtomicQueryMTPPubSignals;
+const credentialAtomicQuerySig = AtomicQuerySigPubSignals;
 
 const supportedCircuits = {
   auth,
-  credentialAtomicMTP,
-  credentialAtomicSig,
+  credentialAtomicQueryMTP,
+  credentialAtomicQuerySig,
 };
 
 export type VerifierType = PubSignalsVerifier & PubSignals;
