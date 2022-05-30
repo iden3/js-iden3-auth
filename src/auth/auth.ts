@@ -1,4 +1,3 @@
-import { TextEncoder } from 'util';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
@@ -14,8 +13,8 @@ import { verifyProof } from '../proofs/zk';
 import { IKeyLoader } from 'loaders/key';
 import { ISchemaLoader } from 'loaders/schema';
 import { IStateResolver } from 'state/resolver';
-import { Circuits } from 'circuits/registry';
-import { Query } from 'circuits/query';
+import { Query } from '../circuits/query';
+import { Circuits } from '../circuits/registry';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -96,22 +95,22 @@ export class Verifier {
         );
       }
 
-      const circuitVerifier = Circuits.getCircuitPubSignals(circuitId);
-      if (!circuitVerifier) {
+      const CircuitVerifier = Circuits.getCircuitPubSignals(circuitId);
+      if (!CircuitVerifier) {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
       // verify query
 
-      circuitVerifier.unmarshall(proofResp.pub_signals);
-      circuitVerifier.verifyQuery(
+      const verifier = new CircuitVerifier(proofResp.pub_signals);
+      verifier.verifyQuery(
         proofRequest.rules['query'] as Query,
         this.schemaLoader,
       );
 
       // verify states
 
-      circuitVerifier.verifyStates(this.stateResolver);
+      verifier.verifyStates(this.stateResolver);
     }
   }
 
@@ -130,18 +129,19 @@ export class Verifier {
       );
     }
 
-    const circuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
-    if (!circuitVerifier) {
+    const CircuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
+
+    if (!CircuitVerifier) {
       throw new Error(
         `circuit ${token.circuitId} is not supported by the library`,
       );
     }
 
     // outputs unmarshaller
-    circuitVerifier.unmarshall(token.pubSignals);
+    const verifier = new CircuitVerifier(token.pubSignals);
 
     // state verification
-    circuitVerifier.verifyStates(this.stateResolver);
+    verifier.verifyStates(this.stateResolver);
 
     return token;
   }

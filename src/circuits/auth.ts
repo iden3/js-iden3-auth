@@ -1,17 +1,15 @@
-import { Core } from 'core/core';
-import { Id } from 'core/id';
+import { Core } from '../core/core';
+import { Id } from '../core/id';
 import { IStateResolver, ResolvedState } from 'state/resolver';
 import { Query } from './query';
-import { PubSignalsUnmarshaller, PubSignalsVerifier } from './registry';
+import { PubSignalsVerifier } from './registry';
 
-export class AuthPubSignals
-  implements PubSignalsVerifier, PubSignalsUnmarshaller
-{
+export class AuthPubSignals implements PubSignalsVerifier {
   challenge: bigint;
   userState: bigint;
   userId: Id;
 
-  unmarshall(pubSignals: string[]): Promise<void> {
+  constructor(pubSignals: string[]) {
     if (pubSignals.length != 3) {
       throw new Error(
         `invalid number of Output values expected ${3} got ${
@@ -24,7 +22,6 @@ export class AuthPubSignals
 
     const bytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[2]));
     this.userId = Id.idFromBytes(bytes);
-    return;
   }
 
   async verifyQuery(query: Query): Promise<void> {
