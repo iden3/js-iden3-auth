@@ -1,52 +1,36 @@
-import { circuits } from './constants';
+import { ISchemaLoader } from 'loaders/schema';
+import { IStateResolver } from 'state/resolver';
+import { AtomicQueryMTPPubSignals } from './atomicMtp';
+import { AtomicQuerySigPubSignals } from './atomicSig';
+import { AuthPubSignals } from './auth';
+import { Query } from './query';
 
-export class CircuitData {
-  private verificationKey: unknown;
-  constructor(
-    private id: string,
-    private description: string,
-    verificationKey: string,
-    private metadata: string,
-  ) {
-    this.verificationKey = JSON.parse(verificationKey);
-  }
-
-  getPublicSignalsSchema(): any {
-    return this.metadata;
-  }
-
-  getVerificationKey(): any {
-    return this.verificationKey;
-  }
+export interface PubSignalsVerifier {
+  verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void>;
+  verifyStates(resolver: IStateResolver): Promise<void>;
 }
 
-const supportedCircuits: Record<string, CircuitData> = {
-  [circuits.authCircuitId]: new CircuitData(
-    circuits.authCircuitId,
-    'circuit for verification of  basic authentication',
-    circuits.authenticationVerificationKey,
-    circuits.authenticationPublicSignalsSchema,
-  ),
-  [circuits.atomicQueryMTPCircuitId]: new CircuitData(
-    circuits.atomicQueryMTPCircuitId,
-    'circuit for atomic query on standard iden3 credential',
-    circuits.atomicQueryMTPVerificationKey,
-    circuits.atomicQueryMTPPublicSignalsSchema,
-  ),
-  [circuits.atomicQuerySigCircuitId]: new CircuitData(
-    circuits.atomicQuerySigCircuitId,
-    'circuit for atomic query on standard iden3 credential',
-    circuits.atomicQuerySigVerificationKey,
-    circuits.atomicQuerySigPublicSignalsSchema,
-  ),
+export interface PubSignals {
+  new (pubSignals: string[]): PubSignalsVerifier;
+}
+
+const auth = AuthPubSignals;
+const credentialAtomicQueryMTP = AtomicQueryMTPPubSignals;
+const credentialAtomicQuerySig = AtomicQuerySigPubSignals;
+
+const supportedCircuits = {
+  auth,
+  credentialAtomicQueryMTP,
+  credentialAtomicQuerySig,
 };
 
+export type VerifierType = PubSignalsVerifier & PubSignals;
 export class Circuits {
-  static getCircuit(id: string): CircuitData {
+  static getCircuitPubSignals(id: string): VerifierType {
     return supportedCircuits[id];
   }
 
-  static registerCircuit(id: string, circuit: CircuitData): void {
+  static registerCircuitPubSignals(id: string, circuit: VerifierType): void {
     supportedCircuits[id] = circuit;
   }
 }
