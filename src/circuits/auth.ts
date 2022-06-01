@@ -23,8 +23,7 @@ export class AuthPubSignals implements PubSignalsVerifier {
     const bytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[2]));
     this.userId = Id.idFromBytes(bytes);
   }
-
-  async verifyQuery(query: Query): Promise<void> {
+  async verifyQuery(_query: Query): Promise<void> {
     throw new Error('Method not implemented.');
   }
 

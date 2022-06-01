@@ -17,10 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getCurveFromName } from 'ffjavascript';
 import { FSKeyLoader } from '../src/loaders/key';
 import { ISchemaLoader, UniversalSchemaLoader } from '../src/loaders/schema';
-import {
-  IStateResolver,
-  ResolvedState,
-} from '../src/state/resolver';
+import { IStateResolver, ResolvedState } from '../src/state/resolver';
 import { AuthPubSignals } from '../src/circuits/auth';
 
 afterAll(async () => {

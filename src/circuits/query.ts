@@ -1,9 +1,8 @@
-import { Core } from '../core/core';
 import keccak256 from 'keccak256';
 import { ISchemaLoader } from 'loaders/schema';
 import nestedProperty from 'nested-property';
 import { Schema } from 'protocol/models';
-import { fromBigEndian, fromLittleEndian, toLittleEndian } from '../core/util';
+import { fromLittleEndian } from '../core/util';
 
 const operators: Map<string, number> = new Map([
   ['$noop', 0],
@@ -45,6 +44,9 @@ export async function checkQueryRequest(
   const issuerAllowed = query.allowedIssuers.some(
     (issuer) => issuer === '*' || issuer === outputs.issuerId,
   );
+  if (!issuerAllowed) {
+    throw new Error('issuer of claim is not allowed');
+  }
 
   const loadResult = await schemaLoader.load(query.schema);
 

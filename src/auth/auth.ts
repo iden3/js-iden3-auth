@@ -87,7 +87,7 @@ export class Verifier {
           `verification key is not found for circuit ${circuitId}`,
         );
       }
-      let jsonKey = JSON.parse(new TextDecoder().decode(key));
+      const jsonKey = JSON.parse(new TextDecoder().decode(key));
       const isValid = await verifyProof(proofResp, jsonKey);
       if (!isValid) {
         throw new Error(

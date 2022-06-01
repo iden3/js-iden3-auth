@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { TextEncoder } from 'util';
 import { create, IPFSHTTPClient as IpfsHttpClient } from 'ipfs-http-client';
 import { Schema } from 'protocol/models';
 
