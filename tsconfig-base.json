@@ -5,7 +5,7 @@
     "baseUrl": "src",
     "declaration": true,
     "esModuleInterop": true,
-    "inlineSourceMap": false,
+    "inlineSourceMap": true,
     "lib": ["es2020", "esnext"],
     "listEmittedFiles": false,
     "listFiles": false,
@@ -22,5 +22,5 @@
   },
   "compileOnSave": false,
   "exclude": ["node_modules", "dist", "**/*test.ts"],
-  "include": ["src", ".eslintrc.js"]
+  "include": ["src"]
 }

@@ -24,7 +24,7 @@ export default [
             sourcemaps(),
         ]
     },
-
+    /* // use for browser later.
     {
         input: 'src/index.ts',
         output: {
@@ -56,4 +56,7 @@ export default [
                 tsconfig: './tsconfig.json'
             })
         ]
-    }]
+    }
+    */
+
+]

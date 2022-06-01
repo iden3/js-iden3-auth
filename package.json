@@ -3,24 +3,17 @@
   "version": "0.1.1",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
-  "module": "dist/mjs/index.js",
-  "types": "dist/mjs/index.d.ts",
+  "module": "dist/cjs/index.js",
+  "types": "dist/cjs/index.d.ts",
   "files": [
-    "dist/*.js",
-    "dist/**/*.js"
+    "dist"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/mjs/index.js",
-      "require": "./dist/cjs/index.js"
-    }
-  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "rimraf dist && tsc -p tsconfig-cjs.json && rollup -c",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint": "eslint --ext *ts"
+    "lint": "eslint --ext *ts src/**/* --fix"
   },
   "directories": {
     "templates": "templates"
