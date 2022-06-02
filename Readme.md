@@ -30,13 +30,13 @@ Auth verification procedure:
 > Groth16 proof are supported by auth library
 >
 
-Verification keys must be provided using `KeyLoader` interface
+Verification keys must be provided using `IKeyLoader` interface
 
 ### Query verification 
 
 Proof for each atomic circuit contains public signals that allow extracting user and issuer identifiers, states, signature challenges, etc.
+Circuit public signals marshallers are defined inside library.To use custom circuit you need to register it with `registerCircuitPubSignals` function.
 
-Circuit public signals marshallers are defined in the go-circuits library.
 
 ### Verification of user / issuer identity states
 
