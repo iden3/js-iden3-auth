@@ -7,7 +7,7 @@ import { AuthPubSignals } from './auth';
 import { Query } from './query';
 
 export interface PubSignalsVerifier {
-  userId:Id;
+  userId: Id;
   verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void>;
   verifyStates(resolver: IStateResolver): Promise<void>;
 }

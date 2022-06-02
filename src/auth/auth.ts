@@ -112,8 +112,10 @@ export class Verifier {
 
       await verifier.verifyStates(this.stateResolver);
 
-      if (verifier.userId.string() != response.from){
-        throw new Error(`sender of auth response is not equal to identity in proof response ${proofResp.id}`);
+      if (verifier.userId.string() != response.from) {
+        throw new Error(
+          `sender of auth response is not equal to identity in proof response ${proofResp.id}`,
+        );
       }
     }
   }
@@ -162,18 +164,15 @@ export class Verifier {
       payload.toString(),
     ) as AuthorizationResponseMessage;
 
-    
     /* 
       verify that sender of AuthorizationResponseMessage is in token zkproof pubsignals
     */
-    let signalsVerifierType = Circuits.getCircuitPubSignals(token.circuitId)
-    let signalsVerifier =  new signalsVerifierType(token.zkProof.pub_signals)
-    
-    if (signalsVerifier.userId.string() != response.from){
-       throw new Error(`sender of message and user id in token are not equal`);
-    }
+    const signalsVerifierType = Circuits.getCircuitPubSignals(token.circuitId);
+    const signalsVerifier = new signalsVerifierType(token.zkProof.pub_signals);
 
-  
+    if (signalsVerifier.userId.string() != response.from) {
+      throw new Error(`sender of message and user id in token are not equal`);
+    }
 
     await this.verifyAuthResponse(response, request);
 
