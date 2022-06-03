@@ -168,7 +168,7 @@ export class Verifier {
     const signalsVerifierType = Circuits.getCircuitPubSignals(token.circuitId);
     const signalsVerifier = new signalsVerifierType(token.zkProof.pub_signals);
 
-    signalsVerifier.verifyIdOwnership(
+    await signalsVerifier.verifyIdOwnership(
       response.from,
       fromBigEndian(await token.getMessageHash()),
     );
