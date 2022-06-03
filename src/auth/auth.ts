@@ -17,6 +17,7 @@ import { Query } from '../circuits/query';
 import { Circuits } from '../circuits/registry';
 import { Token } from '@iden3/js-jwz';
 import { TextDecoder } from 'util';
+import { fromBigEndian } from '../core/util';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -112,11 +113,8 @@ export class Verifier {
 
       await verifier.verifyStates(this.stateResolver);
 
-      if (verifier.userId.string() != response.from) {
-        throw new Error(
-          `sender of auth response is not equal to identity in proof response ${proofResp.id}`,
-        );
-      }
+      // verify id ownership
+      await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));
     }
   }
 
@@ -170,9 +168,10 @@ export class Verifier {
     const signalsVerifierType = Circuits.getCircuitPubSignals(token.circuitId);
     const signalsVerifier = new signalsVerifierType(token.zkProof.pub_signals);
 
-    if (signalsVerifier.userId.string() != response.from) {
-      throw new Error(`sender of message and user id in token are not equal`);
-    }
+    signalsVerifier.verifyIdOwnership(
+      response.from,
+      fromBigEndian(await token.getMessageHash()),
+    );
 
     await this.verifyAuthResponse(response, request);
 

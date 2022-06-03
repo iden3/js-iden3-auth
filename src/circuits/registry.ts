@@ -1,4 +1,3 @@
-import { Id } from 'core/id';
 import { ISchemaLoader } from 'loaders/schema';
 import { IStateResolver } from 'state/resolver';
 import { AtomicQueryMTPPubSignals } from './atomicMtp';
@@ -7,9 +6,9 @@ import { AuthPubSignals } from './auth';
 import { Query } from './query';
 
 export interface PubSignalsVerifier {
-  userId: Id;
   verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void>;
   verifyStates(resolver: IStateResolver): Promise<void>;
+  verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
 }
 
 export interface PubSignals {

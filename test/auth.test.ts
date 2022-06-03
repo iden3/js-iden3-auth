@@ -54,7 +54,7 @@ test('createAuthorizationRequest', () => {
   expect(request.from).toEqual(sender);
 
   const proofRequest: ZKPRequest = {
-    id: 24,
+    id: 1,
     circuit_id: 'credentialAtomicQueryMTP',
     rules: {
       challenge: 84239,
@@ -356,7 +356,7 @@ test('TestResponseWithEmptyQueryRequest', async () => {
   expect(request.from).toEqual(sender);
 
   const proofRequest: ZKPRequest = {
-    id: 24,
+    id: 1,
     circuit_id: 'credentialAtomicQueryMTP',
     rules: {
       query: {
