@@ -4,11 +4,13 @@ import { ISchemaLoader } from 'loaders/schema';
 import { IStateResolver, ResolvedState } from 'state/resolver';
 import { checkQueryRequest, ClaimOutputs, Query } from './query';
 import { PubSignalsVerifier } from './registry';
+import { IDOwnershipPubSignals } from './ownershipVerifier';
 
-export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
-  userId: Id;
+export class AtomicQueryMTPPubSignals
+  extends IDOwnershipPubSignals
+  implements PubSignalsVerifier
+{
   userState: bigint;
-  challenge: bigint;
   claimSchema: bigint;
   issuerClaimIdenState: bigint;
   issuerId: Id;
@@ -18,6 +20,7 @@ export class AtomicQueryMTPPubSignals implements PubSignalsVerifier {
   timestamp: number;
 
   constructor(pubSignals: string[]) {
+    super();
     if (pubSignals.length != 73) {
       throw new Error(
         `invalid number of Output values expected ${73} got ${
