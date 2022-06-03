@@ -4,11 +4,13 @@ import { checkQueryRequest, ClaimOutputs, Query } from './query';
 import { Core } from '../core/core';
 import { Id } from '../core/id';
 import { ISchemaLoader } from 'loaders/schema';
+import { IDOwnershipPubSignals } from './ownershipVerifier';
 
-export class AtomicQuerySigPubSignals implements PubSignalsVerifier {
-  userId: Id;
+export class AtomicQuerySigPubSignals
+  extends IDOwnershipPubSignals
+  implements PubSignalsVerifier
+{
   userState: bigint;
-  challenge: bigint;
   claimSchema: bigint;
   issuerId: Id;
   issuerState: bigint;
@@ -20,6 +22,7 @@ export class AtomicQuerySigPubSignals implements PubSignalsVerifier {
   timestamp: number;
 
   constructor(pubSignals: string[]) {
+    super();
     if (pubSignals.length != 75) {
       throw new Error(
         `invalid number of Output values expected ${75} got ${
@@ -81,17 +84,5 @@ export class AtomicQuerySigPubSignals implements PubSignalsVerifier {
       throw new Error(`issuer state is not valid`);
     }
     return;
-  }
-  async verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {
-    if (sender !== this.userId.string()) {
-      throw new Error(
-        `sender is not used for proof creation, expected ${sender}, user from public signals: ${this.userId.string()}  `,
-      );
-    }
-    if (challenge.toString() !== this.challenge.toString()) {
-      throw new Error(
-        `challenge is not used for proof creation, expected ${challenge}, challenge from public signals: ${this.challenge.toString()}  `,
-      );
-    }
   }
 }
