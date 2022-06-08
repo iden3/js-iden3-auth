@@ -2,6 +2,7 @@ import { Core } from '../core/core';
 import { toLittleEndian } from '../core/util';
 import { ethers } from 'ethers';
 import { stateABI } from './abi';
+import { Id } from '../core/id';
 
 export interface IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState>;
@@ -26,14 +27,14 @@ export class EthStateResolver implements IStateResolver {
       stateABI,
       ethersProvider,
     );
+    const isGenesis = isGenesisStateId(id, state);
+    if (isGenesis) {
+      return { latest: true, state, transitionTimestamp: 0 };
+    }
+
     const contractState = await contract.getState(id);
 
     if (contractState.toBigInt() === 0n) {
-      // TODO : throw error in checkGenesisStateId instead of returning
-      const isGenesis = isGenesisStateId(id, state);
-      if (isGenesis) {
-        return { latest: true, state, transitionTimestamp: 0 };
-      }
       throw new Error('state is not found. Identity is not genesis');
     }
 
@@ -75,9 +76,11 @@ export function isGenesisStateId(id: bigint, state: bigint): boolean {
 
   if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
     throw new Error(
-      `ID from genesis state (${JSON.stringify(
+      `ID from genesis state (${Id.idFromBytes(
+        idBytes,
+      ).string()}) and provided (${Id.fromBytes(
         idFromStateBytes,
-      )}) and provided (${JSON.stringify(idBytes)}) don't match`,
+      ).string()}) don't match`,
     );
   }
 
