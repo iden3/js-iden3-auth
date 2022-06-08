@@ -76,9 +76,11 @@ export function isGenesisStateId(id: bigint, state: bigint): boolean {
 
   if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
     throw new Error(
-      `ID from genesis state (${
-       (Id.idFromBytes(idBytes).string())
-      }) and provided (${(Id.fromBytes(idFromStateBytes)).string()}) don't match`,
+      `ID from genesis state (${Id.idFromBytes(
+        idBytes,
+      ).string()}) and provided (${Id.fromBytes(
+        idFromStateBytes,
+      ).string()}) don't match`,
     );
   }
 
