@@ -39,9 +39,9 @@ export class EthStateResolver implements IStateResolver {
     }
 
     if (contractState.toBigInt() !== state) {
-      const transitionInfo = await contract.getTransitionInfo(contractState);
+      const transitionInfo = await contract.getTransitionInfo(state);
 
-      if (transitionInfo[5].toBigInt() === 0n) {
+      if (transitionInfo[4].toBigInt() === 0n) {
         throw new Error('Transition info contains invalid id');
       }
 
@@ -75,13 +75,7 @@ export function isGenesisStateId(id: bigint, state: bigint): boolean {
   ]);
 
   if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
-    throw new Error(
-      `ID from genesis state (${Id.idFromBytes(
-        idBytes,
-      ).string()}) and provided (${Id.fromBytes(
-        idFromStateBytes,
-      ).string()}) don't match`,
-    );
+    return false;
   }
 
   return true;
