@@ -128,7 +128,7 @@ export class Verifier {
       );
     }
 
-    const isValid = token.verify(key);
+    const isValid = await token.verify(key);
     if (!isValid) {
       throw new Error(`zero-knowledge proof of jwz token is not valid`);
     }
