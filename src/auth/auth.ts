@@ -1,23 +1,23 @@
+import { Query } from '@app/circuits/query';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
-} from '@protocol/models';
+} from '@app/protocol/models';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
   AUTHORIZATION_REQUEST_MESSAGE_TYPE,
   MEDIA_TYPE_PLAIN,
-} from '@protocol/constants';
+} from '@app/protocol/constants';
 
-import { verifyProof } from '@proofs/zk';
-import { IKeyLoader } from '@loaders/key';
-import { ISchemaLoader } from '@loaders/schema';
-import { IStateResolver } from '@state/resolver';
-import { Query } from '@circuits/query';
-import { Circuits } from '@circuits/registry';
+import { verifyProof } from '@app/proofs/zk';
+import { IKeyLoader } from '@app/loaders/key';
+import { ISchemaLoader } from '@app/loaders/schema';
+import { IStateResolver } from '@app/state/resolver';
+import { Circuits } from '@app/circuits/registry';
 import { Token } from '@iden3/js-jwz';
 import { TextDecoder } from 'util';
-import { fromBigEndian } from '@core/util';
+import { fromBigEndian } from '@app/core/util';
 
 export function createAuthorizationRequest(
   reason: string,

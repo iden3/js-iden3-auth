@@ -1,4 +1,4 @@
-import { ZKPResponse } from '@protocol/models';
+import { ZKPResponse } from '@app/protocol/models';
 
 import * as snarkjs from 'snarkjs';
 

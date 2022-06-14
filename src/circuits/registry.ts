@@ -1,9 +1,9 @@
-import { ISchemaLoader } from '@loaders/schema';
-import { IStateResolver } from '@state/resolver';
-import { AtomicQueryMTPPubSignals } from '@circuits/atomicMtp';
-import { AtomicQuerySigPubSignals } from '@circuits/atomicSig';
-import { AuthPubSignals } from '@circuits/auth';
-import { Query } from '@circuits/query';
+import { ISchemaLoader } from '@app/loaders/schema';
+import { IStateResolver } from '@app/state/resolver';
+import { AtomicQueryMTPPubSignals } from '@app/circuits/atomicMtp';
+import { AtomicQuerySigPubSignals } from '@app/circuits/atomicSig';
+import { AuthPubSignals } from '@app/circuits/auth';
+import { Query } from '@app/circuits/query';
 
 export interface PubSignalsVerifier {
   verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void>;

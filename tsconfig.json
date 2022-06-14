@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
+    "baseUrl": ".",
     "declaration": true,
     "esModuleInterop": true,
     "inlineSourceMap": true,
@@ -23,17 +23,7 @@
     "outDir": "dist/сjs",
     "target": "esnext",
     "paths": {
-      "@auth/*": ["auth/*"],
-      "@circuits": ["circuits"],
-      "@loaders": ["loaders"],
-      "@protocol": ["protocol"],
-      "@circuits/*": ["circuits/*"],
-      "@core/*": ["core/*"],
-      "@core/util": ["core/util"],
-      "@loaders/*": ["loaders/*"],
-      "@proofs/*": ["proofs/*"],
-      "@protocol/*": ["protocol/*"],
-      "@state/*": ["state/*"]
+      "@app/*": ["./src/*"],
     }
   },
   "compileOnSave": false,

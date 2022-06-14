@@ -1,1 +1,1 @@
-export * from '@circuits/registry';
+export * from '@app/circuits/registry';
