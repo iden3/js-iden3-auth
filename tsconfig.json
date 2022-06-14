@@ -1,21 +1,42 @@
 {
-    "extends": "./tsconfig-base.json",
-    "compilerOptions": {
-        "module": "esnext",
-        "outDir": "dist/mjs",
-        "target": "esnext",
-        "paths": {
-            "@auth/*": ["auth/*"],
-            "@circuits": ["circuits"],
-            "@loaders": ["loaders"],
-            "@protocol": ["protocol"],
-            "@circuits/*": ["circuits/*"],
-            "@core/*": ["core/*"],
-            "@core/util": ["core/util"],
-            "@loaders/*": ["loaders/*"],
-            "@proofs/*": ["proofs/*"],
-            "@protocol/*": ["protocol/*"],
-            "@state/*": ["state/*"]
-          }
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "src",
+    "declaration": true,
+    "esModuleInterop": true,
+    "inlineSourceMap": true,
+    "lib": ["es2020", "esnext"],
+    "listEmittedFiles": false,
+    "listFiles": false,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "strict": false,
+    "traceResolution": false,
+    "types": ["node", "jest"],
+    "module": "commonjs",
+    "outDir": "dist/сjs",
+    "target": "esnext",
+    "paths": {
+      "@auth/*": ["auth/*"],
+      "@circuits": ["circuits"],
+      "@loaders": ["loaders"],
+      "@protocol": ["protocol"],
+      "@circuits/*": ["circuits/*"],
+      "@core/*": ["core/*"],
+      "@core/util": ["core/util"],
+      "@loaders/*": ["loaders/*"],
+      "@proofs/*": ["proofs/*"],
+      "@protocol/*": ["protocol/*"],
+      "@state/*": ["state/*"]
     }
+  },
+  "compileOnSave": false,
+  "exclude": ["node_modules", "dist", "**/*test.ts"],
+  "include": ["src"]
 }
