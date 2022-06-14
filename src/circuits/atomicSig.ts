@@ -1,9 +1,9 @@
-import { IStateResolver, ResolvedState } from 'state/resolver';
+import { IStateResolver, ResolvedState } from '../state/resolver';
 import { PubSignalsVerifier } from './registry';
 import { checkQueryRequest, ClaimOutputs, Query } from './query';
 import { Core } from '../core/core';
 import { Id } from '../core/id';
-import { ISchemaLoader } from 'loaders/schema';
+import { ISchemaLoader } from '../loaders/schema';
 import { IDOwnershipPubSignals } from './ownershipVerifier';
 
 export class AtomicQuerySigPubSignals

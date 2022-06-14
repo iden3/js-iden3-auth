@@ -1,6 +1,6 @@
 import { Core } from '../core/core';
 import { Id } from '../core/id';
-import { IStateResolver, ResolvedState } from 'state/resolver';
+import { IStateResolver, ResolvedState } from '../state/resolver';
 import { Query } from './query';
 import { PubSignalsVerifier } from './registry';
 import { IDOwnershipPubSignals } from './ownershipVerifier';
