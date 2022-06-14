@@ -1,8 +1,7 @@
-import { Core } from '../core/core';
-import { toLittleEndian } from '../core/util';
+import { Core } from '@core/core';
+import { toLittleEndian } from '@core/util';
 import { ethers } from 'ethers';
-import { stateABI } from './abi';
-import { Id } from '../core/id';
+import { stateABI } from '@state/abi';
 
 export interface IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState>;

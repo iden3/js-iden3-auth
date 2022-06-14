@@ -1,10 +1,10 @@
-import { IStateResolver, ResolvedState } from 'state/resolver';
-import { PubSignalsVerifier } from './registry';
-import { checkQueryRequest, ClaimOutputs, Query } from './query';
-import { Core } from '../core/core';
-import { Id } from '../core/id';
+import { IStateResolver, ResolvedState } from '@state/resolver';
+import { PubSignalsVerifier } from '@circuits/registry';
+import { checkQueryRequest, ClaimOutputs, Query } from '@circuits/query';
+import { Core } from '@core/core';
+import { Id } from '@core/id';
 import { ISchemaLoader } from 'loaders/schema';
-import { IDOwnershipPubSignals } from './ownershipVerifier';
+import { IDOwnershipPubSignals } from '@circuits/ownershipVerifier';
 
 export class AtomicQuerySigPubSignals
   extends IDOwnershipPubSignals

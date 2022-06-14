@@ -3,6 +3,19 @@
     "compilerOptions": {
         "module": "esnext",
         "outDir": "dist/mjs",
-        "target": "esnext"
+        "target": "esnext",
+        "paths": {
+            "@auth/*": ["auth/*"],
+            "@circuits": ["circuits"],
+            "@loaders": ["loaders"],
+            "@protocol": ["protocol"],
+            "@circuits/*": ["circuits/*"],
+            "@core/*": ["core/*"],
+            "@core/util": ["core/util"],
+            "@loaders/*": ["loaders/*"],
+            "@proofs/*": ["proofs/*"],
+            "@protocol/*": ["protocol/*"],
+            "@state/*": ["state/*"]
+          }
     }
 }

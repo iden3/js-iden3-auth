@@ -1,2 +1,2 @@
-export * from './constants';
-export * from './models';
+export * from '@protocol/constants';
+export * from '@protocol/models';

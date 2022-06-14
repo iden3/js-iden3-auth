@@ -1,10 +1,10 @@
-import { Core } from '../core/core';
-import { Id } from '../core/id';
-import { ISchemaLoader } from 'loaders/schema';
-import { IStateResolver, ResolvedState } from 'state/resolver';
-import { checkQueryRequest, ClaimOutputs, Query } from './query';
-import { PubSignalsVerifier } from './registry';
-import { IDOwnershipPubSignals } from './ownershipVerifier';
+import { Core } from '@core/core';
+import { Id } from '@core/id';
+import { ISchemaLoader } from '@loaders/schema';
+import { IStateResolver, ResolvedState } from '@state/resolver';
+import { checkQueryRequest, ClaimOutputs, Query } from '@circuits/query';
+import { PubSignalsVerifier } from '@circuits/registry';
+import { IDOwnershipPubSignals } from '@circuits/ownershipVerifier';
 
 export class AtomicQueryMTPPubSignals
   extends IDOwnershipPubSignals

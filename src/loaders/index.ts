@@ -1,2 +1,2 @@
-export * from './key';
-export * from './schema';
+export * from '@loaders/key';
+export * from '@loaders/schema';

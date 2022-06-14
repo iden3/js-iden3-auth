@@ -1,9 +1,9 @@
-import { Core } from '../core/core';
-import { Id } from '../core/id';
+import { Core } from '@core/core';
+import { Id } from '@core/id';
 import { IStateResolver, ResolvedState } from 'state/resolver';
-import { Query } from './query';
-import { PubSignalsVerifier } from './registry';
-import { IDOwnershipPubSignals } from './ownershipVerifier';
+import { Query } from '@circuits/query';
+import { PubSignalsVerifier } from '@circuits/registry';
+import { IDOwnershipPubSignals } from '@circuits/ownershipVerifier';
 
 export class AuthPubSignals
   extends IDOwnershipPubSignals

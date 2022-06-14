@@ -1,7 +1,7 @@
 // eslint-disable-next-line camelcase
 import { binary_to_base58, base58_to_binary } from 'base58-js';
-import { Core } from './core';
-import { fromLittleEndian } from './util';
+import { Core } from '@core/core';
+import { fromLittleEndian } from '@core/util';
 
 // ID is a byte array with
 // [  type  | root_genesis | checksum ]
