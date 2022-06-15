@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "jest -t FullVerify",
     "test:watch": "jest --watch",
     "build": "rimraf dist && tsc -p tsconfig-cjs.json && rollup -c",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
