@@ -1,5 +1,5 @@
-import { ISchemaLoader } from 'loaders/schema';
-import { IStateResolver } from 'state/resolver';
+import { ISchemaLoader } from '../loaders/schema';
+import { IStateResolver } from '../state/resolver';
 import { AtomicQueryMTPPubSignals } from './atomicMtp';
 import { AtomicQuerySigPubSignals } from './atomicSig';
 import { AuthPubSignals } from './auth';

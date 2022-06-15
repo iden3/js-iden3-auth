@@ -1,7 +1,7 @@
 import keccak256 from 'keccak256';
-import { ISchemaLoader } from 'loaders/schema';
+import { ISchemaLoader } from '../loaders/schema';
 import nestedProperty from 'nested-property';
-import { Schema } from 'protocol/models';
+import { Schema } from '../protocol/models';
 import { fromLittleEndian } from '../core/util';
 
 const operators: Map<string, number> = new Map([
