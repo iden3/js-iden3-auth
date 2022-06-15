@@ -76,7 +76,6 @@ export class AtomicQueryMTPPubSignals
       throw new Error(`only latest states are supported`);
     }
 
-    console.log(this.issuerId.string());
     const issuerStateResolved: ResolvedState = await resolver.resolve(
       this.issuerId.bigInt(),
       this.issuerClaimIdenState,
