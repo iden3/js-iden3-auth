@@ -96,10 +96,6 @@ export class AtomicQueryMTPPubSignals
     ) {
       throw new Error(`issuer state for non-revocation proofs is not valid`);
     }
-    console.log(Date.now());
-    console.log(
-      (issuerNonRevStateResolved.transitionTimestamp as number) * 1000,
-    );
     return;
   }
 }

@@ -86,10 +86,7 @@ export class AtomicQuerySigPubSignals
       this.issuerId.bigInt(),
       this.issuerClaimNonRevState,
     );
-    console.log(issuerNonRevStateResolved.transitionTimestamp);
-    console.log(   Date.now() -
-    (issuerNonRevStateResolved.transitionTimestamp as number) * 1000 >
-    60 * 60 * 1000);
+
     if (
       !issuerNonRevStateResolved.latest &&
       Date.now() -
