@@ -1,5 +1,5 @@
 {
-  "name": "js-iden3-auth",
+  "name": "@iden3/js-iden3-auth",
   "version": "0.1.2",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
@@ -22,7 +22,7 @@
     "iden3"
   ],
   "author": "iden3",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/iden3/js-iden3-auth"
