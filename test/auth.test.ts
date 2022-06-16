@@ -61,9 +61,8 @@ test('createAuthorizationRequest', () => {
     id: 1,
     circuit_id: 'credentialAtomicQueryMTP',
     rules: {
-      challenge: 84239,
       query: {
-        allowedIssuers: '1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9',
+        allowedIssuers: ['1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9'],
         schema: {
           type: 'KYCAgeCredential',
           url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
