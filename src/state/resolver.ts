@@ -20,7 +20,12 @@ export class EthStateResolver implements IStateResolver {
     this.contractAddress = contractAddress;
   }
   public async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
-    const ethersProvider = new ethers.providers.JsonRpcProvider(this.rpcUrl);
+    let url = new URL(this.rpcUrl);
+    const ethersProvider = new ethers.providers.JsonRpcProvider({
+      url: url.href,
+      user: url.username,
+      password: url.password,
+    });
     const contract = new ethers.Contract(
       this.contractAddress,
       stateABI,
