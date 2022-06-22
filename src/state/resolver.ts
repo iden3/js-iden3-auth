@@ -21,7 +21,7 @@ export class EthStateResolver implements IStateResolver {
     this.contractAddress = contractAddress;
   }
   public async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
-    let url = new URL(this.rpcUrl);
+    const url = new URL(this.rpcUrl);
     const ethersProvider = new ethers.providers.JsonRpcProvider({
       url: url.href,
       user: url.username,
@@ -34,7 +34,7 @@ export class EthStateResolver implements IStateResolver {
     );
     // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
-   
+
     // get latest state of identity from contract
     const contractState = await contract.getState(id);
 
@@ -42,7 +42,12 @@ export class EthStateResolver implements IStateResolver {
       if (!isGenesis) {
         throw new Error('state is not found. Identity is not genesis');
       }
-      return { latest: true, genesis:isGenesis, state: state, transitionTimestamp: 0 };
+      return {
+        latest: true,
+        genesis: isGenesis,
+        state: state,
+        transitionTimestamp: 0,
+      };
     }
 
     if (contractState.toBigInt() !== state) {
@@ -59,12 +64,12 @@ export class EthStateResolver implements IStateResolver {
       return {
         latest: false,
         state: state,
-        genesis:isGenesis,
+        genesis: isGenesis,
         transitionTimestamp: transitionInfo[0].toBigInt(),
       };
     }
 
-    return { latest: true, genesis:isGenesis, state, transitionTimestamp: 0 };
+    return { latest: true, genesis: isGenesis, state, transitionTimestamp: 0 };
   }
 }
 
