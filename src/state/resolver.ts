@@ -8,6 +8,7 @@ export interface IStateResolver {
 }
 export type ResolvedState = {
   latest: boolean;
+  genesis: boolean;
   state: any;
   transitionTimestamp: number | string;
 };
@@ -31,15 +32,17 @@ export class EthStateResolver implements IStateResolver {
       stateABI,
       ethersProvider,
     );
+    // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
-    if (isGenesis) {
-      return { latest: true, state, transitionTimestamp: 0 };
-    }
-
+   
+    // get latest state of identity from contract
     const contractState = await contract.getState(id);
 
     if (contractState.toBigInt() === 0n) {
-      throw new Error('state is not found. Identity is not genesis');
+      if (!isGenesis) {
+        throw new Error('state is not found. Identity is not genesis');
+      }
+      return { latest: true, genesis:isGenesis, state: state, transitionTimestamp: 0 };
     }
 
     if (contractState.toBigInt() !== state) {
@@ -56,11 +59,12 @@ export class EthStateResolver implements IStateResolver {
       return {
         latest: false,
         state: state,
+        genesis:isGenesis,
         transitionTimestamp: transitionInfo[0].toBigInt(),
       };
     }
 
-    return { latest: true, state, transitionTimestamp: 0 };
+    return { latest: true, genesis:isGenesis, state, transitionTimestamp: 0 };
   }
 }
 
