@@ -37,6 +37,7 @@ class MockResolver implements IStateResolver {
     let t: ResolvedState = {
       latest: true,
       state: null,
+      genesis:false,
       transitionTimestamp: 0,
     };
     return t;
