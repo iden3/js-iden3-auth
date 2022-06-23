@@ -40,7 +40,7 @@ export class EthStateResolver implements IStateResolver {
 
     if (contractState.toBigInt() === 0n) {
       if (!isGenesis) {
-        throw new Error('state is not found. Identity is not genesis');
+        throw new Error('identity state is not genesis and state not found on-chain);
       }
       return {
         latest: true,
