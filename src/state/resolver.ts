@@ -47,7 +47,7 @@ export class EthStateResolver implements IStateResolver {
       return {
         latest: true,
         genesis: isGenesis,
-        state: state,
+        state,
         transitionTimestamp: 0,
       };
     }
@@ -65,7 +65,7 @@ export class EthStateResolver implements IStateResolver {
 
       return {
         latest: false,
-        state: state,
+        state,
         genesis: isGenesis,
         transitionTimestamp: transitionInfo[0].toBigInt(),
       };
