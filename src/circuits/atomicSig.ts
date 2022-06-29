@@ -13,7 +13,6 @@ export class AtomicQuerySigPubSignals
   userState: bigint;
   claimSchema: bigint;
   issuerId: Id;
-  issuerState: bigint;
   issuerAuthState: bigint;
   issuerClaimNonRevState: bigint;
   slotIndex: number;
@@ -23,9 +22,9 @@ export class AtomicQuerySigPubSignals
 
   constructor(pubSignals: string[]) {
     super();
-    if (pubSignals.length != 75) {
+    if (pubSignals.length != 74) {
       throw new Error(
-        `invalid number of Output values expected ${75} got ${
+        `invalid number of Output values expected ${74} got ${
           pubSignals.length
         }`,
       );
@@ -40,19 +39,18 @@ export class AtomicQuerySigPubSignals
     const issuerIdBytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[4]));
 
     this.issuerId = Id.idFromBytes(issuerIdBytes);
-    this.issuerState = BigInt(pubSignals[5]);
-    this.issuerClaimNonRevState = BigInt(pubSignals[6]);
+    this.issuerClaimNonRevState = BigInt(pubSignals[5]);
 
-    this.timestamp = parseInt(pubSignals[7], 10);
+    this.timestamp = parseInt(pubSignals[6], 10);
 
-    this.claimSchema = BigInt(pubSignals[8]);
+    this.claimSchema = BigInt(pubSignals[7]);
 
-    this.slotIndex = parseInt(pubSignals[9], 10);
-    this.operator = parseInt(pubSignals[10], 10);
+    this.slotIndex = parseInt(pubSignals[8], 10);
+    this.operator = parseInt(pubSignals[9], 10);
 
     this.values = [];
     for (let index = 0; index < 64; index++) {
-      const val = pubSignals[11 + index];
+      const val = pubSignals[10 + index];
       this.values.push(BigInt(val));
     }
   }
@@ -78,11 +76,24 @@ export class AtomicQuerySigPubSignals
 
     const issuerStateResolved: ResolvedState = await resolver.resolve(
       this.issuerId.bigInt(),
-      this.issuerState,
+      this.issuerAuthState,
     );
     if (!issuerStateResolved) {
       throw new Error(`issuer state is not valid`);
     }
-    return;
+
+    const issuerNonRevStateResolved: ResolvedState = await resolver.resolve(
+      this.issuerId.bigInt(),
+      this.issuerClaimNonRevState,
+    );
+
+    if (
+      !issuerNonRevStateResolved.latest &&
+      Date.now() -
+        (issuerNonRevStateResolved.transitionTimestamp as number) * 1000 >
+        60 * 60 * 1000
+    ) {
+      throw new Error(`issuer state for non-revocation proofs is not valid`);
+    }
   }
 }

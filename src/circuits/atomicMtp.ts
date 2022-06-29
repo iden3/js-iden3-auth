@@ -13,6 +13,7 @@ export class AtomicQueryMTPPubSignals
   userState: bigint;
   claimSchema: bigint;
   issuerClaimIdenState: bigint;
+  issuerClaimNonRevState: bigint;
   issuerId: Id;
   slotIndex: number;
   values: bigint[];
@@ -21,9 +22,9 @@ export class AtomicQueryMTPPubSignals
 
   constructor(pubSignals: string[]) {
     super();
-    if (pubSignals.length != 73) {
+    if (pubSignals.length != 74) {
       throw new Error(
-        `invalid number of Output values expected ${73} got ${
+        `invalid number of Output values expected ${74} got ${
           pubSignals.length
         }`,
       );
@@ -34,19 +35,22 @@ export class AtomicQueryMTPPubSignals
     this.userState = BigInt(pubSignals[1]);
     this.challenge = BigInt(pubSignals[2]);
     this.issuerClaimIdenState = BigInt(pubSignals[3]);
+
     const issuerIdBytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[4]));
-
     this.issuerId = Id.idFromBytes(issuerIdBytes);
-    this.timestamp = parseInt(pubSignals[5], 10);
 
-    this.claimSchema = BigInt(pubSignals[6]);
+    this.issuerClaimNonRevState = BigInt(pubSignals[5]);
 
-    this.slotIndex = parseInt(pubSignals[7], 10);
-    this.operator = parseInt(pubSignals[8], 10);
+    this.timestamp = parseInt(pubSignals[6], 10);
+
+    this.claimSchema = BigInt(pubSignals[7]);
+
+    this.slotIndex = parseInt(pubSignals[8], 10);
+    this.operator = parseInt(pubSignals[9], 10);
 
     this.values = [];
     for (let index = 0; index < 64; index++) {
-      const val = pubSignals[9 + index];
+      const val = pubSignals[10 + index];
       this.values.push(BigInt(val));
     }
   }
@@ -79,5 +83,19 @@ export class AtomicQueryMTPPubSignals
     if (!issuerStateResolved) {
       throw new Error(`issuer state is not valid`);
     }
+
+    const issuerNonRevStateResolved: ResolvedState = await resolver.resolve(
+      this.issuerId.bigInt(),
+      this.issuerClaimNonRevState,
+    );
+    if (
+      !issuerNonRevStateResolved.latest &&
+      Date.now() -
+        (issuerNonRevStateResolved.transitionTimestamp as number) * 1000 >
+        60 * 60 * 1000
+    ) {
+      throw new Error(`issuer state for non-revocation proofs is not valid`);
+    }
+    return;
   }
 }

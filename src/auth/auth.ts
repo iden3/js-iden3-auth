@@ -81,6 +81,11 @@ export class Verifier {
       if (!proofResp) {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
+      if (proofResp.circuit_id !== proofRequest.circuit_id) {
+        throw new Error(
+          `proof is not given for requested circuit expected: ${proofRequest.circuit_id}, given ${proofResp.circuit_id}`,
+        );
+      }
       const circuitId = proofResp.circuit_id;
       const key = await this.keyLoader.load(circuitId);
       if (!key) {
