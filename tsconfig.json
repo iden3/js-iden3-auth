@@ -14,7 +14,7 @@
     "noImplicitAny": false,
     "pretty": true,
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "skipLibCheck": true,
     "strict": false,
     "traceResolution": false,
