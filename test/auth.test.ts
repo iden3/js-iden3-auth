@@ -1,36 +1,36 @@
-import { Circuits } from '../src/circuits/registry';
+import { AuthPubSignals } from '@lib/circuits/auth';
+import { Circuits } from '@lib/circuits/registry';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
   ZKPRequest,
   ZKPResponse,
-} from '../src/protocol/models';
+} from '@lib/protocol/models';
 import {
   createAuthorizationRequest,
   createAuthorizationRequestWithMessage,
   Verifier,
-} from '../src/auth/auth';
+} from '@lib/auth/auth';
 
-import { AUTHORIZATION_RESPONSE_MESSAGE_TYPE } from '../src/protocol/constants';
+import { AUTHORIZATION_RESPONSE_MESSAGE_TYPE } from '@lib/protocol/constants';
 import { v4 as uuidv4 } from 'uuid';
 
 import { getCurveFromName } from 'ffjavascript';
-import { FSKeyLoader } from '../src/loaders/key';
-import { ISchemaLoader, UniversalSchemaLoader } from '../src/loaders/schema';
-import { IStateResolver, ResolvedState } from '../src/state/resolver';
-import { AuthPubSignals } from '../src/circuits/auth';
+import { FSKeyLoader } from '@lib/loaders/key';
+import { ISchemaLoader, UniversalSchemaLoader } from '@lib/loaders/schema';
+import { IStateResolver, ResolvedState } from '@lib/state/resolver';
 
 afterAll(async () => {
   const curve = await getCurveFromName('bn128');
   curve.terminate();
 });
 
-var verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./test/data');
-var schemaLoader: ISchemaLoader = new UniversalSchemaLoader('ipfs.io');
+const verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./test/data');
+const schemaLoader: ISchemaLoader = new UniversalSchemaLoader('ipfs.io');
 
 class MockResolver implements IStateResolver {
-  async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
-    let t: ResolvedState = {
+  async resolve(): Promise<ResolvedState> {
+    const t: ResolvedState = {
       latest: true,
       state: null,
       transitionTimestamp: 0,
@@ -38,7 +38,7 @@ class MockResolver implements IStateResolver {
     return t;
   }
 }
-var mockStateResolver: MockResolver = new MockResolver();
+const mockStateResolver: MockResolver = new MockResolver();
 
 test('createAuthorizationRequest', () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
@@ -102,7 +102,7 @@ test('TestVerifyMessageWithoutProof', async () => {
     },
   };
 
-  let verifier = new Verifier(
+  const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
     mockStateResolver,
@@ -268,7 +268,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
     },
   };
 
-  let verifier = new Verifier(
+  const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
     mockStateResolver,
@@ -280,13 +280,13 @@ test('TestVerifyWithAtomicMTPProof', async () => {
 });
 
 test('TestVerifyJWZ', async () => {
-  let verifier = new Verifier(
+  const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
     mockStateResolver,
   );
 
-  let token =
+  const token =
     'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aCIsImNyaXQiOlsiY2lyY3VpdElkIl0sInR5cCI6IkpXWiJ9.eyJpZCI6IjA5YjM4NDE1LTY3ZjAtNGE2Ny1hZTRhLTA3M2U4MGQzODg3MiIsInRoaWQiOiI3ZjM4YTE5My0wOTE4LTRhNDgtOWZhYy0zNmFkZmRiOGI1NDIiLCJ0eXAiOiJhcHBsaWNhdGlvbi9pZGVuM2NvbW0tcGxhaW4tanNvbiIsInR5cGUiOiJodHRwczovL2lkZW4zLWNvbW11bmljYXRpb24uaW8vYXV0aG9yaXphdGlvbi8xLjAvcmVzcG9uc2UiLCJmcm9tIjoiMTE5dHFjZVdkUmQyRjZXbkF5VnVGUVJGakszV1VYcTJMb3JTUHlHOUxKIiwidG8iOiIxMTI1R0pxZ3c2WUVzS0Z3ajYzR1k4N01NeFBMOWt3REt4UFVpd01MTloiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRfaWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFAiLCJwcm9vZiI6eyJwaV9hIjpbIjk1NzY5ODQwODQyNzk2NDk0OTM3MzY0OTcxMjAzOTkyMDA0MzIxMDk3NDY2NjUzNzI0NjI0MjUyNzY2NjIzMTU3NDczNjQ0NzIxNSIsIjQwODYzMDE3OTgwOTE1NTU1ODA3MDA4NjE4NjUyMTI0MzkwOTM3NjA5MzkyNTk0NjEzMDM0NzAxMDU1OTI1NzYwNzU5NjcxMTA4MDkiLCIxIl0sInBpX2IiOltbIjE3NzYxNTU5OTMyODk3MzE1ODkzNjE4ODk1MTMwOTcyMzIwMTEzMzI4MjQwNTA0NTM0MTI3Njg0Mjk2MDUzMjM5MDA4NDgwNjUwMTMyIiwiNTYzMjE5Mzc4MTM2NTE2OTY0MjY0NTg4ODMxOTU3MTAzODQwNjYxNDgwNzk0MzA0NDM5Nzc5ODk2NTA5NDU1MTYwMDYyODIzNDUwMyJdLFsiMTM2NTQ0MDMwNzQ3MzE0OTgwMjA1MTk2NTQ4NDA4NTM2OTY5MDAxNDEzMzU5NDI1NDI1NDg1NjM5ODA3MTUyMjg5NjUyNTQ5NzI0NyIsIjkxNDMyNDcwODMzODE3MzIzMzc3MTA5MDIzNjAxOTQ4NDMwMjc3NTUzMDU5MzA1OTg4Mzg0NTk2NjgxMzQxNDA3MTc1MzAzNjg1MTkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE2NzA3NzY4MDIwMDE5MDQ5ODUxODAzNjk1NjE2MDAwNjk5OTUzMjEwMjg3MDk1MDU1Nzk3NjMzMjU0MzE2MDM1NTQ4NzkxODg2OTk2IiwiMjA4NTkxOTk5NDkxMDAzMzg5MzI4MDUwNTA2NTQ3ODcwNjAxMDQwMTUxNjEzODg5ODQ3ODEyNTUxNjk1MjcxMDU2MzM4ODQ0MjA2ODciLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiIsImN1cnZlIjoiYm4xMjgifSwicHViX3NpZ25hbHMiOlsiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIiwiMTg2NTYxNDc1NDY2NjY5NDQ0ODQ0NTM4OTkyNDE5MTY0Njk1NDQwOTAyNTg4MTAxOTI4MDM5NDk1MjI3OTQ0OTA0OTMyNzEwMDUzMTMiLCIxIiwiMTczMzkyNzA2MjQzMDcwMDY1MjI4Mjk1ODc1NzA0MDIxMjg4MjUxNDc4NDU3NDQ2MDE3ODA2ODkyNTgwMzM2MjMwNTY0MDU5MzM3MDYiLCIyNjU5OTcwNzAwMjQ2MDE0NDM3OTA5Mjc1NTM3MDM4NDYzNTQ5NjU2MzgwNzQ1Mjg3ODk4OTE5MjM1MjYyNzI3MTc2ODM0MjUyOCIsIjE2NDIwNzQzNjIiLCIxMDY1OTA4ODAwNzMzMDM0MTg4MTg0OTA3MTA2Mzk1NTY3MDQ0NjIiLCIyIiwiNSIsIjg0MCIsIjEyMCIsIjM0MCIsIjUwOSIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCJdfV19fQ.eyJwcm9vZiI6eyJwaV9hIjpbIjMwMTc3ODIzODI1MzEwODkxMzY0NzgzNjU4MjAzMDMwNDY1NDkyMDYwMjA5MzEyNjc0NjgwNzk4NzY2ODM5NDE5MjcxMDgyNDkxNDEiLCI0OTAyMzUzODc4OTI0MTk2NzUyMTI2NDY2MTczMTM3NjQ0MjE4MDY2MTY0MDE5ODc4NDM4MzU3MDc0NDkwNjU4MTY2MjUyNTMxMzIxIiwiMSJdLCJwaV9iIjpbWyIxMjExNDEwOTAwNzkxMDg1NjM1MTk4ODgxNzQ0MjY1NTE3NjY3NTQ0OTE5NDcyOTc4MzYyNjQxNjUyMjY5NjAwMTA1NjIyMjA1MDA3NCIsIjE3NzIyMDA5NDMxNjI0MzUwMDAzMTU4MjgwOTcxNzk1NDQ2NTgwMzkxNTIzOTY3NzYxMzI4MzIzNjU4NDgxMTc2NDM3MTYxNzkxOTU2Il0sWyIxNzYyMzU3NzEzMzgzNzU4MDEzNzY4MDQ3NDQwNzk2NjY5OTA5Nzc0MDQxMzk1ODkxNzU2Njc0ODE4OTQ3OTM0NDQ2OTY5MTY1MDUyOCIsIjIxNDg2ODU3NDI2OTU4NTgxNzE4MjYwNDU4NzgyMjUxMjUwNzcwNTg0NzU0NzkyMDc4MTIwNDA0NzM3NDkzNzI3Njg1NTg3MjExNjM0Il0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjY4OTYyNDQ2ODc3MTI5MTc0MDY1MzY2MjczMjYxNzQzODEyODAwMzc2NzQyNDUwMDI0NjIyODI3NjA3MTYzMDI5NjQ4MjUxNTM0NiIsIjE1NDI3MzQxMDYxNzcxNDYyNjI1OTg3NjkzNzI4NjY0Njk0MTA0Mzk0OTcxNjE5NzUyOTk2NjUyNTQ2OTkzNzEwNjM5MDQ3NzMzNjE4IiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiODQ5NTg4MzgyMTE1NzY5NjE2MjY1NDAzNDE4MDIwNjk2OTU1NjYxNTQ5NzgxOTM2Mzc4OTc4NTUyMTI4MzQ5OTk3MDQ4MTk4MDk0MCIsIjE4NjU2MTQ3NTQ2NjY2OTQ0NDg0NDUzODk5MjQxOTE2NDY5NTQ0MDkwMjU4ODEwMTkyODAzOTQ5NTIyNzk0NDkwNDkzMjcxMDA1MzEzIiwiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIl19';
 
   await expect(verifier.verifyJWZ(token)).resolves.not.toThrow();
@@ -326,7 +326,7 @@ test('TestFullVerify', async () => {
 
   expect(request.body.scope.length).toEqual(1);
 
-  let verifier = new Verifier(
+  const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
     mockStateResolver,
@@ -334,7 +334,7 @@ test('TestFullVerify', async () => {
   request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
 
-  let token =
+  const token =
     'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aCIsImNyaXQiOlsiY2lyY3VpdElkIl0sInR5cCI6IkpXWiJ9.eyJpZCI6IjA5YjM4NDE1LTY3ZjAtNGE2Ny1hZTRhLTA3M2U4MGQzODg3MiIsInRoaWQiOiI3ZjM4YTE5My0wOTE4LTRhNDgtOWZhYy0zNmFkZmRiOGI1NDIiLCJ0eXAiOiJhcHBsaWNhdGlvbi9pZGVuM2NvbW0tcGxhaW4tanNvbiIsInR5cGUiOiJodHRwczovL2lkZW4zLWNvbW11bmljYXRpb24uaW8vYXV0aG9yaXphdGlvbi8xLjAvcmVzcG9uc2UiLCJmcm9tIjoiMTE5dHFjZVdkUmQyRjZXbkF5VnVGUVJGakszV1VYcTJMb3JTUHlHOUxKIiwidG8iOiIxMTI1R0pxZ3c2WUVzS0Z3ajYzR1k4N01NeFBMOWt3REt4UFVpd01MTloiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRfaWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFAiLCJwcm9vZiI6eyJwaV9hIjpbIjk1NzY5ODQwODQyNzk2NDk0OTM3MzY0OTcxMjAzOTkyMDA0MzIxMDk3NDY2NjUzNzI0NjI0MjUyNzY2NjIzMTU3NDczNjQ0NzIxNSIsIjQwODYzMDE3OTgwOTE1NTU1ODA3MDA4NjE4NjUyMTI0MzkwOTM3NjA5MzkyNTk0NjEzMDM0NzAxMDU1OTI1NzYwNzU5NjcxMTA4MDkiLCIxIl0sInBpX2IiOltbIjE3NzYxNTU5OTMyODk3MzE1ODkzNjE4ODk1MTMwOTcyMzIwMTEzMzI4MjQwNTA0NTM0MTI3Njg0Mjk2MDUzMjM5MDA4NDgwNjUwMTMyIiwiNTYzMjE5Mzc4MTM2NTE2OTY0MjY0NTg4ODMxOTU3MTAzODQwNjYxNDgwNzk0MzA0NDM5Nzc5ODk2NTA5NDU1MTYwMDYyODIzNDUwMyJdLFsiMTM2NTQ0MDMwNzQ3MzE0OTgwMjA1MTk2NTQ4NDA4NTM2OTY5MDAxNDEzMzU5NDI1NDI1NDg1NjM5ODA3MTUyMjg5NjUyNTQ5NzI0NyIsIjkxNDMyNDcwODMzODE3MzIzMzc3MTA5MDIzNjAxOTQ4NDMwMjc3NTUzMDU5MzA1OTg4Mzg0NTk2NjgxMzQxNDA3MTc1MzAzNjg1MTkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE2NzA3NzY4MDIwMDE5MDQ5ODUxODAzNjk1NjE2MDAwNjk5OTUzMjEwMjg3MDk1MDU1Nzk3NjMzMjU0MzE2MDM1NTQ4NzkxODg2OTk2IiwiMjA4NTkxOTk5NDkxMDAzMzg5MzI4MDUwNTA2NTQ3ODcwNjAxMDQwMTUxNjEzODg5ODQ3ODEyNTUxNjk1MjcxMDU2MzM4ODQ0MjA2ODciLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiIsImN1cnZlIjoiYm4xMjgifSwicHViX3NpZ25hbHMiOlsiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIiwiMTg2NTYxNDc1NDY2NjY5NDQ0ODQ0NTM4OTkyNDE5MTY0Njk1NDQwOTAyNTg4MTAxOTI4MDM5NDk1MjI3OTQ0OTA0OTMyNzEwMDUzMTMiLCIxIiwiMTczMzkyNzA2MjQzMDcwMDY1MjI4Mjk1ODc1NzA0MDIxMjg4MjUxNDc4NDU3NDQ2MDE3ODA2ODkyNTgwMzM2MjMwNTY0MDU5MzM3MDYiLCIyNjU5OTcwNzAwMjQ2MDE0NDM3OTA5Mjc1NTM3MDM4NDYzNTQ5NjU2MzgwNzQ1Mjg3ODk4OTE5MjM1MjYyNzI3MTc2ODM0MjUyOCIsIjE2NDIwNzQzNjIiLCIxMDY1OTA4ODAwNzMzMDM0MTg4MTg0OTA3MTA2Mzk1NTY3MDQ0NjIiLCIyIiwiNSIsIjg0MCIsIjEyMCIsIjM0MCIsIjUwOSIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCJdfV19fQ.eyJwcm9vZiI6eyJwaV9hIjpbIjMwMTc3ODIzODI1MzEwODkxMzY0NzgzNjU4MjAzMDMwNDY1NDkyMDYwMjA5MzEyNjc0NjgwNzk4NzY2ODM5NDE5MjcxMDgyNDkxNDEiLCI0OTAyMzUzODc4OTI0MTk2NzUyMTI2NDY2MTczMTM3NjQ0MjE4MDY2MTY0MDE5ODc4NDM4MzU3MDc0NDkwNjU4MTY2MjUyNTMxMzIxIiwiMSJdLCJwaV9iIjpbWyIxMjExNDEwOTAwNzkxMDg1NjM1MTk4ODgxNzQ0MjY1NTE3NjY3NTQ0OTE5NDcyOTc4MzYyNjQxNjUyMjY5NjAwMTA1NjIyMjA1MDA3NCIsIjE3NzIyMDA5NDMxNjI0MzUwMDAzMTU4MjgwOTcxNzk1NDQ2NTgwMzkxNTIzOTY3NzYxMzI4MzIzNjU4NDgxMTc2NDM3MTYxNzkxOTU2Il0sWyIxNzYyMzU3NzEzMzgzNzU4MDEzNzY4MDQ3NDQwNzk2NjY5OTA5Nzc0MDQxMzk1ODkxNzU2Njc0ODE4OTQ3OTM0NDQ2OTY5MTY1MDUyOCIsIjIxNDg2ODU3NDI2OTU4NTgxNzE4MjYwNDU4NzgyMjUxMjUwNzcwNTg0NzU0NzkyMDc4MTIwNDA0NzM3NDkzNzI3Njg1NTg3MjExNjM0Il0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjY4OTYyNDQ2ODc3MTI5MTc0MDY1MzY2MjczMjYxNzQzODEyODAwMzc2NzQyNDUwMDI0NjIyODI3NjA3MTYzMDI5NjQ4MjUxNTM0NiIsIjE1NDI3MzQxMDYxNzcxNDYyNjI1OTg3NjkzNzI4NjY0Njk0MTA0Mzk0OTcxNjE5NzUyOTk2NjUyNTQ2OTkzNzEwNjM5MDQ3NzMzNjE4IiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiODQ5NTg4MzgyMTE1NzY5NjE2MjY1NDAzNDE4MDIwNjk2OTU1NjYxNTQ5NzgxOTM2Mzc4OTc4NTUyMTI4MzQ5OTk3MDQ4MTk4MDk0MCIsIjE4NjU2MTQ3NTQ2NjY2OTQ0NDg0NDUzODk5MjQxOTE2NDY5NTQ0MDkwMjU4ODEwMTkyODAzOTQ5NTIyNzk0NDkwNDkzMjcxMDA1MzEzIiwiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIl19';
 
   await expect(verifier.fullVerify(token, request)).resolves.not.toThrow();
@@ -490,7 +490,7 @@ test('TestResponseWithEmptyQueryRequest', async () => {
     },
   };
 
-  let verifier = new Verifier(
+  const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
     mockStateResolver,
@@ -507,15 +507,16 @@ test('registry: get existing circuit', () => {
     '1',
     '5816868615164565912277677884704888703982258184820398645933682814085602171910',
     '286312392162647260160287083374160163061246635086990474403590223113720496128',
-  ]);
+  ]) as AuthPubSignals;
+
   expect(type).not.toBeNull();
   expect(instance).not.toBeNull();
   expect(instance.verifyQuery).not.toBeNull();
-  expect((instance as AuthPubSignals).challenge.toString()).toEqual('1');
-  expect((instance as AuthPubSignals).userId.string()).toEqual(
+  expect(instance.challenge.toString()).toEqual('1');
+  expect(instance.userId.string()).toEqual(
     '113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj',
   );
-  expect((instance as AuthPubSignals).userState.toString()).toEqual(
+  expect(instance.userState.toString()).toEqual(
     '5816868615164565912277677884704888703982258184820398645933682814085602171910',
   );
 });

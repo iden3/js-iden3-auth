@@ -1,5 +1,5 @@
 import { sha256 } from 'cross-sha256';
-import { toLittleEndian } from '@app/core/util';
+import { toLittleEndian } from '@lib/core/util';
 export class Core {
   static intToBytes(int: bigint): Uint8Array {
     return Uint8Array.from(toLittleEndian(int));

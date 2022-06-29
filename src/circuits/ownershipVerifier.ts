@@ -1,4 +1,4 @@
-import { Id } from '@app/core/id';
+import { Id } from '@lib/core/id';
 
 export abstract class IDOwnershipPubSignals {
   userId: Id;

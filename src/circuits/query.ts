@@ -1,8 +1,8 @@
 import keccak256 from 'keccak256';
-import { ISchemaLoader } from '@app/loaders/schema';
+import { ISchemaLoader } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
-import { Schema } from '@app/protocol/models';
-import { fromLittleEndian } from '@app/core/util';
+import { Schema } from '@lib/protocol/models';
+import { fromLittleEndian } from '@lib/core/util';
 
 const operators: Map<string, number> = new Map([
   ['$noop', 0],

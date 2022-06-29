@@ -23,10 +23,10 @@
     "outDir": "dist/cjs",
     "target": "esnext",
     "paths": {
-      "@app/*": ["./src/*"],
+      "@lib/*": ["src/*"]
     }
   },
-  "exclude": ["node_modules", "dist", "**/*test.ts"],
+  "exclude": ["node_modules", "dist"],
   "compileOnSave": false,
-  "include": ["src"]
+  "include": ["src", "test"]
 }

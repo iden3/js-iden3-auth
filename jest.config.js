@@ -6,12 +6,17 @@ module.exports = {
     testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
     moduleNameMapper: {
-        "@app/core/(.*)": "<rootDir>/src/core/$1",
-        "@app/protocol/(.*)": "<rootDir>/src/protocol/$1",
-        "@app/circuits/(.*)": "<rootDir>src/circuits/$1",
-        "@app/proofs/(.*)": "<rootDir>src/proofs/$1",
-        "@app/auth/(.*)": "<rootDir>src/auth/$1",
-        "@app/state/(.*)": "<rootDir>src/state/$1",
-        "@app/loaders/(.*)": "<rootDir>src/loaders/$1"
-    }
+        "@lib/core/(.*)": "<rootDir>/src/core/$1",
+        "@lib/protocol/(.*)": "<rootDir>/src/protocol/$1",
+        "@lib/circuits/(.*)": "<rootDir>/src/circuits/$1",
+        "@lib/proofs/(.*)": "<rootDir>/src/proofs/$1",
+        "@lib/auth/(.*)": "<rootDir>/src/auth/$1",
+        "@lib/state/(.*)": "<rootDir>/src/state/$1",
+        "@lib/loaders/(.*)": "<rootDir>/src/loaders/$1"
+    },
+    // globals: {
+    //     'jest-config': {
+    //         tsConfig: 'tsconfig.test.json'
+    //     }
+    // }
 };

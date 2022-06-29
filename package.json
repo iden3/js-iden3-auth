@@ -11,7 +11,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "rimraf dist && tsc && tsc-alias",
+    "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint --ext *ts src/**/* --fix"
   },

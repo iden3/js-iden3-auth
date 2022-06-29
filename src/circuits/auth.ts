@@ -1,9 +1,9 @@
-import { Core } from '@app/core/core';
-import { Id } from '@app/core/id';
-import { IStateResolver, ResolvedState } from '@app/state/resolver';
-import { Query } from '@app/circuits/query';
-import { PubSignalsVerifier } from '@app/circuits/registry';
-import { IDOwnershipPubSignals } from '@app/circuits/ownershipVerifier';
+import { Core } from '@lib/core/core';
+import { Id } from '@lib/core/id';
+import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { Query } from '@lib/circuits/query';
+import { PubSignalsVerifier } from '@lib/circuits/registry';
+import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 
 export class AuthPubSignals
   extends IDOwnershipPubSignals
@@ -26,6 +26,7 @@ export class AuthPubSignals
     const bytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[2]));
     this.userId = Id.idFromBytes(bytes);
   }
+
   async verifyQuery(_query: Query): Promise<void> {
     throw new Error('Method not implemented.');
   }
@@ -39,5 +40,9 @@ export class AuthPubSignals
       throw new Error(`only latest states are supported`);
     }
     return;
+  }
+
+  verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {
+    return super.verifyIdOwnership(sender, challenge);
   }
 }
