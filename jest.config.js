@@ -13,10 +13,5 @@ module.exports = {
         "@lib/auth/(.*)": "<rootDir>/src/auth/$1",
         "@lib/state/(.*)": "<rootDir>/src/state/$1",
         "@lib/loaders/(.*)": "<rootDir>/src/loaders/$1"
-    },
-    // globals: {
-    //     'jest-config': {
-    //         tsConfig: 'tsconfig.test.json'
-    //     }
-    // }
+    }
 };
