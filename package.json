@@ -11,7 +11,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "rimraf dist && tsc -p tsconfig-cjs.json && rollup -c",
+    "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint --ext *ts src/**/* --fix"
   },
@@ -60,6 +60,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "ts-jest": "^27.0.3",
     "ts-node": "^10.0.0",
+    "tsc-alias": "^1.6.9",
     "tsconfig-paths": "^3.10.1",
     "typescript": "^4.3.5"
   }

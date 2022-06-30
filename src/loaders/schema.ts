@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { create, IPFSHTTPClient as IpfsHttpClient } from 'ipfs-http-client';
-import { Schema } from '../protocol/models';
+import { Schema } from '@lib/protocol/models';
 
 export interface SchemaLoadResult {
   schema: Uint8Array;

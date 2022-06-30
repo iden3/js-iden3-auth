@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: ${{ matrix.version }}
       - name: Install modules
-        run: npm install
+        run: npm ci
       - name: Run ESLint
         run: npm run lint
       - name: Run Tests

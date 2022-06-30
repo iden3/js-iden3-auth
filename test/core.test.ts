@@ -1,5 +1,5 @@
-import { Core } from '../src/core/core';
-import { Id } from '../src/core/id';
+import { Core } from '@lib/core/core';
+import { Id } from '@lib/core/id';
 
 test('test id parsers', () => {
   const typ0Hex = Uint8Array.from([0, 0]);
