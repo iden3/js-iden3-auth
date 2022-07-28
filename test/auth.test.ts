@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { getCurveFromName } from 'ffjavascript';
 import { FSKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader, UniversalSchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver, ResolvedState } from '../src/state/resolver';
-import { AuthPubSignals } from '../src/circuits/auth';
+import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { AuthPubSignals } from '@lib/circuits/auth';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
