@@ -26,8 +26,12 @@ const errDoesNotMatchRegexp = new Error('did does not match regex');
 // https://w3c.github.io/did-core/#did-syntax
 export class DID {
   id: Id; // Id did specific id
-  
-  constructor(idStr: string, public blockchain?: Blockchain, public networkId?: NetworkId) {
+
+  constructor(
+    idStr: string,
+    public blockchain?: Blockchain,
+    public networkId?: NetworkId,
+  ) {
     if (!!blockchain && !Object.values(Blockchain).includes(blockchain)) {
       throw 'unknown blockhain';
     }
