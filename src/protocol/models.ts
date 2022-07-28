@@ -1,4 +1,4 @@
-import { DIDDocument } from 'core/doc';
+import { DIDDocument } from '@lib/core/doc';
 
 // Message is basic protocol message
 export interface Message {
