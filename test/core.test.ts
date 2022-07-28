@@ -1,6 +1,6 @@
-import { Core } from '../src/core/core';
-import { DID, Blockchain, NetworkId } from '../src/core/did';
-import { Id } from '../src/core/id';
+import { DID, Blockchain, NetworkId } from '@lib/core/did';
+import { Core } from '@lib/core/core';
+import { Id } from '@lib/core/id';
 
 test('test id parsers', () => {
   const typ0Hex = Uint8Array.from([0, 0]);

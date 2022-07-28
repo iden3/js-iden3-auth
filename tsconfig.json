@@ -1,8 +1,32 @@
 {
-    "extends": "./tsconfig-base.json",
-    "compilerOptions": {
-        "module": "esnext",
-        "outDir": "dist/mjs",
-        "target": "esnext"
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "declaration": true,
+    "esModuleInterop": true,
+    "inlineSourceMap": true,
+    "lib": ["es2020", "esnext"],
+    "listEmittedFiles": false,
+    "listFiles": false,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "strict": false,
+    "traceResolution": false,
+    "types": ["node", "jest"],
+    "module": "commonjs",
+    "outDir": "dist/cjs",
+    "target": "esnext",
+    "paths": {
+      "@lib/*": ["src/*"]
     }
+  },
+  "exclude": ["node_modules", "dist"],
+  "compileOnSave": false,
+  "include": ["src", "test"]
 }

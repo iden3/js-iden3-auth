@@ -1,13 +1,14 @@
-import { Core } from '../core/core';
-import { toLittleEndian } from '../core/util';
+import { Core } from '@lib/core/core';
+import { toLittleEndian } from '@lib/core/util';
 import { ethers } from 'ethers';
-import { stateABI } from './abi';
+import { stateABI } from '@lib/state/abi';
 
 export interface IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState>;
 }
 export type ResolvedState = {
   latest: boolean;
+  genesis: boolean;
   state: any;
   transitionTimestamp: number | string;
 };
@@ -20,21 +21,35 @@ export class EthStateResolver implements IStateResolver {
     this.contractAddress = contractAddress;
   }
   public async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
-    const ethersProvider = new ethers.providers.JsonRpcProvider(this.rpcUrl);
+    const url = new URL(this.rpcUrl);
+    const ethersProvider = new ethers.providers.JsonRpcProvider({
+      url: url.href,
+      user: url.username,
+      password: url.password,
+    });
     const contract = new ethers.Contract(
       this.contractAddress,
       stateABI,
       ethersProvider,
     );
+    // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
-    if (isGenesis) {
-      return { latest: true, state, transitionTimestamp: 0 };
-    }
 
+    // get latest state of identity from contract
     const contractState = await contract.getState(id);
 
     if (contractState.toBigInt() === 0n) {
-      throw new Error('state is not found. Identity is not genesis');
+      if (!isGenesis) {
+        throw new Error(
+          'identity state is not genesis and state not found on-chain',
+        );
+      }
+      return {
+        latest: true,
+        genesis: isGenesis,
+        state,
+        transitionTimestamp: 0,
+      };
     }
 
     if (contractState.toBigInt() !== state) {
@@ -50,12 +65,13 @@ export class EthStateResolver implements IStateResolver {
 
       return {
         latest: false,
-        state: state,
+        state,
+        genesis: isGenesis,
         transitionTimestamp: transitionInfo[0].toBigInt(),
       };
     }
 
-    return { latest: true, state, transitionTimestamp: 0 };
+    return { latest: true, genesis: isGenesis, state, transitionTimestamp: 0 };
   }
 }
 
