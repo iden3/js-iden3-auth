@@ -1,4 +1,4 @@
-import { Id } from './id';
+import { Id } from '@lib/core/id';
 
 const method = 'iden3';
 
