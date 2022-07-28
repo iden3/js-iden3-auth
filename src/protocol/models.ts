@@ -1,4 +1,4 @@
-import { DIDDocument } from "core/doc";
+import { DIDDocument } from 'core/doc';
 
 // Message is basic protocol message
 export interface Message {
@@ -9,7 +9,7 @@ export interface Message {
   body: unknown;
 }
 
-// AuthorizationRequestMessage is message that representes protocol authorization request
+// AuthorizationRequestMessage is message that represents protocol authorization request
 export interface AuthorizationRequestMessage {
   id: string;
   typ: string;

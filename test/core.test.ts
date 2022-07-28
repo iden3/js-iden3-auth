@@ -1,7 +1,6 @@
 import { Core } from '../src/core/core';
-import { DID,Blockchain, NetworkId,} from '../src/core/did';
+import { DID, Blockchain, NetworkId } from '../src/core/did';
 import { Id } from '../src/core/id';
-
 
 test('test id parsers', () => {
   const typ0Hex = Uint8Array.from([0, 0]);
@@ -53,48 +52,36 @@ test('test id from big int', () => {
 });
 
 test('test did', () => {
+  const idStr = '114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE';
 
-  const idStr = "114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE";
+  let did = DID.parseDid(
+    'did:iden3:polygon:test:114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE',
+  );
 
-  let did = DID.parseDid("did:iden3:polygon:test:114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE");
+  expect(did.id.string()).toEqual(idStr);
 
-  expect(
-    did.id.string()
-  ).toEqual(idStr);
+  expect(did.blockchain).toEqual('polygon');
 
-  expect(
-    did.blockchain
-  ).toEqual("polygon");
+  expect(did.networkId).toEqual('test');
 
-  expect(
-    did.networkId
-  ).toEqual("test");
+  let peerDID = DID.parseDid(
+    'did:iden3:114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE',
+  );
 
-  let peerDID = DID.parseDid("did:iden3:114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE");
+  expect(peerDID.id.string()).toEqual(idStr);
 
-  expect(
-    peerDID.id.string()
-  ).toEqual(idStr);
+  expect(peerDID.blockchain).toBeUndefined();
 
-  expect(
-    peerDID.blockchain
-  ).toBeUndefined()
+  expect(peerDID.networkId).toBeUndefined();
 
-  expect(
-    peerDID.networkId
-  ).toBeUndefined()
+  let newDid = new DID(
+    '114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE',
+    Blockchain.Polygon,
+    NetworkId.Mumbai,
+  );
+  expect(newDid.id.string()).toEqual(idStr);
 
-  let newDid = new DID("114vgnnCupQMX4wqUBjg5kUya3zMXfPmKc9HNH4TSE",Blockchain.Polygon, NetworkId.Mumbai);
-  expect(
-    newDid.id.string()
-  ).toEqual(idStr);
+  expect(newDid.blockchain).toBe(Blockchain.Polygon);
 
-  expect(
-    newDid.blockchain
-  ).toBe(Blockchain.Polygon)
-
-  expect(
-    newDid.networkId
-  ).toBe(NetworkId.Mumbai)
-  
+  expect(newDid.networkId).toBe(NetworkId.Mumbai);
 });
