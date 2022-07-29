@@ -1,3 +1,5 @@
+import { DIDDocument } from '@lib/core/doc';
+
 // Message is basic protocol message
 export interface Message {
   id: string;
@@ -7,7 +9,7 @@ export interface Message {
   body: unknown;
 }
 
-// AuthorizationRequestMessage is message that representes protocol authorization request
+// AuthorizationRequestMessage is message that represents protocol authorization request
 export interface AuthorizationRequestMessage {
   id: string;
   typ: string;
@@ -34,12 +36,14 @@ export interface AuthorizationRequestBody {
   reason: string;
   callbackUrl: string;
   scope: ZKPRequest[];
+  did_doc?: DIDDocument;
 }
 
 //AuthorizationRequestBody is body for AuthorizationResponseMessage
 export interface AuthorizationResponseBody {
   message?: string;
   scope: ZKPResponse[];
+  did_doc?: DIDDocument;
 }
 
 // ProofData is a result of snarkJS groth16 proof generation
