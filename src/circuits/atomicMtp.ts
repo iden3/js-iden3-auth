@@ -91,7 +91,7 @@ export class AtomicQueryMTPPubSignals
     if (
       !issuerNonRevStateResolved.latest &&
       Date.now() -
-        (issuerNonRevStateResolved.transitionTimestamp as number) * 1000 >
+        Number(issuerNonRevStateResolved.transitionTimestamp) * 1000 >
         60 * 60 * 1000
     ) {
       throw new Error(`issuer state for non-revocation proofs is not valid`);
