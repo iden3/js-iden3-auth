@@ -7,6 +7,8 @@ jobs:
         version: [16.15, 18]
     timeout-minutes: 7
     runs-on: ubuntu-latest
+    env:
+        IPFS_URL: ${{ secrets.IPFS_URL }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
