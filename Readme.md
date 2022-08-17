@@ -17,7 +17,7 @@ Currently, library implementation includes support of next message types
 
 ### RUN AND TEST 
 
-EXPORT IPFS_URL = `https://username:password@ipfs.infura:5001`
+EXPORT IPFS_URL = `https://username:password@ipfs.infura.io:5001`
 `npm run test`
 
 ---
