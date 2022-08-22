@@ -68,7 +68,7 @@ export class Verifier {
     response: AuthorizationResponseMessage,
     request: AuthorizationRequestMessage,
   ) {
-    if (request.body.message != response.body.message) {
+    if ((request.body.message ?? '') !== (response.body.message ?? '')) {
       throw new Error(
         'message for signing from request is not presented in response',
       );
