@@ -13,13 +13,13 @@ test('schema http loader', async () => {
 });
 
 test('schema ipfs loader', async () => {
-  const ipfs_url = process.env.IPFS_URL;
+  const ipfsUrl = process.env.IPFS_URL;
   const schema: Schema = {
     url: 'ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP',
     type: 'KYCCountryOfResidenceCredential',
   };
 
-  const loader = new IpfsSchemaLoader(ipfs_url);
+  const loader = new IpfsSchemaLoader(ipfsUrl);
   const schemaResult = await loader.load(schema);
   expect(schemaResult.extension).toEqual('json-ld');
   expect(schemaResult.schema).not.toBeNull();
