@@ -15,6 +15,10 @@ Currently, library implementation includes support of next message types
 1. `https://iden3-communication.io/authorization/1.0/request`
 2. `https://iden3-communication.io/authorization/1.0/response`
 
+### RUN AND TEST 
+
+EXPORT IPFS_URL = `https://username:password@ipfs.infura.io:5001`
+`npm run test`
 
 ---
 
