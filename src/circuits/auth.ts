@@ -1,9 +1,10 @@
 import { Core } from '@lib/core/core';
 import { Id } from '@lib/core/id';
-import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { IStateResolver } from '@lib/state/resolver';
 import { Query } from '@lib/circuits/query';
 import { PubSignalsVerifier } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
+import { checkUserState } from './common';
 
 export class AuthPubSignals
   extends IDOwnershipPubSignals
@@ -28,18 +29,11 @@ export class AuthPubSignals
   }
 
   async verifyQuery(_query: Query): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error(`auth circuit doesn't support queries`);
   }
 
   async verifyStates(resolver: IStateResolver): Promise<void> {
-    const userStateResolved: ResolvedState = await resolver.resolve(
-      this.userId.bigInt(),
-      this.userState,
-    );
-    if (!userStateResolved.latest) {
-      throw new Error(`only latest states are supported`);
-    }
-    return;
+    await checkUserState(resolver, this.userId, this.userState);
   }
 
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {

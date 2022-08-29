@@ -1,5 +1,5 @@
 import keccak256 from 'keccak256';
-import { ISchemaLoader } from '@lib/loaders/schema';
+import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Schema } from '@lib/protocol/models';
 import { fromLittleEndian } from '@lib/core/util';
@@ -45,10 +45,16 @@ export async function checkQueryRequest(
     (issuer) => issuer === '*' || issuer === outputs.issuerId,
   );
   if (!issuerAllowed) {
-    throw new Error('issuer of claim is not allowed');
+    throw new Error('issuer is not in allowed list');
   }
 
-  const loadResult = await schemaLoader.load(query.schema);
+  let loadResult: SchemaLoadResult;
+
+  try {
+    loadResult = await schemaLoader.load(query.schema);
+  } catch (e) {
+    throw new Error(`can't load schema for request query`);
+  }
 
   if (loadResult.extension !== 'json-ld') {
     throw new Error('only json-ld schema is supported');
@@ -81,7 +87,9 @@ export async function checkQueryRequest(
   }
 
   if (outputs.operator !== cq.operator) {
-    throw new Error(`operator that was used is not equal to request`);
+    throw new Error(
+      `operator that was used is not equal to requested in query`,
+    );
   }
   for (let index = 0; index < cq.values.length; index++) {
     if (outputs.value[index].toString(10) !== cq.values[index].toString(10)) {

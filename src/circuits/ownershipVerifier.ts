@@ -6,7 +6,7 @@ export abstract class IDOwnershipPubSignals {
   async verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {
     if (sender !== this.userId.string()) {
       throw new Error(
-        `sender is not used for proof creation, expected ${sender}, user from public signals: ${this.userId.string()}  `,
+        `sender is not used for proof creation, expected ${sender}, user from public signals: ${this.userId.string()}`,
       );
     }
     if (challenge.toString() !== this.challenge.toString()) {

@@ -1,10 +1,11 @@
-import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { IStateResolver } from '@lib/state/resolver';
 import { PubSignalsVerifier } from '@lib/circuits/registry';
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { Core } from '@lib/core/core';
 import { Id } from '@lib/core/id';
 import { ISchemaLoader } from '@lib/loaders/schema';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
+import { checkIssuerNonRevState, checkUserState } from './common';
 
 export class AtomicQuerySigPubSignals
   extends IDOwnershipPubSignals
@@ -66,34 +67,14 @@ export class AtomicQuerySigPubSignals
     return await checkQueryRequest(query, outs, schemaLoader);
   }
   async verifyStates(resolver: IStateResolver): Promise<void> {
-    const userStateResolved: ResolvedState = await resolver.resolve(
-      this.userId.bigInt(),
-      this.userState,
-    );
-    if (!userStateResolved.latest) {
-      throw new Error(`only latest states are supported`);
-    }
+    await checkUserState(resolver, this.userId, this.userState);
 
-    const issuerStateResolved: ResolvedState = await resolver.resolve(
-      this.issuerId.bigInt(),
-      this.issuerAuthState,
-    );
-    if (!issuerStateResolved) {
-      throw new Error(`issuer state is not valid`);
-    }
+    await resolver.resolve(this.issuerId.bigInt(), this.issuerAuthState);
 
-    const issuerNonRevStateResolved: ResolvedState = await resolver.resolve(
-      this.issuerId.bigInt(),
+    await checkIssuerNonRevState(
+      resolver,
+      this.issuerId,
       this.issuerClaimNonRevState,
     );
-
-    if (
-      !issuerNonRevStateResolved.latest &&
-      Date.now() -
-        Number(issuerNonRevStateResolved.transitionTimestamp) * 1000 >
-        60 * 60 * 1000
-    ) {
-      throw new Error(`issuer state for non-revocation proofs is not valid`);
-    }
   }
 }

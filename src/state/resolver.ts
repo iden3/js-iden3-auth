@@ -41,7 +41,7 @@ export class EthStateResolver implements IStateResolver {
     if (contractState.toBigInt() === 0n) {
       if (!isGenesis) {
         throw new Error(
-          'identity state is not genesis and state not found on-chain',
+          'state is not genesis and not registered in the smart contract',
         );
       }
       return {
@@ -56,11 +56,11 @@ export class EthStateResolver implements IStateResolver {
       const transitionInfo = await contract.getTransitionInfo(state);
 
       if (transitionInfo[4].toBigInt() === 0n) {
-        throw new Error('Transition info contains invalid id');
+        throw new Error('transition info contains invalid id');
       }
 
       if (transitionInfo[0].toBigInt() === 0n) {
-        throw new Error('No information of transition for non-latest state');
+        throw new Error('no information of transition for non-latest state');
       }
 
       return {
