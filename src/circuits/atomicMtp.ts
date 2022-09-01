@@ -5,7 +5,7 @@ import { IStateResolver } from '@lib/state/resolver';
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { PubSignalsVerifier } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkIssuerNonRevState, checkUserState } from './common';
+import { checkIssuerNonRevState, checkUserState } from '@lib/circuits/common';
 
 export class AtomicQueryMTPPubSignals
   extends IDOwnershipPubSignals

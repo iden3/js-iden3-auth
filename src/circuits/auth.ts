@@ -4,7 +4,7 @@ import { IStateResolver } from '@lib/state/resolver';
 import { Query } from '@lib/circuits/query';
 import { PubSignalsVerifier } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkUserState } from './common';
+import { checkUserState } from '@lib/circuits/common';
 
 export class AuthPubSignals
   extends IDOwnershipPubSignals

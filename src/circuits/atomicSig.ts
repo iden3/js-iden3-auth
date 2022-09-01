@@ -5,7 +5,7 @@ import { Core } from '@lib/core/core';
 import { Id } from '@lib/core/id';
 import { ISchemaLoader } from '@lib/loaders/schema';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkIssuerNonRevState, checkUserState } from './common';
+import { checkIssuerNonRevState, checkUserState } from '@lib/circuits/common';
 
 export class AtomicQuerySigPubSignals
   extends IDOwnershipPubSignals
