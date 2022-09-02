@@ -13,5 +13,7 @@ export async function verifyProof(
         proofResp.pub_signals,
         proofResp.proof,
       );
+    default:
+      throw new Error(`${proofResp.proof.protocol} protocol is not supported`);
   }
 }

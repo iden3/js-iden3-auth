@@ -63,6 +63,6 @@ export function getLoader(url: string, ipfsConfigUrl?: string): ISchemaLoader {
       return new IpfsSchemaLoader(ipfsConfigUrl);
 
     default:
-      throw new Error(`Loader not provided for given url, ${url}`);
+      throw new Error(`loader for ${uri.protocol} is not supported`);
   }
 }
