@@ -150,7 +150,7 @@ export class Verifier {
     const verifier = new CircuitVerifier(token.zkProof.pub_signals);
 
     // state verification
-    verifier.verifyStates(this.stateResolver);
+    await verifier.verifyStates(this.stateResolver);
 
     return token;
   }
