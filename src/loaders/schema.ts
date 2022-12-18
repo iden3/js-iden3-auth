@@ -8,21 +8,21 @@ export interface SchemaLoadResult {
 }
 
 export interface ISchemaLoader {
-  load(schema: Schema): Promise<SchemaLoadResult>;
+  load(URL: string): Promise<SchemaLoadResult>;
 }
 
 export class UniversalSchemaLoader implements ISchemaLoader {
   constructor(private ipfsUrl: string) {}
-  public async load(schema: Schema): Promise<SchemaLoadResult> {
-    const l = getLoader(schema.url, this.ipfsUrl);
-    const schemaRes = await l.load(schema);
+  public async load(url: string): Promise<SchemaLoadResult> {
+    const l = getLoader(url, this.ipfsUrl);
+    const schemaRes = await l.load(url);
     return schemaRes;
   }
 }
 
 export class HttpSchemaLoader implements ISchemaLoader {
-  public async load(schema: Schema): Promise<SchemaLoadResult> {
-    const resp = await axios.get(schema.url, { responseType: 'arraybuffer' });
+  public async load(url: string): Promise<SchemaLoadResult> {
+    const resp = await axios.get(url, { responseType: 'arraybuffer' });
     return {
       schema: resp.data as Uint8Array,
       extension: 'json-ld',
@@ -34,8 +34,8 @@ export class IpfsSchemaLoader implements ISchemaLoader {
   constructor(private readonly url: string) {
     this.client = create({ url: this.url });
   }
-  public async load(schema: Schema): Promise<SchemaLoadResult> {
-    const uri = new URL(schema.url);
+  public async load(url: string): Promise<SchemaLoadResult> {
+    const uri = new URL(url);
 
     const schemaRes = this.client.cat(uri.host);
 

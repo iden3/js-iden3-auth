@@ -1,8 +1,10 @@
-import keccak256 from 'keccak256';
 import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
-import { Schema } from '@lib/protocol/models';
-import { fromLittleEndian } from '@lib/core/util';
+import { Id, SchemaHash } from '@iden3/js-iden3-core';
+import { getContextPathKey } from '@lib/merklize/path';
+import { TextDecoder } from 'util';
+import { TextEncoder } from 'node:util';
+import keccak256 from 'keccak256';
 
 const operators: Map<string, number> = new Map([
   ['$noop', 0],
@@ -21,19 +23,25 @@ const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 
 // Query is a query to circuit
 export interface Query {
-  allowedIssuers: string[];
+  allowedIssuers: string;
   req: Map<string, unknown>;
-  schema: Schema;
-  claimId: string;
+  context: string;
+  type: string;
+  claimID?: string;
 }
 
 // ClaimOutputs fields that are used in proof generation
 export interface ClaimOutputs {
-  issuerId: string;
-  schemaHash: bigint;
-  slotIndex: number;
+  issuerId: Id;
+  schemaHash: SchemaHash;
+  slotIndex?: number;
   operator: number;
   value: bigint[];
+  timestamp: number;
+  merklized: number;
+  claimPathKey?: bigint;
+  claimPathNotExists?: number;
+  valueArraySize: number;
 }
 
 export async function checkQueryRequest(
@@ -41,38 +49,38 @@ export async function checkQueryRequest(
   outputs: ClaimOutputs,
   schemaLoader: ISchemaLoader,
 ): Promise<void> {
-  const issuerAllowed = query.allowedIssuers.some(
-    (issuer) => issuer === '*' || issuer === outputs.issuerId,
-  );
-  if (!issuerAllowed) {
+  if (
+    query.allowedIssuers !== '*' &&
+    query.allowedIssuers !== outputs.issuerId.string()
+  ) {
     throw new Error('issuer is not in allowed list');
   }
 
   let loadResult: SchemaLoadResult;
 
   try {
-    loadResult = await schemaLoader.load(query.schema);
+    loadResult = await schemaLoader.load(query.context);
   } catch (e) {
     throw new Error(`can't load schema for request query`);
   }
 
-  if (loadResult.extension !== 'json-ld') {
-    throw new Error('only json-ld schema is supported');
+  const schemaHash = CreateSchemaHash(query.context, query.type);
+  if (schemaHash.toString() !== outputs.schemaHash.toString()) {
+    throw new Error(`schema that was used is not equal to requested in query`);
   }
-  const toHash = new Uint8Array([
-    ...loadResult.schema,
-    ...toBytes(query.schema.type),
-  ]);
 
-  const schemaHash = keccak256(Buffer.from(toHash));
-
-  // only json ld-schema are supported
-  const cq = parseRequest(
+  const cq = await parseRequest(
     query.req,
     loadResult.schema,
-    query.schema.type,
+    query.context,
+    query.type,
     outputs.value.length,
+    outputs.merklized,
   );
+
+  if (query.req === undefined) {
+    return;
+  }
 
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
@@ -82,15 +90,19 @@ export async function checkQueryRequest(
     return;
   }
 
-  if (outputs.slotIndex !== cq.slotIndex) {
-    throw new Error(`wrong claim slot was used in claim`);
+  if (outputs.merklized === 1) {
+    if (outputs.claimPathKey.toString() !== cq.claimPathKey.toString()) {
+      throw new Error(`proof was generated for another path`);
+    }
+    if (outputs.claimPathNotExists === 1) {
+      throw new Error(`proof doesn't contains target query key`);
+    }
+  } else {
+    if (outputs.slotIndex.toString() !== cq.slotIndex.toString()) {
+      throw new Error(`wrong claim slot was used in claim`);
+    }
   }
 
-  if (outputs.operator !== cq.operator) {
-    throw new Error(
-      `operator that was used is not equal to requested in query`,
-    );
-  }
   for (let index = 0; index < cq.values.length; index++) {
     if (outputs.value[index].toString(10) !== cq.values[index].toString(10)) {
       throw new Error(
@@ -99,30 +111,17 @@ export async function checkQueryRequest(
     }
   }
 
-  const shBigInt: bigint = fromLittleEndian(
-    schemaHash.slice(Math.ceil(schemaHash.length / 2), schemaHash.length),
-  );
-
-  if (shBigInt.toString() !== outputs.schemaHash.toString()) {
-    throw new Error(`schema that was used is not equal to requested in query`);
-  }
   return;
 }
 
-const toBytes = (s: string): Uint8Array => {
-  //TODO: buffer is not present in browser
-  const buffer = Buffer.from(s, 'utf8');
-  const result = Uint8Array.from(buffer);
-
-  return result;
-};
-
-function parseRequest(
+async function parseRequest(
   req: Map<string, unknown>,
   schema: Uint8Array,
+  credContext: string,
   credType: string,
   valueLength: number,
-): CircuitQuery {
+  merkalized: number,
+): Promise<CircuitQuery> {
   if (!req) {
     return {
       operator: operators.get('$noop'),
@@ -149,8 +148,6 @@ function parseRequest(
     break;
   }
 
-  const slotIndex = getFieldSlotIndex(fieldName, credType, schema);
-
   let operator: number;
   const values: bigint[] = new Array<bigint>(valueLength).fill(BigInt(0));
   for (const [key, value] of Object.entries(fieldReq)) {
@@ -169,10 +166,22 @@ function parseRequest(
     break;
   }
 
+  let slotIndex: number;
+  let claimPathKey: bigint;
+  if (merkalized == 1) {
+    const txtSchema = new TextDecoder().decode(schema);
+    const path = await getContextPathKey(txtSchema, credType, fieldName);
+    path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
+    claimPathKey = await path.mtEntry();
+  } else {
+    slotIndex = getFieldSlotIndex(fieldName, credType, schema);
+  }
+
   const cq: CircuitQuery = {
+    claimPathKey,
+    slotIndex,
     operator,
     values,
-    slotIndex,
   };
 
   return cq;
@@ -203,7 +212,19 @@ function getFieldSlotIndex(
 }
 
 type CircuitQuery = {
-  slotIndex: number;
+  claimPathKey?: bigint;
+  slotIndex?: number;
   values: bigint[];
   operator: number;
 };
+
+// TODO (illia-korotia): move to core like static method or contructor of SchemaHash type.
+export function CreateSchemaHash(
+  schemaContext: string,
+  type: string,
+): SchemaHash {
+  const schemaID = new TextEncoder().encode(`${schemaContext}#${type}`);
+  const bytes = new Uint8Array([...schemaID]);
+  const h = keccak256(Buffer.from(bytes));
+  return new SchemaHash(h.slice(-16));
+}

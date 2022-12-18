@@ -1,10 +1,12 @@
-import { Core } from '@lib/core/core';
-import { toLittleEndian } from '@lib/core/util';
+import { BytesHelper, toLittleEndian } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
-import { stateABI } from '@lib/state/abi';
+import { Abi__factory } from '@lib/state/types/ethers-contracts';
+
+const zeroInt = BigInt(0);
 
 export interface IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState>;
+  rootResolve(state: bigint): Promise<ResolvedState>;
 }
 export type ResolvedState = {
   latest: boolean;
@@ -20,6 +22,7 @@ export class EthStateResolver implements IStateResolver {
     this.rpcUrl = rpcUrl;
     this.contractAddress = contractAddress;
   }
+
   public async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
     const url = new URL(this.rpcUrl);
     const ethersProvider = new ethers.providers.JsonRpcProvider({
@@ -27,18 +30,15 @@ export class EthStateResolver implements IStateResolver {
       user: url.username,
       password: url.password,
     });
-    const contract = new ethers.Contract(
-      this.contractAddress,
-      stateABI,
-      ethersProvider,
-    );
+    const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
+
     // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
 
     // get latest state of identity from contract
-    const contractState = await contract.getState(id);
+    const contractState = await contract.getStateInfoById(id);
 
-    if (contractState.toBigInt() === 0n) {
+    if (contractState.state.eq(zeroInt)) {
       if (!isGenesis) {
         throw new Error(
           'state is not genesis and not registered in the smart contract',
@@ -47,31 +47,67 @@ export class EthStateResolver implements IStateResolver {
       return {
         latest: true,
         genesis: isGenesis,
-        state,
+        state: state,
         transitionTimestamp: 0,
       };
     }
 
-    if (contractState.toBigInt() !== state) {
-      const transitionInfo = await contract.getTransitionInfo(state);
+    if (!contractState.id.eq(id)) {
+      throw new Error(`state was recorded for another identity`);
+    }
 
-      if (transitionInfo[4].toBigInt() === 0n) {
-        throw new Error('transition info contains invalid id');
+    if (!contractState.state.eq(state)) {
+      if (contractState.replacedAtTimestamp.eq(zeroInt)) {
+        throw new Error(`no information about state transition`);
       }
-
-      if (transitionInfo[0].toBigInt() === 0n) {
-        throw new Error('no information of transition for non-latest state');
-      }
-
       return {
         latest: false,
-        state,
-        genesis: isGenesis,
-        transitionTimestamp: transitionInfo[0].toBigInt(),
+        genesis: false,
+        state: state,
+        transitionTimestamp: contractState.replacedAtTimestamp.toString(),
       };
     }
 
     return { latest: true, genesis: isGenesis, state, transitionTimestamp: 0 };
+  }
+
+  public async rootResolve(state: bigint): Promise<ResolvedState> {
+    const url = new URL(this.rpcUrl);
+    const ethersProvider = new ethers.providers.JsonRpcProvider({
+      url: url.href,
+      user: url.username,
+      password: url.password,
+    });
+    const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
+
+    const globalStateInfo = await contract.getGISTRootInfo(state);
+
+    if (globalStateInfo.createdAtTimestamp.eq(zeroInt)) {
+      throw new Error(`gist state doesn't exists in contract`);
+    }
+
+    if (!globalStateInfo.root.eq(state)) {
+      throw new Error(`gist info contains invalid state`);
+    }
+
+    if (!globalStateInfo.replacedByRoot.eq(zeroInt)) {
+      if (globalStateInfo.replacedAtTimestamp.eq(zeroInt)) {
+        throw new Error(`state was replaced, but replaced time unknown`);
+      }
+      return {
+        latest: false,
+        state: state,
+        transitionTimestamp: globalStateInfo.replacedAtTimestamp.toString(),
+        genesis: false,
+      };
+    }
+
+    return {
+      latest: true,
+      state: state,
+      transitionTimestamp: 0,
+      genesis: false,
+    };
   }
 }
 
@@ -86,7 +122,7 @@ export function isGenesisStateId(id: bigint, state: bigint): boolean {
   const idFromStateBytes = Uint8Array.from([
     ...typeBJP0,
     ...idGenesisBytes,
-    ...Core.calculateChecksum(typeBJP0, idGenesisBytes),
+    ...BytesHelper.calculateChecksum(typeBJP0, idGenesisBytes),
   ]);
 
   if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {

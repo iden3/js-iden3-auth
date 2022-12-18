@@ -1,16 +1,16 @@
-import { Core } from '@lib/core/core';
-import { Id } from '@lib/core/id';
+import { Id } from '@iden3/js-iden3-core';
 import { IStateResolver } from '@lib/state/resolver';
 import { Query } from '@lib/circuits/query';
 import { PubSignalsVerifier } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkUserState } from '@lib/circuits/common';
+import { checkGlobalState } from '@lib/circuits/common';
+import { Hash, newHashFromString } from '@iden3/js-merkletree';
 
-export class AuthPubSignals
+export class AuthPubSignalsV2
   extends IDOwnershipPubSignals
   implements PubSignalsVerifier
 {
-  userState: bigint;
+  gistRoot: Hash;
 
   constructor(pubSignals: string[]) {
     super();
@@ -21,11 +21,10 @@ export class AuthPubSignals
         }`,
       );
     }
-    this.challenge = BigInt(pubSignals[0]);
-    this.userState = BigInt(pubSignals[1]);
 
-    const bytes: Uint8Array = Core.intToBytes(BigInt(pubSignals[2]));
-    this.userId = Id.idFromBytes(bytes);
+    this.userId = Id.fromBigInt(BigInt(pubSignals[0]));
+    this.challenge = BigInt(pubSignals[1]);
+    this.gistRoot = newHashFromString(pubSignals[2]);
   }
 
   async verifyQuery(_query: Query): Promise<void> {
@@ -33,7 +32,7 @@ export class AuthPubSignals
   }
 
   async verifyStates(resolver: IStateResolver): Promise<void> {
-    await checkUserState(resolver, this.userId, this.userState);
+    await checkGlobalState(resolver, this.gistRoot);
   }
 
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {

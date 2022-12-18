@@ -83,10 +83,10 @@ The blockchain verification algorithm is used
      ``` javascript
     const proofRequest: protocol.ZKPRequest = {
         id: 1,
-        circuit_id: 'credentialAtomicQueryMTP',
+        circuitId: 'credentialAtomicQueryMTPV2',
         rules: {
           query: {
-            allowedIssuers: ['*'],
+            allowedIssuers: '*',
             schema: {
               type: 'KYCCountryOfResidenceCredential',
               url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',

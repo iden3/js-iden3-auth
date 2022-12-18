@@ -1,16 +1,18 @@
-import { Id } from '@lib/core/id';
+import { Id } from '@iden3/js-iden3-core';
 import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { Hash } from '@iden3/js-merkletree';
 
-export const userStateError = new Error('user state is not valid');
+export const userStateError = new Error(`user state is not valid`);
+export const gistStateError = new Error(`gist state is not valid`);
 
 export async function checkUserState(
   resolver: IStateResolver,
   userId: Id,
-  userState: bigint,
+  userState: Hash,
 ): Promise<ResolvedState> {
   const userStateResolved: ResolvedState = await resolver.resolve(
     userId.bigInt(),
-    userState,
+    userState.bigInt(),
   );
   if (!userStateResolved.latest) {
     throw userStateError;
@@ -18,14 +20,27 @@ export async function checkUserState(
   return userStateResolved;
 }
 
+export async function checkGlobalState(
+  resolver: IStateResolver,
+  state: Hash,
+): Promise<ResolvedState> {
+  const gistStateResolved: ResolvedState = await resolver.rootResolve(
+    state.bigInt(),
+  );
+  if (!gistStateResolved.latest) {
+    throw gistStateError;
+  }
+  return gistStateResolved;
+}
+
 export async function checkIssuerNonRevState(
   resolver: IStateResolver,
   issuerId: Id,
-  issuerClaimNonRevState: bigint,
+  issuerClaimNonRevState: Hash,
 ): Promise<ResolvedState> {
   const issuerNonRevStateResolved: ResolvedState = await resolver.resolve(
     issuerId.bigInt(),
-    issuerClaimNonRevState,
+    issuerClaimNonRevState.bigInt(),
   );
   if (
     !issuerNonRevStateResolved.latest &&

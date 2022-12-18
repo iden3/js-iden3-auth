@@ -6,7 +6,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import {
-  AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+  AUTHORIZATION_V2_REQUEST_MESSAGE_TYPE,
   MEDIA_TYPE_PLAIN,
 } from '@lib/protocol/constants';
 
@@ -17,16 +17,21 @@ import { IStateResolver } from '@lib/state/resolver';
 import { Circuits } from '@lib/circuits/registry';
 import { Token } from '@iden3/js-jwz';
 import { TextDecoder } from 'util';
-import { fromBigEndian } from '@lib/core/util';
+import { fromBigEndian } from '@iden3/js-iden3-core';
 
-export function createAuthorizationRequest(
+export function createAuthorizationV2Request(
   reason: string,
   sender: string,
   callbackUrl: string,
 ): AuthorizationRequestMessage {
-  return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl);
+  return createAuthorizationV2RequestWithMessage(
+    reason,
+    '',
+    sender,
+    callbackUrl,
+  );
 }
-export function createAuthorizationRequestWithMessage(
+export function createAuthorizationV2RequestWithMessage(
   reason: string,
   message: string,
   sender: string,
@@ -38,7 +43,7 @@ export function createAuthorizationRequestWithMessage(
     thid: uuid,
     from: sender,
     typ: MEDIA_TYPE_PLAIN,
-    type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+    type: AUTHORIZATION_V2_REQUEST_MESSAGE_TYPE,
     body: {
       reason: reason,
       message: message,
@@ -81,12 +86,12 @@ export class Verifier {
       if (!proofResp) {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
-      if (proofResp.circuit_id !== proofRequest.circuit_id) {
+      if (proofResp.circuitId !== proofRequest.circuitId) {
         throw new Error(
-          `proof is not given for requested circuit expected: ${proofRequest.circuit_id}, given ${proofResp.circuit_id}`,
+          `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${proofResp.circuitId}`,
         );
       }
-      const circuitId = proofResp.circuit_id;
+      const circuitId = proofResp.circuitId;
       const key = await this.keyLoader.load(circuitId);
       if (!key) {
         throw new Error(
@@ -125,7 +130,6 @@ export class Verifier {
 
   public async verifyJWZ(tokenStr: string): Promise<Token> {
     const token = await Token.parse(tokenStr);
-
     const key = await this.keyLoader.load(token.circuitId);
     if (!key) {
       throw new Error(

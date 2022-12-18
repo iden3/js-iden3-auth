@@ -1,4 +1,4 @@
-import { DIDDocument } from '@lib/core/doc';
+import {  } from '@iden3/js-iden3-core';
 
 // Message is basic protocol message
 export interface Message {
@@ -36,14 +36,14 @@ export interface AuthorizationRequestBody {
   reason: string;
   callbackUrl: string;
   scope: ZKPRequest[];
-  did_doc?: DIDDocument;
+  did_doc?: Uint8Array;
 }
 
 //AuthorizationRequestBody is body for AuthorizationResponseMessage
 export interface AuthorizationResponseBody {
   message?: string;
   scope: ZKPResponse[];
-  did_doc?: DIDDocument;
+  did_doc?: Uint8Array;
 }
 
 // ProofData is a result of snarkJS groth16 proof generation
@@ -58,7 +58,7 @@ export interface ProofData {
 // ZKPRequest is a request for zkp proof
 export interface ZKPRequest {
   id: number;
-  circuit_id: string;
+  circuitId: string;
   optional?: boolean;
   rules: unknown;
 }
@@ -66,7 +66,7 @@ export interface ZKPRequest {
 // ZKPResponse is a response with a zkp
 export interface ZKPResponse {
   id: number;
-  circuit_id: string;
+  circuitId: string; // `circuitId` compatibility with golang implementation.
   pub_signals: string[];
   proof: ProofData;
 }
