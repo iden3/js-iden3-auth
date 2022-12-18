@@ -1,5 +1,3 @@
-import {  } from '@iden3/js-iden3-core';
-
 // Message is basic protocol message
 export interface Message {
   id: string;

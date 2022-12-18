@@ -1,5 +1,4 @@
 import { HttpSchemaLoader, IpfsSchemaLoader } from '@lib/loaders/schema';
-import { Schema } from '@lib/protocol/models';
 
 test('schema http loader', async () => {
   const url =
