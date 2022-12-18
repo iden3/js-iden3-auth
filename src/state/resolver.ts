@@ -1,4 +1,10 @@
-import { Id, Blockchain, buildDIDType, DidMethod, NetworkId } from '@iden3/js-iden3-core';
+import {
+  Id,
+  Blockchain,
+  buildDIDType,
+  DidMethod,
+  NetworkId,
+} from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
 import { Abi__factory } from '@lib/state/types/ethers-contracts';
 
