@@ -1,4 +1,4 @@
-import { BytesHelper, toLittleEndian } from '@iden3/js-iden3-core';
+import { Id, Blockchain, buildDIDType, DidMethod, NetworkId } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
 import { Abi__factory } from '@lib/state/types/ethers-contracts';
 
@@ -112,22 +112,13 @@ export class EthStateResolver implements IStateResolver {
 }
 
 export function isGenesisStateId(id: bigint, state: bigint): boolean {
-  const idBytes = toLittleEndian(id, 31);
+  const didType = buildDIDType(
+    DidMethod.Iden3,
+    Blockchain.Polygon,
+    NetworkId.Mumbai,
+  );
 
-  const typeBJP0 = new Uint8Array(2);
-  const stateBytes = toLittleEndian(state, 32);
-  const idGenesisBytes = stateBytes.slice(-27);
+  const genesisId = Id.idGenesisFromIdenState(didType, state);
 
-  // we take last 27 bytes, because of swapped endianness
-  const idFromStateBytes = Uint8Array.from([
-    ...typeBJP0,
-    ...idGenesisBytes,
-    ...BytesHelper.calculateChecksum(typeBJP0, idGenesisBytes),
-  ]);
-
-  if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
-    return false;
-  }
-
-  return true;
+  return id.toString() === genesisId.bigInt().toString();
 }
