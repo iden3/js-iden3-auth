@@ -13,8 +13,8 @@ import {
   ZKPResponse,
 } from '@lib/protocol/models';
 import {
-  createAuthorizationV2Request,
-  createAuthorizationV2RequestWithMessage,
+  createAuthorizationRequest,
+  createAuthorizationRequestWithMessage,
   Verifier,
 } from '@lib/auth/auth';
 import { Circuits } from '@lib/circuits/registry';
@@ -52,7 +52,7 @@ const mockStateResolver: MockResolver = new MockResolver();
 test('createAuthorizationRequest', () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
   const callback = 'https://test.com/callback';
-  const request: AuthorizationRequestMessage = createAuthorizationV2Request(
+  const request: AuthorizationRequestMessage = createAuthorizationRequest(
     'kyc age verification',
     sender,
     callback,
@@ -89,7 +89,7 @@ test('TestVerifyMessageWithoutProof', async () => {
   const callback = 'https://test.com/callback';
   const msg = 'message to sign';
   const request: AuthorizationRequestMessage =
-    createAuthorizationV2RequestWithMessage(
+    createAuthorizationRequestWithMessage(
       'kyc verification',
       msg,
       sender,
@@ -128,7 +128,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
   const reason = 'test';
   const message = 'message to sign';
   const request: AuthorizationRequestMessage =
-    createAuthorizationV2RequestWithMessage(reason, message, sender, callback);
+    createAuthorizationRequestWithMessage(reason, message, sender, callback);
   expect(request.body.scope.length).toEqual(0);
   expect(request.body.callbackUrl).toEqual(callback);
   expect(request.body.reason).toEqual(reason);
@@ -308,12 +308,7 @@ test('TestFullVerify', async () => {
   const reason = 'age verification';
   const msgToSign = 'message to sign';
   const request: AuthorizationRequestMessage =
-    createAuthorizationV2RequestWithMessage(
-      reason,
-      msgToSign,
-      sender,
-      callback,
-    );
+    createAuthorizationRequestWithMessage(reason, msgToSign, sender, callback);
   expect(request.body.scope.length).toEqual(0);
   expect(request.body.callbackUrl).toEqual(callback);
   expect(request.body.reason).toEqual(reason);
@@ -360,7 +355,7 @@ test('TestResponseWithEmptyQueryRequest', async () => {
   const userId =
     'did:iden3:polygon:mumbai:x3vgBmSWMecbkxFAvT8waWejmCLmzHcrG56sXbAhB';
   const reason = 'test';
-  const request: AuthorizationRequestMessage = createAuthorizationV2Request(
+  const request: AuthorizationRequestMessage = createAuthorizationRequest(
     reason,
     sender,
     callback,

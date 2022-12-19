@@ -6,7 +6,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import {
-  AUTHORIZATION_V2_REQUEST_MESSAGE_TYPE,
+  AUTHORIZATION_REQUEST_MESSAGE_TYPE,
   MEDIA_TYPE_PLAIN,
 } from '@lib/protocol/constants';
 
@@ -18,19 +18,14 @@ import { Circuits } from '@lib/circuits/registry';
 import { Token } from '@iden3/js-jwz';
 import { fromBigEndian } from '@iden3/js-iden3-core';
 
-export function createAuthorizationV2Request(
+export function createAuthorizationRequest(
   reason: string,
   sender: string,
   callbackUrl: string,
 ): AuthorizationRequestMessage {
-  return createAuthorizationV2RequestWithMessage(
-    reason,
-    '',
-    sender,
-    callbackUrl,
-  );
+  return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl);
 }
-export function createAuthorizationV2RequestWithMessage(
+export function createAuthorizationRequestWithMessage(
   reason: string,
   message: string,
   sender: string,
@@ -42,7 +37,7 @@ export function createAuthorizationV2RequestWithMessage(
     thid: uuid,
     from: sender,
     typ: MEDIA_TYPE_PLAIN,
-    type: AUTHORIZATION_V2_REQUEST_MESSAGE_TYPE,
+    type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     body: {
       reason: reason,
       message: message,
