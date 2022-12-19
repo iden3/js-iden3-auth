@@ -34,14 +34,14 @@ export interface AuthorizationRequestBody {
   reason: string;
   callbackUrl: string;
   scope: ZKPRequest[];
-  did_doc?: Uint8Array;
+  did_doc?: DIDDocument;
 }
 
 //AuthorizationRequestBody is body for AuthorizationResponseMessage
 export interface AuthorizationResponseBody {
   message?: string;
   scope: ZKPResponse[];
-  did_doc?: Uint8Array;
+  did_doc?: DIDDocument;
 }
 
 // ProofData is a result of snarkJS groth16 proof generation
@@ -69,9 +69,14 @@ export interface ZKPResponse {
   proof: ProofData;
 }
 
-// Schema is a protocol schema
-export interface Schema {
-  hash?: string;
-  url: string;
+export type DIDDocument = {
+  '@context': string | string[];
+  id: string;
+  service?: Service[];
+};
+// Service describes did services
+export type Service = {
+  id: string;
   type: string;
-}
+  serviceEndpoint: string;
+};

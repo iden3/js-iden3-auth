@@ -64,7 +64,7 @@ export class EthStateResolver implements IStateResolver {
         latest: false,
         genesis: false,
         state: state,
-        transitionTimestamp: contractState.replacedAtTimestamp.toString(),
+        transitionTimestamp: contractState.replacedAtTimestamp.toNumber(),
       };
     }
 
