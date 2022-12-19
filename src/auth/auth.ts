@@ -109,7 +109,7 @@ export class Verifier {
 
       const verifier = new CircuitVerifier(proofResp.pub_signals);
       await verifier.verifyQuery(
-        proofRequest.rules['query'] as Query,
+        proofRequest.query as Query,
         this.schemaLoader,
       );
 

@@ -21,8 +21,8 @@ const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 
 // Query is a query to circuit
 export interface Query {
-  allowedIssuers: string;
-  req: Map<string, unknown>;
+  allowedIssuers: string[];
+  query: Map<string, unknown>;
   context: string;
   type: string;
   claimID?: string;
@@ -47,10 +47,10 @@ export async function checkQueryRequest(
   outputs: ClaimOutputs,
   schemaLoader: ISchemaLoader,
 ): Promise<void> {
-  if (
-    query.allowedIssuers !== '*' &&
-    query.allowedIssuers !== outputs.issuerId.string()
-  ) {
+  const issuerAllowed = query.allowedIssuers.some(
+    (issuer) => issuer === '*' || issuer === outputs.issuerId.string(),
+  );
+  if (!issuerAllowed) {
     throw new Error('issuer is not in allowed list');
   }
 
@@ -68,7 +68,7 @@ export async function checkQueryRequest(
   }
 
   const cq = await parseRequest(
-    query.req,
+    query.query,
     loadResult.schema,
     query.context,
     query.type,
@@ -76,7 +76,7 @@ export async function checkQueryRequest(
     outputs.merklized,
   );
 
-  if (!query.req) {
+  if (!query.query) {
     return;
   }
 

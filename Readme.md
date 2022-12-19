@@ -86,12 +86,12 @@ The blockchain verification algorithm is used
         circuitId: 'credentialAtomicQueryMTPV2',
         rules: {
           query: {
-            allowedIssuers: '*',
+            allowedIssuers: ['*'],
             schema: {
               type: 'KYCCountryOfResidenceCredential',
               url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
             },
-            req: {
+            query: {
               countryCode: {
                 $nin: [840, 120, 340, 509],
               },

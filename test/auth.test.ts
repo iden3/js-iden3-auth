@@ -65,16 +65,14 @@ test('createAuthorizationRequest', () => {
   const proofRequest: ZKPRequest = {
     id: 1,
     circuitId: 'credentialAtomicQueryMTPV2',
-    rules: {
+    query: {
+      allowedIssuers: ['1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9'],
+      type: 'KYCAgeCredential',
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
       query: {
-        allowedIssuers: '1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9',
-        type: 'KYCAgeCredential',
-        context:
-          'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-        req: {
-          birthday: {
-            $lt: 20000101,
-          },
+        birthday: {
+          $lt: 20000101,
         },
       },
     },
@@ -139,16 +137,14 @@ test('TestVerifyWithAtomicMTPProof', async () => {
   const proofRequest: ZKPRequest = {
     id: 10,
     circuitId: 'credentialAtomicQueryMTPV2',
-    rules: {
+    query: {
+      allowedIssuers: ['*'],
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      type: 'KYCCountryOfResidenceCredential',
       query: {
-        allowedIssuers: '*',
-        context:
-          'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-        type: 'KYCCountryOfResidenceCredential',
-        req: {
-          countryCode: {
-            $nin: [840, 120, 340, 509],
-          },
+        countryCode: {
+          $nin: [840, 120, 340, 509],
         },
       },
     },
@@ -317,16 +313,14 @@ test('TestFullVerify', async () => {
   const proofRequest: ZKPRequest = {
     id: 10,
     circuitId: 'credentialAtomicQueryMTPV2',
-    rules: {
+    query: {
+      allowedIssuers: ['*'],
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      type: 'KYCCountryOfResidenceCredential',
       query: {
-        allowedIssuers: '*',
-        context:
-          'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-        type: 'KYCCountryOfResidenceCredential',
-        req: {
-          countryCode: {
-            $nin: [840, 120, 340, 509],
-          },
+        countryCode: {
+          $nin: [840, 120, 340, 509],
         },
       },
     },
@@ -368,13 +362,11 @@ test('TestResponseWithEmptyQueryRequest', async () => {
   const proofRequest: ZKPRequest = {
     id: 10,
     circuitId: 'credentialAtomicQueryMTPV2',
-    rules: {
-      query: {
-        allowedIssuers: '*',
-        type: 'KYCCountryOfResidenceCredential',
-        context:
-          'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-      },
+    query: {
+      allowedIssuers: ['*'],
+      type: 'KYCCountryOfResidenceCredential',
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
     },
   };
   request.body.scope.push(proofRequest);

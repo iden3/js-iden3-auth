@@ -58,7 +58,7 @@ export interface ZKPRequest {
   id: number;
   circuitId: string;
   optional?: boolean;
-  rules: unknown;
+  query: unknown;
 }
 
 // ZKPResponse is a response with a zkp
