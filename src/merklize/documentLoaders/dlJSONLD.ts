@@ -1,5 +1,3 @@
-'use strict';
-
 import { RemoteDocument, Url } from 'jsonld/jsonld-spec';
 
 import https from 'https';

@@ -1,10 +1,4 @@
-import {
-  Id,
-  Blockchain,
-  buildDIDType,
-  DidMethod,
-  NetworkId,
-} from '@iden3/js-iden3-core';
+import { Id, DID, buildDIDType } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
 import { Abi__factory } from '@lib/state/types/ethers-contracts';
 
@@ -118,13 +112,13 @@ export class EthStateResolver implements IStateResolver {
 }
 
 export function isGenesisStateId(id: bigint, state: bigint): boolean {
+  const coreId = Id.fromBigInt(id);
+  const userDID = DID.parseFromId(coreId);
   const didType = buildDIDType(
-    DidMethod.Iden3,
-    Blockchain.Polygon,
-    NetworkId.Mumbai,
+    userDID.method,
+    userDID.blockchain,
+    userDID.networkId,
   );
-
   const genesisId = Id.idGenesisFromIdenState(didType, state);
-
   return id.toString() === genesisId.bigInt().toString();
 }

@@ -16,7 +16,6 @@ import { ISchemaLoader } from '@lib/loaders/schema';
 import { IStateResolver } from '@lib/state/resolver';
 import { Circuits } from '@lib/circuits/registry';
 import { Token } from '@iden3/js-jwz';
-import { TextDecoder } from 'util';
 import { fromBigEndian } from '@iden3/js-iden3-core';
 
 export function createAuthorizationV2Request(

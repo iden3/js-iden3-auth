@@ -134,3 +134,13 @@ The blockchain verification algorithm is used
       
           await verifier.verifyAuthResponse(authResponse, authRequest);
   ```
+
+---
+### Generate types for state contract.
+We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for generate TS types for a smart contract.
+1. Install TypeChain;
+2. Install @typechain/ethers-v5;
+3. Run:
+```bash
+typechain --target ethers-v5 /path/to/state_contract.sol
+```

@@ -2,8 +2,6 @@ import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash } from '@iden3/js-iden3-core';
 import { getContextPathKey } from '@lib/merklize/path';
-import { TextDecoder } from 'util';
-import { TextEncoder } from 'node:util';
 import keccak256 from 'keccak256';
 
 const operators: Map<string, number> = new Map([
@@ -64,7 +62,7 @@ export async function checkQueryRequest(
     throw new Error(`can't load schema for request query`);
   }
 
-  const schemaHash = CreateSchemaHash(query.context, query.type);
+  const schemaHash = createSchemaHash(query.context, query.type);
   if (schemaHash.toString() !== outputs.schemaHash.toString()) {
     throw new Error(`schema that was used is not equal to requested in query`);
   }
@@ -78,7 +76,7 @@ export async function checkQueryRequest(
     outputs.merklized,
   );
 
-  if (query.req === undefined) {
+  if (!query.req) {
     return;
   }
 
@@ -219,7 +217,7 @@ type CircuitQuery = {
 };
 
 // TODO (illia-korotia): move to core like static method or contructor of SchemaHash type.
-export function CreateSchemaHash(
+export function createSchemaHash(
   schemaContext: string,
   type: string,
 ): SchemaHash {

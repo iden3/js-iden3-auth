@@ -12,7 +12,6 @@ import { ContextParser, JsonLdContextNormalized } from 'jsonld-context-parser';
 import { FetchDocumentLoader } from '../documentLoaders/dlContextParser';
 import { DEFAULT_HASHER } from '../constants';
 import { JsonLdDocument } from 'jsonld';
-import { TextEncoder } from 'node:util';
 
 const re = /^\d+$/;
 const sortArr = <T>(arr: Array<T>): Array<T> => {

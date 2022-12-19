@@ -1,5 +1,4 @@
 import { promises as fs } from 'fs';
-import { TextEncoder } from 'node:util';
 
 export interface IKeyLoader {
   load(circuitId: string): Promise<Uint8Array>;

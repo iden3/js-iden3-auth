@@ -15,6 +15,7 @@ module.exports = {
     node: true,
     jest: true,
   },
+  // TODO (illia-korotia): remove after migrate 'merklize' to library.
   ignorePatterns: ['.eslintrc.js', 'jest.config.js', 'src/merklize/**/*'],
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',

@@ -1,7 +1,6 @@
 import { InMemoryDB, str2Bytes, Merkletree } from '@iden3/js-merkletree';
 import { Hasher } from '../types';
 import { RdfEntry } from './rdfEntry';
-import { TextEncoder } from 'node:util';
 
 export const getMerkleTreeInitParam = (
   prefix = '',

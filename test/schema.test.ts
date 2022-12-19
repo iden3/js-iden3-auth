@@ -12,7 +12,7 @@ test('schema http loader', async () => {
 
 test('schema ipfs loader', async () => {
   let connectionString = process.env.IPFS_URL;
-  if (connectionString === undefined) {
+  if (!connectionString) {
     connectionString = 'https://ipfs.io';
   }
   const loader = new IpfsSchemaLoader(connectionString);
