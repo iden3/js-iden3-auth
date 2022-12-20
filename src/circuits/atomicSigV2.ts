@@ -24,10 +24,11 @@ export class AtomicQuerySigV2PubSignals
   merklized: number;
   claimPathKey?: bigint;
   claimPathNotExists: number;
+  isRevocationChecked: number;
 
   constructor(pubSignals: string[]) {
     super();
-    if (pubSignals.length != 12 + valuesSize) {
+    if (pubSignals.length != 13 + valuesSize) {
       throw new Error(
         `invalid number of Output values expected ${74} got ${
           pubSignals.length
@@ -55,6 +56,9 @@ export class AtomicQuerySigV2PubSignals
 
     // - issuerID
     this.issuerID = Id.fromBigInt(BigInt(pubSignals[fieldIdx]));
+    fieldIdx++;
+
+    this.isRevocationChecked = parseInt(pubSignals[fieldIdx]);
     fieldIdx++;
 
     // - issuerClaimNonRevState
@@ -106,11 +110,16 @@ export class AtomicQuerySigV2PubSignals
       claimPathKey: this.claimPathKey,
       claimPathNotExists: this.claimPathNotExists,
       valueArraySize: valuesSize,
+      isRevocationChecked: this.isRevocationChecked,
     };
     return await checkQueryRequest(query, outs, schemaLoader);
   }
   async verifyStates(resolver: IStateResolver): Promise<void> {
     await checkUserState(resolver, this.issuerID, this.issuerAuthState);
+
+    if (this.isRevocationChecked === 0) {
+      return;
+    }
 
     await checkIssuerNonRevState(
       resolver,

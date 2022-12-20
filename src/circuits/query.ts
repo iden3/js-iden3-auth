@@ -40,6 +40,7 @@ export interface ClaimOutputs {
   claimPathKey?: bigint;
   claimPathNotExists?: number;
   valueArraySize: number;
+  isRevocationChecked: number;
 }
 
 export async function checkQueryRequest(
