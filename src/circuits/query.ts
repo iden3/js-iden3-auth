@@ -22,7 +22,7 @@ const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 // Query is a query to circuit
 export interface Query {
   allowedIssuers: string[];
-  query: Map<string, unknown>;
+  req: Map<string, unknown>;
   context: string;
   type: string;
   claimID?: string;
@@ -69,7 +69,7 @@ export async function checkQueryRequest(
   }
 
   const cq = await parseRequest(
-    query.query,
+    query.req,
     loadResult.schema,
     query.context,
     query.type,
@@ -77,7 +77,7 @@ export async function checkQueryRequest(
     outputs.merklized,
   );
 
-  if (!query.query) {
+  if (!query.req) {
     return;
   }
 

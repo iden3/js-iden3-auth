@@ -70,7 +70,7 @@ test('createAuthorizationRequest', () => {
       type: 'KYCAgeCredential',
       context:
         'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-      query: {
+      req: {
         birthday: {
           $lt: 20000101,
         },
@@ -142,7 +142,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
       context:
         'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
       type: 'KYCCountryOfResidenceCredential',
-      query: {
+      req: {
         countryCode: {
           $nin: [840, 120, 340, 509],
         },
@@ -319,7 +319,7 @@ test('TestFullVerify', async () => {
       context:
         'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
       type: 'KYCCountryOfResidenceCredential',
-      query: {
+      req: {
         countryCode: {
           $nin: [840, 120, 340, 509],
         },
