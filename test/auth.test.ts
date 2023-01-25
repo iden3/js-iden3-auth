@@ -135,7 +135,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
         allowedIssuers: ['*'],
         schema: {
           type: 'KYCCountryOfResidenceCredential',
-          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
+          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/test.json-ld',
         },
         req: {
           countryCode: {
@@ -312,7 +312,7 @@ test('TestFullVerify', async () => {
         allowedIssuers: ['*'],
         schema: {
           type: 'KYCCountryOfResidenceCredential',
-          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
+          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/test.json-ld',
         },
         req: {
           countryCode: {
