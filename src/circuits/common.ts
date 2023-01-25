@@ -30,7 +30,7 @@ export async function checkIssuerNonRevState(
   if (
     !issuerNonRevStateResolved.latest &&
     Date.now() - Number(issuerNonRevStateResolved.transitionTimestamp) * 1000 >
-      60 * 60 * 1000
+      60 * 60 * 1000 * 24 * 30 * 2 // 2 month
   ) {
     throw new Error(`issuer state for non-revocation proofs is not valid`);
   }
