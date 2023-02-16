@@ -11,7 +11,6 @@ module.exports = {
         "@lib/proofs/(.*)": "<rootDir>/src/proofs/$1",
         "@lib/auth/(.*)": "<rootDir>/src/auth/$1",
         "@lib/state/(.*)": "<rootDir>/src/state/$1",
-        "@lib/loaders/(.*)": "<rootDir>/src/loaders/$1",
-        "@lib/merklize/(.*)": "<rootDir>/src/merklize/$1",
+        "@lib/loaders/(.*)": "<rootDir>/src/loaders/$1"
     }
 };
