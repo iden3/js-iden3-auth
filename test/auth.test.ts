@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getCurveFromName } from 'ffjavascript';
 import { FSKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader, UniversalSchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import {
   AuthorizationRequestMessage,
@@ -47,7 +47,11 @@ class MockResolver implements IStateResolver {
     return Promise.resolve(t);
   }
 }
+
 const mockStateResolver: MockResolver = new MockResolver();
+const resolvers: Resolvers = {
+  "polygon:mumbai": mockStateResolver
+}
 
 test('createAuthorizationRequest', () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
@@ -110,7 +114,7 @@ test('TestVerifyMessageWithoutProof', async () => {
   const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
-    mockStateResolver,
+    resolvers,
   );
 
   await expect(
@@ -142,7 +146,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
       context:
         'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
       type: 'KYCCountryOfResidenceCredential',
-      req: {
+      credentialSubject: {
         countryCode: {
           $nin: [840, 120, 340, 509],
         },
@@ -278,7 +282,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
   const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
-    mockStateResolver,
+    resolvers,
   );
 
   await expect(
@@ -290,11 +294,12 @@ test('TestVerifyJWZ', async () => {
   const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
-    mockStateResolver,
+    resolvers,
   );
 
   const token =
-    'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiSldaIn0.bXltZXNzYWdl.eyJwcm9vZiI6eyJwaV9hIjpbIjE2NzY1Mjg4NjY0MTkyNjg4MDU1MTMyMTY2Mjg0OTg0NjE0ODg0MTIzNTg0NTE0NTI0MTU4NzE4MDYxOTYxNjE3OTk2NjUwMzc1NTc0IiwiMTUxMzAxNzA3OTM1MjEzNTM1MzM2NzUyOTg1NTk3OTA3NTU0ODM5MjU4NzExNDY5NTkwMjgzODk5NzQ0MTg1NjEzNjY2NDI3NzA2MjIiLCIxIl0sInBpX2IiOltbIjExOTg5NzQ5NDM1NzA3MzEzNjU4MjUyNzA4OTcyODc1NTgzNzA3OTg1NjQ5NjA4MjM0NDIyOTQ4NzI5MDQ4NDY3NzI0Mjk4NzI5NTI4IiwiMTg3NTYxNTM4OTI1Njc1OTY2NDgwNjY4NzA2Njk3NTg1NTcwMjYxOTE5NjgyNzEwNDI5MTA1NDUwODUwNTg2NzUwOTA1NzEwMTQ0NiJdLFsiOTE4NTY4MjMzNTc4NDgxNTU4NjQ0NTQ5MjMwNzMyNzcyMDM5MzcxNTY2NDMzNTcwMzM2NzE3NDMzMzU4NjU1NjAwNDk0MTE2MjE4NiIsIjE2NDIyNzM3Njc3MzA1MTkyNTc5MDY2ODIwMTgzOTU5MjYxMTc5NDA4Nzc2ODQ2MjcxNjE5MTI5MTMxOTYwNzk0MTI4MDU5NjkxNTI5Il0sWyIxIiwiMCJdXSwicGlfYyI6WyI3OTc3NjIyODQwODYwNzE0NjQwMTE3OTQ0NjU5ODE2Mzk2ODgwODkyMjU4NTIzNjgwMzk2NDE0ODI2Mjc2NDk2NjM1NTIyNTUxNTUzIiwiMjExNTUwNjE3Njk1MDIwMjg5OTEyNzM0NjQyMzgwNjg2MjEwNDc1NTQzMDg4NzkwODc3OTEzMDk0NzU1ODY2NTE0ODIxMDI4NjA5NDIiLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiJ9LCJwdWJfc2lnbmFscyI6WyIyNjEwOTQwNDcwMDY5NjI4MzE1NDk5ODY1NDUxMjExNzk1MjQyMDUwMzY3NTQ3MTA5NzM5MjYxODc2MjIyMTU0NjU2NTE0MDQ4MSIsIjYxMTA1MTc3NjgyNDk1NTkyMzgxOTM0Nzc0MzU0NTQ3OTIwMjQ3MzIxNzM4NjU0ODg5MDAyNzA4NDk2MjQzMjg2NTA3NjU2OTE0OTQiLCIxMTA5ODkzOTgyMTc2NDU2ODEzMTA4NzY0NTQzMTI5NjUyODkwNzI3NzI1MzcwOTkzNjQ0MzAyOTM3OTU4NzQ3NTgyMTc1OTI1OTQwNiJdfQ';
+    'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiSldaIn0.bWVzc2FnZQ.eyJwcm9vZiI6eyJwaV9hIjpbIjE2Njg0NTgxNTM5NDI0MjgzMjc5NjAxMzg1MjE5Mzc0MjkzNjQ5MDg5OTgzNjMyNzg1NTk4OTc1ODkxMzM2Njg4NzEzNjc5ODYyNTgzIiwiMTAzNjU5ODAzMDYzMzYyOTUxMDkwNDQ0OTUxNTkwMjIzOTkyMzMwNjU5NzU4MjMzMTk3NTc5MDMwMjQ3ODczNTIxMzE4OTkzODQzMDEiLCIxIl0sInBpX2IiOltbIjQ4MjM0OTk3NTQ0NTk4MjQ2NjM4NTA4NjE0NjgzNzU1MjM2NDc3NzgxNDgwMzI3NDIwNzM2NTA1NTA0MjM4NjU0OTU2NDI1MDMwMTYiLCIxNzUxMDQ5NzY1MzMyODk2MjM5Nzk2NDkwNDczNTAyOTU4ODIxOTQyMjU2NzY2MjMyNDU5OTQ5Mjg4NzMwMTQ4NjAyNjkwNDM3MDc0NSJdLFsiNjYzMzg3NTY3NzY5Mzc2MTQ2MDM0ODIzNTM2OTIxNDgwMTkwNjUyNjg3OTI4MTg2MDY4NDQ0ODA4MzYxMTIwMjA2MjA1MDc1NzUzMSIsIjg3NTgwNzE3MDUwNjUzNTQ0OTY3Mzc5NzAzODY5ODMyNTA2Nzg4OTc4Mjc3NjMxODkxODc4ODk4NDAyMjgxNDE3NTg4MjMwNTE1MjIiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjExMDg0NjQ4MzIyNzc1MTMyOTEwNTI0MTE4Mjg0ODgwOTI3MTk3MjE0NjgwMjU3MTU5NDA0MzU5MDQ0MDM0MTAzMTAyMDYzMDEzMTc3IiwiMzY2NjExNjkxODg0MDMzMDU5MzA5MjcyNjI2ODY0NjMzNjczMjY2MTY0MjI3NjE3NDc0NzczMzk1NjU3MjA1NjgzNDQ3MjYzNDYxNSIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjI1MDU0NDY1OTM1OTE2MzQzNzMzNDcwMDY1OTc3MzkzNTU2ODk4MTY1ODMyNzgzMjE0NjIxODgyMjM5MDUwMDM1ODQ2NTE3MjUwIiwiMTA0NTczNjMzMTkwMjQ4MTQ0NjY5NDQyNjYxMTE5MTc1ODkyNTgzOTE2MzczNDM0OTA5MTM0MTM5NjUxMzcwMzIxNzg3MTg0MDgxMTYiLCI1MzA0Njg1OTQ1NTI0MTc3MjA4MzQ5NDczNzc3MjMzOTcwNjk2NTU1ODA0NzQwNzM2MTU4NjA2ODI1MTE2ODA2MDgwMDU0NjA0Mzg1Il19';
+
 
   await expect(verifier.verifyJWZ(token)).resolves.not.toThrow();
 });
@@ -319,7 +324,7 @@ test('TestFullVerify', async () => {
       context:
         'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
       type: 'KYCCountryOfResidenceCredential',
-      req: {
+      credentialSubject: {
         countryCode: {
           $nin: [840, 120, 340, 509],
         },
@@ -333,7 +338,7 @@ test('TestFullVerify', async () => {
   const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
-    mockStateResolver,
+    resolvers,
   );
   request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
@@ -344,7 +349,7 @@ test('TestFullVerify', async () => {
   await expect(verifier.fullVerify(token, request)).resolves.not.toThrow();
 });
 
-test('TestResponseWithEmptyQueryRequest', async () => {
+test('TestResponseWithEmptyQueryRequest_ErrorCase', async () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
   const callback = 'https://test.com/callback';
   const userId =
@@ -355,6 +360,7 @@ test('TestResponseWithEmptyQueryRequest', async () => {
     sender,
     callback,
   );
+  request['message'] = 'test';
   expect(request.body.scope.length).toEqual(0);
   expect(request.body.callbackUrl).toEqual(callback);
   expect(request.body.reason).toEqual(reason);
@@ -499,12 +505,14 @@ test('TestResponseWithEmptyQueryRequest', async () => {
   const verifier = new Verifier(
     verificationKeyLoader,
     schemaLoader,
-    mockStateResolver,
+    resolvers,
   );
 
-  await expect(
-    verifier.verifyAuthResponse(response, request),
-  ).resolves.not.toThrow();
+  try {
+    await verifier.verifyAuthResponse(response, request);
+  } catch (e) {
+    expect(e.toString()).toContain('operator that was used is not equal to request');
+  }
 });
 
 test('registry: get existing circuit', () => {

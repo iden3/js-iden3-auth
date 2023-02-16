@@ -91,6 +91,20 @@ export async function checkQueryRequest(
     outputs.merklized,
   );
 
+  // validate selective disclosure
+  if (cq.isSelectiveDisclosure) {
+    try {
+      await validateDisclosure(verifiablePresentation, cq, outputs);
+    } catch (e) {
+      throw new Error(`failed to validate selective disclosure: ${e.message}`);
+    }
+  } else {
+    try {
+      await validateOperators(cq, outputs);
+    } catch (e) {
+      throw new Error(`failed to validate operators: ${e.message}`);
+    }
+  }
 
   // verify claim
   if (outputs.merklized === 1) {
@@ -106,20 +120,13 @@ export async function checkQueryRequest(
     }
   }
 
-  if (!query.credentialSubject) {
-    return;
-  }
+  return;
+}
 
-  // validate selective disclosure
-  if (cq.isSelectiveDisclosure) {
-    try {
-      await validateDisclosure(verifiablePresentation, cq, outputs);
-    } catch (e) {
-      throw new Error(`failed to validate selective disclosure: ${e.message}`);
-    }
-    return;
-  }
-
+async function validateOperators(
+  cq: CircuitQuery,
+  outputs: ClaimOutputs,
+) {
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
   }
@@ -135,8 +142,6 @@ export async function checkQueryRequest(
       );
     }
   }
-
-  return;
 }
 
 async function validateDisclosure(
