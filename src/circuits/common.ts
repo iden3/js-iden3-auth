@@ -1,5 +1,5 @@
-import { Id } from '@iden3/js-iden3-core';
-import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { Id, DID } from '@iden3/js-iden3-core';
+import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { Hash } from '@iden3/js-merkletree';
 
 export const userStateError = new Error(`user state is not valid`);
@@ -27,9 +27,6 @@ export async function checkGlobalState(
   const gistStateResolved: ResolvedState = await resolver.rootResolve(
     state.bigInt(),
   );
-  if (!gistStateResolved.latest) {
-    throw gistStateError;
-  }
   return gistStateResolved;
 }
 
@@ -42,12 +39,14 @@ export async function checkIssuerNonRevState(
     issuerId.bigInt(),
     issuerClaimNonRevState.bigInt(),
   );
-  if (
-    !issuerNonRevStateResolved.latest &&
-    Date.now() - Number(issuerNonRevStateResolved.transitionTimestamp) * 1000 >
-      60 * 60 * 1000
-  ) {
-    throw new Error(`issuer state for non-revocation proofs is not valid`);
-  }
   return issuerNonRevStateResolved;
+}
+
+export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {
+  const userDID = DID.parseFromId(id)
+  return getResolverByDID(resolvers, userDID)
+}
+
+export function getResolverByDID(resolvers: Resolvers, did: DID): IStateResolver {
+  return resolvers[`${did.blockchain}:${did.networkId}`]
 }

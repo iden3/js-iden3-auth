@@ -28,9 +28,10 @@
     "url": "https://github.com/iden3/js-iden3-auth"
   },
   "dependencies": {
-    "@iden3/js-iden3-core": "github:iden3/js-iden3-core",
-    "@iden3/js-jwz": "github:iden3/js-jwz#775d049",
-    "@iden3/js-merkletree": "github:iden3/js-merkletree",
+    "@iden3/js-iden3-core": "1.0.0-beta.0",
+    "@iden3/js-jsonld-merklization": "^1.0.0-beta.0",
+    "@iden3/js-jwz": "1.0.0-beta.1",
+    "@iden3/js-merkletree": "1.0.0-beta.0",
     "axios": "^0.27.2",
     "base58-js": "^1.0.0",
     "cross-sha256": "^1.2.0",

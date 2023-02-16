@@ -1,7 +1,7 @@
 import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
-import { Id, SchemaHash } from '@iden3/js-iden3-core';
-import { getContextPathKey } from '@lib/merklize/path';
+import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
+import { Merkelizer, Path } from '@iden3/js-jsonld-merklization';
 import keccak256 from 'keccak256';
 
 const operators: Map<string, number> = new Map([
@@ -11,6 +11,7 @@ const operators: Map<string, number> = new Map([
   ['$gt', 3],
   ['$in', 4],
   ['$nin', 5],
+  ['$ne', 6],
 ]);
 
 const serializationIndexDataSlotAType = 'serialization:IndexDataSlotA';
@@ -22,10 +23,11 @@ const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 // Query is a query to circuit
 export interface Query {
   allowedIssuers: string[];
-  req: Map<string, unknown>;
+  credentialSubject: Map<string, unknown>;
   context: string;
   type: string;
   claimID?: string;
+  skipClaimRevocationCheck?: boolean;
 }
 
 // ClaimOutputs fields that are used in proof generation
@@ -47,29 +49,41 @@ export async function checkQueryRequest(
   query: Query,
   outputs: ClaimOutputs,
   schemaLoader: ISchemaLoader,
+  verifiablePresentation?: JSON,
 ): Promise<void> {
+
+  // validate issuer
+  let userDID: DID;
+  try {
+    userDID = DID.parseFromId(outputs.issuerId);
+  } catch (e) {
+    throw new Error("invalid issuerId in circuit's output");  
+  }
   const issuerAllowed = query.allowedIssuers.some(
-    (issuer) => issuer === '*' || issuer === outputs.issuerId.string(),
+    (issuer) => issuer === '*' || issuer === userDID.toString(),
   );
   if (!issuerAllowed) {
     throw new Error('issuer is not in allowed list');
   }
 
+  // validate schema
   let loadResult: SchemaLoadResult;
-
   try {
     loadResult = await schemaLoader.load(query.context);
   } catch (e) {
     throw new Error(`can't load schema for request query`);
   }
-
   const schemaHash = createSchemaHash(query.context, query.type);
   if (schemaHash.toString() !== outputs.schemaHash.toString()) {
     throw new Error(`schema that was used is not equal to requested in query`);
   }
 
+  if (!query.skipClaimRevocationCheck && outputs.isRevocationChecked === 0) {
+    throw new Error(`check revocation is required`);
+  }
+
   const cq = await parseRequest(
-    query.req,
+    query.credentialSubject,
     loadResult.schema,
     query.context,
     query.type,
@@ -77,18 +91,8 @@ export async function checkQueryRequest(
     outputs.merklized,
   );
 
-  if (!query.req) {
-    return;
-  }
 
-  if (outputs.operator !== cq.operator) {
-    throw new Error(`operator that was used is not equal to request`);
-  }
-  if (outputs.operator === operators.get('$noop')) {
-    // for noop operator slot and value are not used in this case
-    return;
-  }
-
+  // verify claim
   if (outputs.merklized === 1) {
     if (outputs.claimPathKey.toString() !== cq.claimPathKey.toString()) {
       throw new Error(`proof was generated for another path`);
@@ -102,12 +106,88 @@ export async function checkQueryRequest(
     }
   }
 
+  if (!query.credentialSubject) {
+    return;
+  }
+
+  // validate selective disclosure
+  if (cq.isSelectiveDisclosure) {
+    try {
+      await validateDisclosure(verifiablePresentation, cq, outputs);
+    } catch (e) {
+      throw new Error(`failed to validate selective disclosure: ${e.message}`);
+    }
+    return;
+  }
+
+  if (outputs.operator !== cq.operator) {
+    throw new Error(`operator that was used is not equal to request`);
+  }
+  if (outputs.operator === operators.get('$noop')) {
+    // for noop operator slot and value are not used in this case
+    return;
+  }
+
   for (let index = 0; index < cq.values.length; index++) {
     if (outputs.value[index].toString(10) !== cq.values[index].toString(10)) {
       throw new Error(
         `comparison value that was used is not equal to requested in query`,
       );
     }
+  }
+
+  return;
+}
+
+async function validateDisclosure(
+  verifiablePresentation: JSON,
+  cq: CircuitQuery,
+  outputs: ClaimOutputs,
+) {
+  if (!verifiablePresentation) {
+    throw new Error(`verifiablePresentation is required for selective disclosure request`);
+  }
+
+  if (outputs.operator !== operators.get('$eq')) {
+    throw new Error(`operator for selective disclosure must be $eq`);
+  }
+
+  for (let index = 1; index < cq.values.length; index++) {
+    if (outputs.value[index].toString(10) !== "0") {
+      throw new Error(
+        `selective disclosure not available for array of values`,
+      );
+    }
+  }
+
+  let mz: Merkelizer; 
+  const strVerifiablePresentation: string = verifiablePresentation.toString();
+  try {
+    mz = await Merkelizer.merkelizeJSONLD(strVerifiablePresentation)
+  } catch (e) {
+    throw new Error(`can't merkelize verifiablePresentation`);
+  }
+
+  let merkalizedPath: Path;
+  try {
+    merkalizedPath = await Path.newPathFromCtx(strVerifiablePresentation, `verifiableCredential.${cq.fieldName}`)
+  } catch (e) {
+    throw new Error(`can't build path to '${cq.fieldName}' key`);
+  }
+
+  let valueByPath: any;
+  try {
+    valueByPath = mz.rawValue(merkalizedPath)
+  } catch (e) {
+    throw new Error(`can't get value by path '${cq.fieldName}'`);
+  }
+
+  const mvValue = mz.mkValue(valueByPath);
+  
+  if (mvValue.toString(10) !== outputs.value[0].toString(10)) {
+    throw new Error(
+      `value that was used is not equal to requested in query`,
+    );
   }
 
   return;
@@ -126,6 +206,8 @@ async function parseRequest(
       operator: operators.get('$noop'),
       values: null,
       slotIndex: 0,
+      isSelectiveDisclosure: false,
+      fieldName: '',
     };
   }
 
@@ -169,7 +251,7 @@ async function parseRequest(
   let claimPathKey: bigint;
   if (merkalized == 1) {
     const txtSchema = new TextDecoder().decode(schema);
-    const path = await getContextPathKey(txtSchema, credType, fieldName);
+    const path = await Path.getContextPathKey(txtSchema, credType, fieldName);
     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
     claimPathKey = await path.mtEntry();
   } else {
@@ -181,7 +263,13 @@ async function parseRequest(
     slotIndex,
     operator,
     values,
+    isSelectiveDisclosure: false,
+    fieldName,
   };
+
+  if (Object.keys(fieldReq).length === 0) {
+    cq.isSelectiveDisclosure = true;
+  }
 
   return cq;
 }
@@ -215,6 +303,8 @@ type CircuitQuery = {
   slotIndex?: number;
   values: bigint[];
   operator: number;
+  isSelectiveDisclosure: boolean;
+  fieldName: string;
 };
 
 // TODO (illia-korotia): move to core like static method or contructor of SchemaHash type.

@@ -13,8 +13,8 @@ import {
 import { verifyProof } from '@lib/proofs/zk';
 import { IKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver } from '@lib/state/resolver';
-import { Circuits } from '@lib/circuits/registry';
+import { Resolvers } from '@lib/state/resolver';
+import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { Token } from '@iden3/js-jwz';
 import { fromBigEndian } from '@iden3/js-iden3-core';
 
@@ -51,12 +51,12 @@ export function createAuthorizationRequestWithMessage(
 export class Verifier {
   private keyLoader: IKeyLoader;
   private schemaLoader: ISchemaLoader;
-  private stateResolver: IStateResolver;
+  private stateResolver: Resolvers;
 
   constructor(
     keyLoader: IKeyLoader,
     schemaLoader: ISchemaLoader,
-    stateResolver: IStateResolver,
+    stateResolver: Resolvers,
   ) {
     this.keyLoader = keyLoader;
     this.schemaLoader = schemaLoader;
@@ -66,6 +66,7 @@ export class Verifier {
   public async verifyAuthResponse(
     response: AuthorizationResponseMessage,
     request: AuthorizationRequestMessage,
+    opts?: VerifyOpts,
   ) {
     if ((request.body.message ?? '') !== (response.body.message ?? '')) {
       throw new Error(
@@ -106,7 +107,6 @@ export class Verifier {
       }
 
       // verify query
-
       const verifier = new CircuitVerifier(proofResp.pub_signals);
       await verifier.verifyQuery(
         proofRequest.query as Query,
@@ -115,7 +115,7 @@ export class Verifier {
 
       // verify states
 
-      await verifier.verifyStates(this.stateResolver);
+      await verifier.verifyStates(this.stateResolver, opts);
 
       // verify id ownership
       await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));

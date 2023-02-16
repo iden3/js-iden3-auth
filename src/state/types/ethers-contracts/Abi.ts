@@ -27,92 +27,97 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export type ProofStruct = {
-  root: PromiseOrValue<BigNumberish>;
-  siblings: PromiseOrValue<BigNumberish>[];
-  oldKey: PromiseOrValue<BigNumberish>;
-  oldValue: PromiseOrValue<BigNumberish>;
-  isOld0: PromiseOrValue<boolean>;
-  key: PromiseOrValue<BigNumberish>;
-  value: PromiseOrValue<BigNumberish>;
-  fnc: PromiseOrValue<BigNumberish>;
-};
+export declare namespace Smt {
+  export type ProofStruct = {
+    root: PromiseOrValue<BigNumberish>;
+    existence: PromiseOrValue<boolean>;
+    siblings: PromiseOrValue<BigNumberish>[];
+    index: PromiseOrValue<BigNumberish>;
+    value: PromiseOrValue<BigNumberish>;
+    auxExistence: PromiseOrValue<boolean>;
+    auxIndex: PromiseOrValue<BigNumberish>;
+    auxValue: PromiseOrValue<BigNumberish>;
+  };
 
-export type ProofStructOutput = [
-  BigNumber,
-  BigNumber[],
-  BigNumber,
-  BigNumber,
-  boolean,
-  BigNumber,
-  BigNumber,
-  BigNumber
-] & {
-  root: BigNumber;
-  siblings: BigNumber[];
-  oldKey: BigNumber;
-  oldValue: BigNumber;
-  isOld0: boolean;
-  key: BigNumber;
-  value: BigNumber;
-  fnc: BigNumber;
-};
+  export type ProofStructOutput = [
+    BigNumber,
+    boolean,
+    BigNumber[],
+    BigNumber,
+    BigNumber,
+    boolean,
+    BigNumber,
+    BigNumber
+  ] & {
+    root: BigNumber;
+    existence: boolean;
+    siblings: BigNumber[];
+    index: BigNumber;
+    value: BigNumber;
+    auxExistence: boolean;
+    auxIndex: BigNumber;
+    auxValue: BigNumber;
+  };
 
-export type RootInfoStruct = {
-  root: PromiseOrValue<BigNumberish>;
-  replacedByRoot: PromiseOrValue<BigNumberish>;
-  createdAtTimestamp: PromiseOrValue<BigNumberish>;
-  replacedAtTimestamp: PromiseOrValue<BigNumberish>;
-  createdAtBlock: PromiseOrValue<BigNumberish>;
-  replacedAtBlock: PromiseOrValue<BigNumberish>;
-};
+  export type RootInfoStruct = {
+    root: PromiseOrValue<BigNumberish>;
+    replacedByRoot: PromiseOrValue<BigNumberish>;
+    createdAtTimestamp: PromiseOrValue<BigNumberish>;
+    replacedAtTimestamp: PromiseOrValue<BigNumberish>;
+    createdAtBlock: PromiseOrValue<BigNumberish>;
+    replacedAtBlock: PromiseOrValue<BigNumberish>;
+  };
 
-export type RootInfoStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber
-] & {
-  root: BigNumber;
-  replacedByRoot: BigNumber;
-  createdAtTimestamp: BigNumber;
-  replacedAtTimestamp: BigNumber;
-  createdAtBlock: BigNumber;
-  replacedAtBlock: BigNumber;
-};
+  export type RootInfoStructOutput = [
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
+  ] & {
+    root: BigNumber;
+    replacedByRoot: BigNumber;
+    createdAtTimestamp: BigNumber;
+    replacedAtTimestamp: BigNumber;
+    createdAtBlock: BigNumber;
+    replacedAtBlock: BigNumber;
+  };
+}
 
-export type StateInfoStruct = {
-  id: PromiseOrValue<BigNumberish>;
-  state: PromiseOrValue<BigNumberish>;
-  replacedByState: PromiseOrValue<BigNumberish>;
-  createdAtTimestamp: PromiseOrValue<BigNumberish>;
-  replacedAtTimestamp: PromiseOrValue<BigNumberish>;
-  createdAtBlock: PromiseOrValue<BigNumberish>;
-  replacedAtBlock: PromiseOrValue<BigNumberish>;
-};
+export declare namespace StateV2 {
+  export type StateInfoStruct = {
+    id: PromiseOrValue<BigNumberish>;
+    state: PromiseOrValue<BigNumberish>;
+    replacedByState: PromiseOrValue<BigNumberish>;
+    createdAtTimestamp: PromiseOrValue<BigNumberish>;
+    replacedAtTimestamp: PromiseOrValue<BigNumberish>;
+    createdAtBlock: PromiseOrValue<BigNumberish>;
+    replacedAtBlock: PromiseOrValue<BigNumberish>;
+  };
 
-export type StateInfoStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber
-] & {
-  id: BigNumber;
-  state: BigNumber;
-  replacedByState: BigNumber;
-  createdAtTimestamp: BigNumber;
-  replacedAtTimestamp: BigNumber;
-  createdAtBlock: BigNumber;
-  replacedAtBlock: BigNumber;
-};
+  export type StateInfoStructOutput = [
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
+  ] & {
+    id: BigNumber;
+    state: BigNumber;
+    replacedByState: BigNumber;
+    createdAtTimestamp: BigNumber;
+    replacedAtTimestamp: BigNumber;
+    createdAtBlock: BigNumber;
+    replacedAtBlock: BigNumber;
+  };
+}
 
 export interface AbiInterface extends utils.Interface {
   functions: {
+    "ID_HISTORY_RETURN_LIMIT()": FunctionFragment;
     "getGISTProof(uint256)": FunctionFragment;
     "getGISTProofByBlock(uint256,uint256)": FunctionFragment;
     "getGISTProofByRoot(uint256,uint256)": FunctionFragment;
@@ -128,19 +133,19 @@ export interface AbiInterface extends utils.Interface {
     "getStateInfoHistoryById(uint256,uint256,uint256)": FunctionFragment;
     "getStateInfoHistoryLengthById(uint256)": FunctionFragment;
     "getVerifier()": FunctionFragment;
+    "idExists(uint256)": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setVerifier(address)": FunctionFragment;
-    "stateEntries(uint256)": FunctionFragment;
-    "statesHistories(uint256,uint256)": FunctionFragment;
+    "stateExists(uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "transitState(uint256,uint256,uint256,bool,uint256[2],uint256[2][2],uint256[2])": FunctionFragment;
-    "verifier()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "ID_HISTORY_RETURN_LIMIT"
       | "getGISTProof"
       | "getGISTProofByBlock"
       | "getGISTProofByRoot"
@@ -156,17 +161,20 @@ export interface AbiInterface extends utils.Interface {
       | "getStateInfoHistoryById"
       | "getStateInfoHistoryLengthById"
       | "getVerifier"
+      | "idExists"
       | "initialize"
       | "owner"
       | "renounceOwnership"
       | "setVerifier"
-      | "stateEntries"
-      | "statesHistories"
+      | "stateExists"
       | "transferOwnership"
       | "transitState"
-      | "verifier"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "ID_HISTORY_RETURN_LIMIT",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getGISTProof",
     values: [PromiseOrValue<BigNumberish>]
@@ -232,6 +240,10 @@ export interface AbiInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "idExists",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "initialize",
     values: [PromiseOrValue<string>]
   ): string;
@@ -245,12 +257,8 @@ export interface AbiInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "stateEntries",
+    functionFragment: "stateExists",
     values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "statesHistories",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -271,8 +279,11 @@ export interface AbiInterface extends utils.Interface {
       [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
     ]
   ): string;
-  encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
 
+  decodeFunctionResult(
+    functionFragment: "ID_HISTORY_RETURN_LIMIT",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getGISTProof",
     data: BytesLike
@@ -333,6 +344,7 @@ export interface AbiInterface extends utils.Interface {
     functionFragment: "getVerifier",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "idExists", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -344,11 +356,7 @@ export interface AbiInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "stateEntries",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "statesHistories",
+    functionFragment: "stateExists",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -359,7 +367,6 @@ export interface AbiInterface extends utils.Interface {
     functionFragment: "transitState",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
 
   events: {
     "Initialized(uint8)": EventFragment;
@@ -431,28 +438,30 @@ export interface Abi extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    ID_HISTORY_RETURN_LIMIT(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getGISTProof(
       id: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[ProofStructOutput]>;
+    ): Promise<[Smt.ProofStructOutput]>;
 
     getGISTProofByBlock(
       id: PromiseOrValue<BigNumberish>,
       blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[ProofStructOutput]>;
+    ): Promise<[Smt.ProofStructOutput]>;
 
     getGISTProofByRoot(
       id: PromiseOrValue<BigNumberish>,
       root: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[ProofStructOutput]>;
+    ): Promise<[Smt.ProofStructOutput]>;
 
     getGISTProofByTime(
       id: PromiseOrValue<BigNumberish>,
       timestamp: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[ProofStructOutput]>;
+    ): Promise<[Smt.ProofStructOutput]>;
 
     getGISTRoot(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -460,41 +469,41 @@ export interface Abi extends BaseContract {
       start: PromiseOrValue<BigNumberish>,
       length: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[RootInfoStructOutput[]]>;
+    ): Promise<[Smt.RootInfoStructOutput[]]>;
 
     getGISTRootHistoryLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getGISTRootInfo(
       root: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[RootInfoStructOutput]>;
+    ): Promise<[Smt.RootInfoStructOutput]>;
 
     getGISTRootInfoByBlock(
       blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[RootInfoStructOutput]>;
+    ): Promise<[Smt.RootInfoStructOutput]>;
 
     getGISTRootInfoByTime(
       timestamp: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[RootInfoStructOutput]>;
+    ): Promise<[Smt.RootInfoStructOutput]>;
 
     getStateInfoById(
       id: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[StateInfoStructOutput]>;
+    ): Promise<[StateV2.StateInfoStructOutput]>;
 
     getStateInfoByState(
       state: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[StateInfoStructOutput]>;
+    ): Promise<[StateV2.StateInfoStructOutput]>;
 
     getStateInfoHistoryById(
       id: PromiseOrValue<BigNumberish>,
       startIndex: PromiseOrValue<BigNumberish>,
       length: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[StateInfoStructOutput[]]>;
+    ): Promise<[StateV2.StateInfoStructOutput[]]>;
 
     getStateInfoHistoryLengthById(
       id: PromiseOrValue<BigNumberish>,
@@ -502,6 +511,11 @@ export interface Abi extends BaseContract {
     ): Promise<[BigNumber]>;
 
     getVerifier(overrides?: CallOverrides): Promise<[string]>;
+
+    idExists(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     initialize(
       verifierContractAddr: PromiseOrValue<string>,
@@ -519,23 +533,10 @@ export interface Abi extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    stateEntries(
-      arg0: PromiseOrValue<BigNumberish>,
+    stateExists(
+      state: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        id: BigNumber;
-        timestamp: BigNumber;
-        block: BigNumber;
-        replacedBy: BigNumber;
-      }
-    >;
-
-    statesHistories(
-      arg0: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[boolean]>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -555,32 +556,32 @@ export interface Abi extends BaseContract {
       c: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    verifier(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  ID_HISTORY_RETURN_LIMIT(overrides?: CallOverrides): Promise<BigNumber>;
 
   getGISTProof(
     id: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<ProofStructOutput>;
+  ): Promise<Smt.ProofStructOutput>;
 
   getGISTProofByBlock(
     id: PromiseOrValue<BigNumberish>,
     blockNumber: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<ProofStructOutput>;
+  ): Promise<Smt.ProofStructOutput>;
 
   getGISTProofByRoot(
     id: PromiseOrValue<BigNumberish>,
     root: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<ProofStructOutput>;
+  ): Promise<Smt.ProofStructOutput>;
 
   getGISTProofByTime(
     id: PromiseOrValue<BigNumberish>,
     timestamp: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<ProofStructOutput>;
+  ): Promise<Smt.ProofStructOutput>;
 
   getGISTRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -588,41 +589,41 @@ export interface Abi extends BaseContract {
     start: PromiseOrValue<BigNumberish>,
     length: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<RootInfoStructOutput[]>;
+  ): Promise<Smt.RootInfoStructOutput[]>;
 
   getGISTRootHistoryLength(overrides?: CallOverrides): Promise<BigNumber>;
 
   getGISTRootInfo(
     root: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<RootInfoStructOutput>;
+  ): Promise<Smt.RootInfoStructOutput>;
 
   getGISTRootInfoByBlock(
     blockNumber: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<RootInfoStructOutput>;
+  ): Promise<Smt.RootInfoStructOutput>;
 
   getGISTRootInfoByTime(
     timestamp: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<RootInfoStructOutput>;
+  ): Promise<Smt.RootInfoStructOutput>;
 
   getStateInfoById(
     id: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<StateInfoStructOutput>;
+  ): Promise<StateV2.StateInfoStructOutput>;
 
   getStateInfoByState(
     state: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<StateInfoStructOutput>;
+  ): Promise<StateV2.StateInfoStructOutput>;
 
   getStateInfoHistoryById(
     id: PromiseOrValue<BigNumberish>,
     startIndex: PromiseOrValue<BigNumberish>,
     length: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<StateInfoStructOutput[]>;
+  ): Promise<StateV2.StateInfoStructOutput[]>;
 
   getStateInfoHistoryLengthById(
     id: PromiseOrValue<BigNumberish>,
@@ -630,6 +631,11 @@ export interface Abi extends BaseContract {
   ): Promise<BigNumber>;
 
   getVerifier(overrides?: CallOverrides): Promise<string>;
+
+  idExists(
+    id: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   initialize(
     verifierContractAddr: PromiseOrValue<string>,
@@ -647,23 +653,10 @@ export interface Abi extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  stateEntries(
-    arg0: PromiseOrValue<BigNumberish>,
+  stateExists(
+    state: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      id: BigNumber;
-      timestamp: BigNumber;
-      block: BigNumber;
-      replacedBy: BigNumber;
-    }
-  >;
-
-  statesHistories(
-    arg0: PromiseOrValue<BigNumberish>,
-    arg1: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<boolean>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
@@ -684,31 +677,31 @@ export interface Abi extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  verifier(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
+    ID_HISTORY_RETURN_LIMIT(overrides?: CallOverrides): Promise<BigNumber>;
+
     getGISTProof(
       id: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<ProofStructOutput>;
+    ): Promise<Smt.ProofStructOutput>;
 
     getGISTProofByBlock(
       id: PromiseOrValue<BigNumberish>,
       blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<ProofStructOutput>;
+    ): Promise<Smt.ProofStructOutput>;
 
     getGISTProofByRoot(
       id: PromiseOrValue<BigNumberish>,
       root: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<ProofStructOutput>;
+    ): Promise<Smt.ProofStructOutput>;
 
     getGISTProofByTime(
       id: PromiseOrValue<BigNumberish>,
       timestamp: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<ProofStructOutput>;
+    ): Promise<Smt.ProofStructOutput>;
 
     getGISTRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -716,41 +709,41 @@ export interface Abi extends BaseContract {
       start: PromiseOrValue<BigNumberish>,
       length: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<RootInfoStructOutput[]>;
+    ): Promise<Smt.RootInfoStructOutput[]>;
 
     getGISTRootHistoryLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     getGISTRootInfo(
       root: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<RootInfoStructOutput>;
+    ): Promise<Smt.RootInfoStructOutput>;
 
     getGISTRootInfoByBlock(
       blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<RootInfoStructOutput>;
+    ): Promise<Smt.RootInfoStructOutput>;
 
     getGISTRootInfoByTime(
       timestamp: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<RootInfoStructOutput>;
+    ): Promise<Smt.RootInfoStructOutput>;
 
     getStateInfoById(
       id: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<StateInfoStructOutput>;
+    ): Promise<StateV2.StateInfoStructOutput>;
 
     getStateInfoByState(
       state: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<StateInfoStructOutput>;
+    ): Promise<StateV2.StateInfoStructOutput>;
 
     getStateInfoHistoryById(
       id: PromiseOrValue<BigNumberish>,
       startIndex: PromiseOrValue<BigNumberish>,
       length: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<StateInfoStructOutput[]>;
+    ): Promise<StateV2.StateInfoStructOutput[]>;
 
     getStateInfoHistoryLengthById(
       id: PromiseOrValue<BigNumberish>,
@@ -758,6 +751,11 @@ export interface Abi extends BaseContract {
     ): Promise<BigNumber>;
 
     getVerifier(overrides?: CallOverrides): Promise<string>;
+
+    idExists(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     initialize(
       verifierContractAddr: PromiseOrValue<string>,
@@ -773,23 +771,10 @@ export interface Abi extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    stateEntries(
-      arg0: PromiseOrValue<BigNumberish>,
+    stateExists(
+      state: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        id: BigNumber;
-        timestamp: BigNumber;
-        block: BigNumber;
-        replacedBy: BigNumber;
-      }
-    >;
-
-    statesHistories(
-      arg0: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<boolean>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -809,8 +794,6 @@ export interface Abi extends BaseContract {
       c: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
       overrides?: CallOverrides
     ): Promise<void>;
-
-    verifier(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -841,6 +824,8 @@ export interface Abi extends BaseContract {
   };
 
   estimateGas: {
+    ID_HISTORY_RETURN_LIMIT(overrides?: CallOverrides): Promise<BigNumber>;
+
     getGISTProof(
       id: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -913,6 +898,11 @@ export interface Abi extends BaseContract {
 
     getVerifier(overrides?: CallOverrides): Promise<BigNumber>;
 
+    idExists(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     initialize(
       verifierContractAddr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -929,14 +919,8 @@ export interface Abi extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    stateEntries(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    statesHistories(
-      arg0: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
+    stateExists(
+      state: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -958,11 +942,13 @@ export interface Abi extends BaseContract {
       c: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-
-    verifier(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    ID_HISTORY_RETURN_LIMIT(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getGISTProof(
       id: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1037,6 +1023,11 @@ export interface Abi extends BaseContract {
 
     getVerifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    idExists(
+      id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     initialize(
       verifierContractAddr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1053,14 +1044,8 @@ export interface Abi extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    stateEntries(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    statesHistories(
-      arg0: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
+    stateExists(
+      state: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1082,7 +1067,5 @@ export interface Abi extends BaseContract {
       c: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-
-    verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

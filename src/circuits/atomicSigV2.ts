@@ -1,13 +1,14 @@
-import { IStateResolver } from '@lib/state/resolver';
-import { PubSignalsVerifier } from '@lib/circuits/registry';
+import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { ISchemaLoader } from '@lib/loaders/schema';
+import { Resolvers } from '@lib/state/resolver';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkIssuerNonRevState, checkUserState } from '@lib/circuits/common';
+import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { Hash, newHashFromString } from '@iden3/js-merkletree';
 import { Id, SchemaHash } from '@iden3/js-iden3-core';
 
 const valuesSize = 64;
+const defaultProofVerifyOpts = 1 * 60 * 60 * 1000 // 1 hour
 
 export class AtomicQuerySigV2PubSignals
   extends IDOwnershipPubSignals
@@ -114,17 +115,34 @@ export class AtomicQuerySigV2PubSignals
     };
     return await checkQueryRequest(query, outs, schemaLoader);
   }
-  async verifyStates(resolver: IStateResolver): Promise<void> {
+  async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
+    const resolver = getResolverByID(resolvers, this.issuerID);
+    if (resolver === undefined) {
+      throw new Error(`resolver not found for issuerID ${this.issuerID}`);
+    }
+    
     await checkUserState(resolver, this.issuerID, this.issuerAuthState);
 
     if (this.isRevocationChecked === 0) {
       return;
     }
 
-    await checkIssuerNonRevState(
+    const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
       this.issuerID,
       this.issuerClaimNonRevState,
     );
+
+    let acceptedStateTransitionDelay = defaultProofVerifyOpts;
+    if (!!opts && !!opts.AcceptedStateTransitionDelay) {
+      acceptedStateTransitionDelay = Number(opts.AcceptedStateTransitionDelay);
+    }
+    
+    if (!issuerNonRevStateResolved.latest) {
+      const timeDiff = Date.now() - Number(issuerNonRevStateResolved.transitionTimestamp);
+      if (timeDiff > acceptedStateTransitionDelay) {
+        throw new Error('issuer state is outdated');
+      }
+    }
   }
 }

@@ -1,8 +1,13 @@
-import { Id, DID, buildDIDType } from '@iden3/js-iden3-core';
+import { Id, DID, buildDIDType, BytesHelper } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
 import { Abi__factory } from '@lib/state/types/ethers-contracts';
+import { StateV2, Smt } from './types/ethers-contracts/Abi';
 
 const zeroInt = BigInt(0);
+
+export type Resolvers = {
+  [key: string]: IStateResolver;
+};
 
 export interface IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState>;
@@ -34,22 +39,23 @@ export class EthStateResolver implements IStateResolver {
 
     // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
-
-    // get latest state of identity from contract
-    const contractState = await contract.getStateInfoById(id);
-
-    if (contractState.state.eq(zeroInt)) {
-      if (!isGenesis) {
-        throw new Error(
-          'state is not genesis and not registered in the smart contract',
-        );
+    
+    let contractState: StateV2.StateInfoStructOutput;
+    try {
+      contractState = await contract.getStateInfoByState(state);
+    } catch (e) {
+      if (e.errorArgs[0] === 'State does not exist') {
+        if (isGenesis) {
+          return {
+            latest: true,
+            genesis: isGenesis,
+            state: state,
+            transitionTimestamp: 0,
+          }
+        }
+        throw new Error('State is not genesis and not registered in the smart contract')
       }
-      return {
-        latest: true,
-        genesis: isGenesis,
-        state: state,
-        transitionTimestamp: 0,
-      };
+      throw e
     }
 
     if (!contractState.id.eq(id)) {
@@ -80,10 +86,14 @@ export class EthStateResolver implements IStateResolver {
     });
     const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
 
-    const globalStateInfo = await contract.getGISTRootInfo(state);
-
-    if (globalStateInfo.createdAtTimestamp.eq(zeroInt)) {
-      throw new Error(`gist state doesn't exists in contract`);
+    let globalStateInfo: Smt.RootInfoStructOutput;
+    try {
+      globalStateInfo = await contract.getGISTRootInfo(state);
+    } catch (e) {
+      if (e.errorArgs[0] === 'Root does not exist') {
+        throw new Error('GIST root does not exist in the smart contract')
+      }
+      throw e
     }
 
     if (!globalStateInfo.root.eq(state)) {
@@ -112,13 +122,7 @@ export class EthStateResolver implements IStateResolver {
 }
 
 export function isGenesisStateId(id: bigint, state: bigint): boolean {
-  const coreId = Id.fromBigInt(id);
-  const userDID = DID.parseFromId(coreId);
-  const didType = buildDIDType(
-    userDID.method,
-    userDID.blockchain,
-    userDID.networkId,
-  );
-  const genesisId = Id.idGenesisFromIdenState(didType, state);
-  return id.toString() === genesisId.bigInt().toString();
+  const userID = Id.fromBigInt(id);
+  const identifier = Id.idGenesisFromIdenState(userID.type(), state);
+  return userID.equal(identifier);
 }

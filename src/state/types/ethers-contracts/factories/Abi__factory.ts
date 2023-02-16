@@ -71,6 +71,19 @@ const _abi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "ID_HISTORY_RETURN_LIMIT",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -88,28 +101,18 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256[32]",
-            name: "siblings",
-            type: "uint256[32]",
-          },
-          {
-            internalType: "uint256",
-            name: "oldKey",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "oldValue",
-            type: "uint256",
-          },
-          {
             internalType: "bool",
-            name: "isOld0",
+            name: "existence",
             type: "bool",
           },
           {
+            internalType: "uint256[64]",
+            name: "siblings",
+            type: "uint256[64]",
+          },
+          {
             internalType: "uint256",
-            name: "key",
+            name: "index",
             type: "uint256",
           },
           {
@@ -118,12 +121,22 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "bool",
+            name: "auxExistence",
+            type: "bool",
+          },
+          {
             internalType: "uint256",
-            name: "fnc",
+            name: "auxIndex",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "auxValue",
             type: "uint256",
           },
         ],
-        internalType: "struct Proof",
+        internalType: "struct Smt.Proof",
         name: "",
         type: "tuple",
       },
@@ -154,28 +167,18 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256[32]",
-            name: "siblings",
-            type: "uint256[32]",
-          },
-          {
-            internalType: "uint256",
-            name: "oldKey",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "oldValue",
-            type: "uint256",
-          },
-          {
             internalType: "bool",
-            name: "isOld0",
+            name: "existence",
             type: "bool",
           },
           {
+            internalType: "uint256[64]",
+            name: "siblings",
+            type: "uint256[64]",
+          },
+          {
             internalType: "uint256",
-            name: "key",
+            name: "index",
             type: "uint256",
           },
           {
@@ -184,12 +187,22 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "bool",
+            name: "auxExistence",
+            type: "bool",
+          },
+          {
             internalType: "uint256",
-            name: "fnc",
+            name: "auxIndex",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "auxValue",
             type: "uint256",
           },
         ],
-        internalType: "struct Proof",
+        internalType: "struct Smt.Proof",
         name: "",
         type: "tuple",
       },
@@ -220,28 +233,18 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256[32]",
-            name: "siblings",
-            type: "uint256[32]",
-          },
-          {
-            internalType: "uint256",
-            name: "oldKey",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "oldValue",
-            type: "uint256",
-          },
-          {
             internalType: "bool",
-            name: "isOld0",
+            name: "existence",
             type: "bool",
           },
           {
+            internalType: "uint256[64]",
+            name: "siblings",
+            type: "uint256[64]",
+          },
+          {
             internalType: "uint256",
-            name: "key",
+            name: "index",
             type: "uint256",
           },
           {
@@ -250,12 +253,22 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "bool",
+            name: "auxExistence",
+            type: "bool",
+          },
+          {
             internalType: "uint256",
-            name: "fnc",
+            name: "auxIndex",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "auxValue",
             type: "uint256",
           },
         ],
-        internalType: "struct Proof",
+        internalType: "struct Smt.Proof",
         name: "",
         type: "tuple",
       },
@@ -286,28 +299,18 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256[32]",
-            name: "siblings",
-            type: "uint256[32]",
-          },
-          {
-            internalType: "uint256",
-            name: "oldKey",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "oldValue",
-            type: "uint256",
-          },
-          {
             internalType: "bool",
-            name: "isOld0",
+            name: "existence",
             type: "bool",
           },
           {
+            internalType: "uint256[64]",
+            name: "siblings",
+            type: "uint256[64]",
+          },
+          {
             internalType: "uint256",
-            name: "key",
+            name: "index",
             type: "uint256",
           },
           {
@@ -316,12 +319,22 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "bool",
+            name: "auxExistence",
+            type: "bool",
+          },
+          {
             internalType: "uint256",
-            name: "fnc",
+            name: "auxIndex",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "auxValue",
             type: "uint256",
           },
         ],
-        internalType: "struct Proof",
+        internalType: "struct Smt.Proof",
         name: "",
         type: "tuple",
       },
@@ -390,7 +403,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct RootInfo[]",
+        internalType: "struct Smt.RootInfo[]",
         name: "",
         type: "tuple[]",
       },
@@ -454,7 +467,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct RootInfo",
+        internalType: "struct Smt.RootInfo",
         name: "",
         type: "tuple",
       },
@@ -505,7 +518,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct RootInfo",
+        internalType: "struct Smt.RootInfo",
         name: "",
         type: "tuple",
       },
@@ -556,7 +569,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct RootInfo",
+        internalType: "struct Smt.RootInfo",
         name: "",
         type: "tuple",
       },
@@ -612,7 +625,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct StateInfo",
+        internalType: "struct StateV2.StateInfo",
         name: "",
         type: "tuple",
       },
@@ -668,7 +681,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct StateInfo",
+        internalType: "struct StateV2.StateInfo",
         name: "",
         type: "tuple",
       },
@@ -734,7 +747,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct StateInfo[]",
+        internalType: "struct StateV2.StateInfo[]",
         name: "",
         type: "tuple[]",
       },
@@ -769,6 +782,25 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "idExists",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -824,55 +856,16 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "state",
         type: "uint256",
       },
     ],
-    name: "stateEntries",
+    name: "stateExists",
     outputs: [
       {
-        internalType: "uint256",
-        name: "id",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "block",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "replacedBy",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
+        internalType: "bool",
         name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "statesHistories",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -932,19 +925,6 @@ const _abi = [
     name: "transitState",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "verifier",
-    outputs: [
-      {
-        internalType: "contract IVerifier",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
 ] as const;

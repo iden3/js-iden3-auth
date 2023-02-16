@@ -1,13 +1,18 @@
 import { ISchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver } from '@lib/state/resolver';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import { AtomicQueryMTPV2PubSignals } from '@lib/circuits/atomicMtpV2';
 import { AtomicQuerySigV2PubSignals } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
+import { Resolvers } from '@lib/state/resolver';
+
+
+export type VerifyOpts = {
+  AcceptedStateTransitionDelay?: Date;
+}
 
 export interface PubSignalsVerifier {
-  verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void>;
-  verifyStates(resolver: IStateResolver): Promise<void>;
+  verifyQuery(query: Query, schemaLoader: ISchemaLoader, verifiablePresentation?: JSON): Promise<void>;
+  verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
 }
 

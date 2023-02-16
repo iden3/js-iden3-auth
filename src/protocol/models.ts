@@ -37,6 +37,34 @@ export interface AuthorizationRequestBody {
   did_doc?: DIDDocument;
 }
 
+// ContractInvokeRequestMessage is struct the represents iden3message contract invoke request
+export interface ContractInvokeRequestMessage {
+  id: string;
+  typ: string;
+  type: string;
+  thid: string;
+  body: ContractInvokeRequestMessageBody;
+  from: string;
+  to?: string;
+}
+
+// ContractInvokeRequestMessageBody is body for ContractInvokeRequestMessage
+export interface ContractInvokeRequestMessageBody {
+  message?: string;
+  reason: string;
+  transaction_data: TransactionData;
+  scope: ZKPRequest[];
+  did_doc?: DIDDocument;
+}
+
+// TransactionData is data for on-chain verification
+export interface TransactionData {
+  contract_address: string;
+  method_id: string;
+  chain_id: number;
+  network: string;
+}
+
 //AuthorizationRequestBody is body for AuthorizationResponseMessage
 export interface AuthorizationResponseBody {
   message?: string;
@@ -65,6 +93,7 @@ export interface ZKPRequest {
 export interface ZKPResponse {
   id: number;
   circuitId: string; // `circuitId` compatibility with golang implementation.
+  verifiablePresentation?: JSON;
   pub_signals: string[];
   proof: ProofData;
 }
