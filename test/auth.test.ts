@@ -50,8 +50,8 @@ class MockResolver implements IStateResolver {
 
 const mockStateResolver: MockResolver = new MockResolver();
 const resolvers: Resolvers = {
-  "polygon:mumbai": mockStateResolver
-}
+  'polygon:mumbai': mockStateResolver,
+};
 
 test('createAuthorizationRequest', () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
@@ -111,11 +111,7 @@ test('TestVerifyMessageWithoutProof', async () => {
     },
   };
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    resolvers,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   await expect(
     verifier.verifyAuthResponse(response, request),
@@ -279,11 +275,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
     },
   };
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    resolvers,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   await expect(
     verifier.verifyAuthResponse(response, request),
@@ -291,15 +283,10 @@ test('TestVerifyWithAtomicMTPProof', async () => {
 });
 
 test('TestVerifyJWZ', async () => {
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    resolvers,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   const token =
     'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiSldaIn0.bWVzc2FnZQ.eyJwcm9vZiI6eyJwaV9hIjpbIjE2Njg0NTgxNTM5NDI0MjgzMjc5NjAxMzg1MjE5Mzc0MjkzNjQ5MDg5OTgzNjMyNzg1NTk4OTc1ODkxMzM2Njg4NzEzNjc5ODYyNTgzIiwiMTAzNjU5ODAzMDYzMzYyOTUxMDkwNDQ0OTUxNTkwMjIzOTkyMzMwNjU5NzU4MjMzMTk3NTc5MDMwMjQ3ODczNTIxMzE4OTkzODQzMDEiLCIxIl0sInBpX2IiOltbIjQ4MjM0OTk3NTQ0NTk4MjQ2NjM4NTA4NjE0NjgzNzU1MjM2NDc3NzgxNDgwMzI3NDIwNzM2NTA1NTA0MjM4NjU0OTU2NDI1MDMwMTYiLCIxNzUxMDQ5NzY1MzMyODk2MjM5Nzk2NDkwNDczNTAyOTU4ODIxOTQyMjU2NzY2MjMyNDU5OTQ5Mjg4NzMwMTQ4NjAyNjkwNDM3MDc0NSJdLFsiNjYzMzg3NTY3NzY5Mzc2MTQ2MDM0ODIzNTM2OTIxNDgwMTkwNjUyNjg3OTI4MTg2MDY4NDQ0ODA4MzYxMTIwMjA2MjA1MDc1NzUzMSIsIjg3NTgwNzE3MDUwNjUzNTQ0OTY3Mzc5NzAzODY5ODMyNTA2Nzg4OTc4Mjc3NjMxODkxODc4ODk4NDAyMjgxNDE3NTg4MjMwNTE1MjIiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjExMDg0NjQ4MzIyNzc1MTMyOTEwNTI0MTE4Mjg0ODgwOTI3MTk3MjE0NjgwMjU3MTU5NDA0MzU5MDQ0MDM0MTAzMTAyMDYzMDEzMTc3IiwiMzY2NjExNjkxODg0MDMzMDU5MzA5MjcyNjI2ODY0NjMzNjczMjY2MTY0MjI3NjE3NDc0NzczMzk1NjU3MjA1NjgzNDQ3MjYzNDYxNSIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjI1MDU0NDY1OTM1OTE2MzQzNzMzNDcwMDY1OTc3MzkzNTU2ODk4MTY1ODMyNzgzMjE0NjIxODgyMjM5MDUwMDM1ODQ2NTE3MjUwIiwiMTA0NTczNjMzMTkwMjQ4MTQ0NjY5NDQyNjYxMTE5MTc1ODkyNTgzOTE2MzczNDM0OTA5MTM0MTM5NjUxMzcwMzIxNzg3MTg0MDgxMTYiLCI1MzA0Njg1OTQ1NTI0MTc3MjA4MzQ5NDczNzc3MjMzOTcwNjk2NTU1ODA0NzQwNzM2MTU4NjA2ODI1MTE2ODA2MDgwMDU0NjA0Mzg1Il19';
-
 
   await expect(verifier.verifyJWZ(token)).resolves.not.toThrow();
 });
@@ -335,11 +322,7 @@ test('TestFullVerify', async () => {
 
   expect(request.body.scope.length).toEqual(1);
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    resolvers,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
   request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
 
@@ -502,16 +485,14 @@ test('TestResponseWithEmptyQueryRequest_ErrorCase', async () => {
     },
   };
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    resolvers,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   try {
     await verifier.verifyAuthResponse(response, request);
   } catch (e) {
-    expect(e.toString()).toContain('operator that was used is not equal to request');
+    expect(e.toString()).toContain(
+      'operator that was used is not equal to request',
+    );
   }
 });
 

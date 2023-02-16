@@ -1,12 +1,10 @@
 import { Id } from '@iden3/js-iden3-core';
-import { IStateResolver } from '@lib/state/resolver';
 import { Query } from '@lib/circuits/query';
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkGlobalState, getResolverByID } from '@lib/circuits/common';
 import { Hash, newHashFromString } from '@iden3/js-merkletree';
 import { Resolvers } from '@lib/state/resolver';
-
 
 const defaultAuthVerifyOpts = 5 * 60 * 1000; // 5 minutes
 export class AuthPubSignalsV2
@@ -45,7 +43,7 @@ export class AuthPubSignalsV2
     if (!!opts && !!opts.AcceptedStateTransitionDelay) {
       acceptedStateTransitionDelay = Number(opts.AcceptedStateTransitionDelay);
     }
-    
+
     if (!gist.latest) {
       const timeDiff = Date.now() - Number(gist.transitionTimestamp);
       if (timeDiff > acceptedStateTransitionDelay) {

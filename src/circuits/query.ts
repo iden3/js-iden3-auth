@@ -51,13 +51,12 @@ export async function checkQueryRequest(
   schemaLoader: ISchemaLoader,
   verifiablePresentation?: JSON,
 ): Promise<void> {
-
   // validate issuer
   let userDID: DID;
   try {
     userDID = DID.parseFromId(outputs.issuerId);
   } catch (e) {
-    throw new Error("invalid issuerId in circuit's output");  
+    throw new Error("invalid issuerId in circuit's output");
   }
   const issuerAllowed = query.allowedIssuers.some(
     (issuer) => issuer === '*' || issuer === userDID.toString(),
@@ -123,10 +122,7 @@ export async function checkQueryRequest(
   return;
 }
 
-async function validateOperators(
-  cq: CircuitQuery,
-  outputs: ClaimOutputs,
-) {
+async function validateOperators(cq: CircuitQuery, outputs: ClaimOutputs) {
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
   }
@@ -150,7 +146,9 @@ async function validateDisclosure(
   outputs: ClaimOutputs,
 ) {
   if (!verifiablePresentation) {
-    throw new Error(`verifiablePresentation is required for selective disclosure request`);
+    throw new Error(
+      `verifiablePresentation is required for selective disclosure request`,
+    );
   }
 
   if (outputs.operator !== operators.get('$eq')) {
@@ -158,41 +156,40 @@ async function validateDisclosure(
   }
 
   for (let index = 1; index < cq.values.length; index++) {
-    if (outputs.value[index].toString(10) !== "0") {
-      throw new Error(
-        `selective disclosure not available for array of values`,
-      );
+    if (outputs.value[index].toString(10) !== '0') {
+      throw new Error(`selective disclosure not available for array of values`);
     }
   }
 
-  let mz: Merkelizer; 
+  let mz: Merkelizer;
   const strVerifiablePresentation: string = verifiablePresentation.toString();
   try {
-    mz = await Merkelizer.merkelizeJSONLD(strVerifiablePresentation)
+    mz = await Merkelizer.merkelizeJSONLD(strVerifiablePresentation);
   } catch (e) {
     throw new Error(`can't merkelize verifiablePresentation`);
   }
 
   let merkalizedPath: Path;
   try {
-    merkalizedPath = await Path.newPathFromCtx(strVerifiablePresentation, `verifiableCredential.${cq.fieldName}`)
+    merkalizedPath = await Path.newPathFromCtx(
+      strVerifiablePresentation,
+      `verifiableCredential.${cq.fieldName}`,
+    );
   } catch (e) {
     throw new Error(`can't build path to '${cq.fieldName}' key`);
   }
 
   let valueByPath: any;
   try {
-    valueByPath = mz.rawValue(merkalizedPath)
+    valueByPath = mz.rawValue(merkalizedPath);
   } catch (e) {
     throw new Error(`can't get value by path '${cq.fieldName}'`);
   }
 
   const mvValue = mz.mkValue(valueByPath);
-  
+
   if (mvValue.toString(10) !== outputs.value[0].toString(10)) {
-    throw new Error(
-      `value that was used is not equal to requested in query`,
-    );
+    throw new Error(`value that was used is not equal to requested in query`);
   }
 
   return;

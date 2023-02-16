@@ -1,4 +1,4 @@
-import { Id, DID, buildDIDType, BytesHelper } from '@iden3/js-iden3-core';
+import { Id } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
 import { Abi__factory } from '@lib/state/types/ethers-contracts';
 import { StateV2, Smt } from './types/ethers-contracts/Abi';
@@ -39,7 +39,7 @@ export class EthStateResolver implements IStateResolver {
 
     // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
-    
+
     let contractState: StateV2.StateInfoStructOutput;
     try {
       contractState = await contract.getStateInfoByState(state);
@@ -51,11 +51,13 @@ export class EthStateResolver implements IStateResolver {
             genesis: isGenesis,
             state: state,
             transitionTimestamp: 0,
-          }
+          };
         }
-        throw new Error('State is not genesis and not registered in the smart contract')
+        throw new Error(
+          'State is not genesis and not registered in the smart contract',
+        );
       }
-      throw e
+      throw e;
     }
 
     if (!contractState.id.eq(id)) {
@@ -91,9 +93,9 @@ export class EthStateResolver implements IStateResolver {
       globalStateInfo = await contract.getGISTRootInfo(state);
     } catch (e) {
       if (e.errorArgs[0] === 'Root does not exist') {
-        throw new Error('GIST root does not exist in the smart contract')
+        throw new Error('GIST root does not exist in the smart contract');
       }
-      throw e
+      throw e;
     }
 
     if (!globalStateInfo.root.eq(state)) {

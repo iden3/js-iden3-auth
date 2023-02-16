@@ -5,13 +5,16 @@ import { AtomicQuerySigV2PubSignals } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 
-
 export type VerifyOpts = {
   AcceptedStateTransitionDelay?: Date;
-}
+};
 
 export interface PubSignalsVerifier {
-  verifyQuery(query: Query, schemaLoader: ISchemaLoader, verifiablePresentation?: JSON): Promise<void>;
+  verifyQuery(
+    query: Query,
+    schemaLoader: ISchemaLoader,
+    verifiablePresentation?: JSON,
+  ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
 }

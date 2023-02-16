@@ -43,10 +43,13 @@ export async function checkIssuerNonRevState(
 }
 
 export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {
-  const userDID = DID.parseFromId(id)
-  return getResolverByDID(resolvers, userDID)
+  const userDID = DID.parseFromId(id);
+  return getResolverByDID(resolvers, userDID);
 }
 
-export function getResolverByDID(resolvers: Resolvers, did: DID): IStateResolver {
-  return resolvers[`${did.blockchain}:${did.networkId}`]
+export function getResolverByDID(
+  resolvers: Resolvers,
+  did: DID,
+): IStateResolver {
+  return resolvers[`${did.blockchain}:${did.networkId}`];
 }
