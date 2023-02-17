@@ -9,7 +9,7 @@ import {
   getResolverByID,
 } from '@lib/circuits/common';
 import { Hash, newHashFromString } from '@iden3/js-merkletree';
-import { Id, SchemaHash } from '@iden3/js-iden3-core';
+import { Id, SchemaHash, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -139,12 +139,16 @@ export class AtomicQuerySigV2PubSignals
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;
     if (!!opts && !!opts.AcceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay = Number(opts.AcceptedStateTransitionDelay);
+      acceptedStateTransitionDelay =
+        opts.AcceptedStateTransitionDelay.getMinutes();
     }
 
     if (!issuerNonRevStateResolved.latest) {
       const timeDiff =
-        Date.now() - Number(issuerNonRevStateResolved.transitionTimestamp);
+        Date.now() -
+        getDateFromUnixTimestamp(
+          Number(issuerNonRevStateResolved.transitionTimestamp),
+        ).getMilliseconds();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('issuer state is outdated');
       }

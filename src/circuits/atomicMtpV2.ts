@@ -1,4 +1,4 @@
-import { Id, SchemaHash } from '@iden3/js-iden3-core';
+import { Id, SchemaHash, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { ISchemaLoader } from '@lib/loaders/schema';
 import { Resolvers } from '@lib/state/resolver';
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
@@ -149,12 +149,16 @@ export class AtomicQueryMTPV2PubSignals
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;
     if (!!opts && !!opts.AcceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay = Number(opts.AcceptedStateTransitionDelay);
+      acceptedStateTransitionDelay =
+        opts.AcceptedStateTransitionDelay.getMilliseconds();
     }
 
     if (!issuerNonRevStateResolved.latest) {
       const timeDiff =
-        Date.now() - Number(issuerNonRevStateResolved.transitionTimestamp);
+        Date.now() -
+        getDateFromUnixTimestamp(
+          Number(issuerNonRevStateResolved.transitionTimestamp),
+        ).getMilliseconds();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('issuer state is outdated');
       }

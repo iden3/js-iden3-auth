@@ -1,4 +1,4 @@
-import { Id } from '@iden3/js-iden3-core';
+import { Id, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { Query } from '@lib/circuits/query';
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
@@ -41,11 +41,16 @@ export class AuthPubSignalsV2
 
     let acceptedStateTransitionDelay = defaultAuthVerifyOpts;
     if (!!opts && !!opts.AcceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay = Number(opts.AcceptedStateTransitionDelay);
+      acceptedStateTransitionDelay =
+        opts.AcceptedStateTransitionDelay.getMilliseconds();
     }
 
     if (!gist.latest) {
-      const timeDiff = Date.now() - Number(gist.transitionTimestamp);
+      const timeDiff =
+        Date.now() -
+        getDateFromUnixTimestamp(
+          Number(gist.transitionTimestamp),
+        ).getMilliseconds();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('global state is outdated');
       }
