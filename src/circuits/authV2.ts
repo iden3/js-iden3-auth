@@ -34,7 +34,7 @@ export class AuthPubSignalsV2
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
     const resolver = getResolverByID(resolvers, this.userId);
-    if (resolver === undefined) {
+    if (!resolver) {
       throw new Error(`resolver not found for id ${this.userId.string()}`);
     }
     const gist = await checkGlobalState(resolver, this.gistRoot);

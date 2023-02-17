@@ -131,7 +131,7 @@ export class AtomicQueryMTPV2PubSignals
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
     const resolver = getResolverByID(resolvers, this.issuerID);
-    if (resolver === undefined) {
+    if (!resolver) {
       throw new Error(`resolver not found for issuerID ${this.issuerID}`);
     }
 

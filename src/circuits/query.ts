@@ -251,7 +251,7 @@ async function parseRequest(
 
   let slotIndex: number;
   let claimPathKey: bigint;
-  if (merkalized == 1) {
+  if (merkalized === 1) {
     const txtSchema = new TextDecoder().decode(schema);
     const path = await Path.getContextPathKey(txtSchema, credType, fieldName);
     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
