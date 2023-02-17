@@ -121,32 +121,32 @@ The blockchain verification algorithm is used
   };
 
   const verificationKeyloader = new loaders.FSKeyLoader('../../keys');
-    const sLoader = new loaders.UniversalSchemaLoader('ipfs.io');
-    const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
-    const verifier = new auth.Verifier(
-      verificationKeyloader,
-      sLoader, 
-      resolvers,
-    );
+  const sLoader = new loaders.UniversalSchemaLoader('ipfs.io');
+  const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
+  const verifier = new auth.Verifier(
+    verificationKeyloader,
+    sLoader, 
+    resolvers,
+  );
   ```
 
   FullVerify
 
   ``` javascript
   let authResponse: protocol.AuthorizationResponseMessage;
-  authResponse = await verifier.fullVerify(tokenStr, authRequest);
+  authResponse = await verifier.fullVerify(tokenStr, authRequest, ?VerifyOpts{});
   ```
 
  Verify manually or thread id is used a session id to match request
 
   ``` javascript
-  const token = await verifier.verifyJWZ(tokenStr);
+  const token = await verifier.verifyJWZ(tokenStr, ?VerifyOpts{});
   authResponse = JSON.parse(
     token.getPayload(),
   ) as protocol.AuthorizationResponseMessage;
   const authRequest: protocol.AuthorizationRequestMessage; // get request from you session storage. You can use authResponse.thid field
 
-  await verifier.verifyAuthResponse(authResponse, authRequest);
+  await verifier.verifyAuthResponse(authResponse, authRequest, ?VerifyOpts{});
   ```
 
 ---

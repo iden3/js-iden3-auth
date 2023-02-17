@@ -122,7 +122,7 @@ export class Verifier {
     }
   }
 
-  public async verifyJWZ(tokenStr: string): Promise<Token> {
+  public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
     const token = await Token.parse(tokenStr);
     const key = await this.keyLoader.load(token.circuitId);
     if (!key) {
@@ -148,7 +148,7 @@ export class Verifier {
     const verifier = new CircuitVerifier(token.zkProof.pub_signals);
 
     // state verification
-    await verifier.verifyStates(this.stateResolver);
+    await verifier.verifyStates(this.stateResolver, opts);
 
     return token;
   }
@@ -156,8 +156,9 @@ export class Verifier {
   public async fullVerify(
     tokenStr: string,
     request: AuthorizationRequestMessage,
+    opts?: VerifyOpts,
   ): Promise<AuthorizationResponseMessage> {
-    const token = await this.verifyJWZ(tokenStr);
+    const token = await this.verifyJWZ(tokenStr, opts);
 
     const payload = token.getPayload();
 
@@ -176,7 +177,7 @@ export class Verifier {
       fromBigEndian(await token.getMessageHash()),
     );
 
-    await this.verifyAuthResponse(response, request);
+    await this.verifyAuthResponse(response, request, opts);
 
     return response;
   }
