@@ -45,11 +45,19 @@ Circuit public signals marshallers are defined inside library.To use custom circ
 The blockchain verification algorithm is used
 
 1. Gets state from the blockchain (address of id state contract and URL must be provided by the caller of the library):
-1. Empty state is returned - it means that identity state hasn’t been updated or updated state hasn’t been published. We need to compare id and state. If they are different it’s not a genesis state of identity then it’s not valid.
-2. The non-empty state is returned and equals to the state in provided proof which means that the user state is fresh enough and we work with the latest user state.
-3. The non-empty state is returned and it’s not equal to the state that the user has provided. Gets the transition time of the state. The verification party can make a decision if it can accept this state based on that time frame
+   1. Empty state is returned - it means that identity state hasn’t been updated or updated state hasn’t been published. We need to compare id and state. If they are different it’s not a genesis state of identity then it’s not valid.
+   2. The non-empty state is returned and equals to the state in provided proof which means that the user state is fresh enough and we work with the latest user state.
+   3. The non-empty state is returned and it’s not equal to the state that the user has provided. Gets the transition time of the state. The verification party can make a decision if it can accept this state based on that time frame.
 
 2. Only latest states for user are valid. Any existing issuer state for claim issuance is valid.
+
+### Verification of GIST
+
+The blockchain verification algorithm is used
+
+1. Get GIST from the blockchain (address of id state contract and URL must be provided by the caller of the library):
+   1. A non-empty GIST is returned, equal to the GIST is provided by the user, it means the user is using the latest state.
+   2. The non-empty GIST is returned and it’s not equal to the GIST is provided by a user. Gets the transition time of the GIST. The verification party can make a decision if it can accept this state based on that time frame.
 
 ## How to use
 
@@ -84,20 +92,16 @@ The blockchain verification algorithm is used
     const proofRequest: protocol.ZKPRequest = {
         id: 1,
         circuitId: 'credentialAtomicQueryMTPV2',
-        rules: {
-          query: {
-            allowedIssuers: ['*'],
-            schema: {
-              type: 'KYCCountryOfResidenceCredential',
-              url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
-            },
-            query: {
-              countryCode: {
-                $nin: [840, 120, 340, 509],
-              },
+        query: {
+          allowedIssuers: ['*'],
+          type: 'KYCCountryOfResidenceCredential',
+          context: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
+          credentialSubject: {
+            countryCode: {
+              $nin: [840, 120, 340, 509],
             },
           },
-        },
+      },
       };
       request.body.scope = [...scope, proofRequest];
     ```
@@ -107,32 +111,42 @@ The blockchain verification algorithm is used
   Init Verifier:
 
   ``` javascript
+  const ethStateResolver = new resolver.EthStateResolver(
+    ethUrl,
+    contractAddress,
+  );
+
+  const resolvers: resolver.Resolvers = {
+    ['polygon:mumbai']: ethStateResolver,
+  };
+
   const verificationKeyloader = new loaders.FSKeyLoader('../../keys');
     const sLoader = new loaders.UniversalSchemaLoader('ipfs.io');
     const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
     const verifier = new auth.Verifier(
       verificationKeyloader,
-      sLoader, ethStateResolver,
+      sLoader, 
+      resolvers,
     );
   ```
 
   FullVerify
 
   ``` javascript
-     let authResponse: protocol.AuthorizationResponseMessage;
-     authResponse = await verifier.fullVerify(tokenStr, authRequest);
+  let authResponse: protocol.AuthorizationResponseMessage;
+  authResponse = await verifier.fullVerify(tokenStr, authRequest);
   ```
 
  Verify manually or thread id is used a session id to match request
 
   ``` javascript
-          const token = await verifier.verifyJWZ(tokenStr);
-          authResponse = JSON.parse(
-            token.getPayload(),
-          ) as protocol.AuthorizationResponseMessage;
-          const authRequest: protocol.AuthorizationRequestMessage; // get request from you session storage. You can use authResponse.thid field
-      
-          await verifier.verifyAuthResponse(authResponse, authRequest);
+  const token = await verifier.verifyJWZ(tokenStr);
+  authResponse = JSON.parse(
+    token.getPayload(),
+  ) as protocol.AuthorizationResponseMessage;
+  const authRequest: protocol.AuthorizationRequestMessage; // get request from you session storage. You can use authResponse.thid field
+
+  await verifier.verifyAuthResponse(authResponse, authRequest);
   ```
 
 ---
