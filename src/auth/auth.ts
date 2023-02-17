@@ -13,11 +13,10 @@ import {
 import { verifyProof } from '@lib/proofs/zk';
 import { IKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver } from '@lib/state/resolver';
-import { Circuits } from '@lib/circuits/registry';
+import { Resolvers } from '@lib/state/resolver';
+import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { Token } from '@iden3/js-jwz';
-import { TextDecoder } from 'util';
-import { fromBigEndian } from '@lib/core/util';
+import { fromBigEndian } from '@iden3/js-iden3-core';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -52,12 +51,12 @@ export function createAuthorizationRequestWithMessage(
 export class Verifier {
   private keyLoader: IKeyLoader;
   private schemaLoader: ISchemaLoader;
-  private stateResolver: IStateResolver;
+  private stateResolver: Resolvers;
 
   constructor(
     keyLoader: IKeyLoader,
     schemaLoader: ISchemaLoader,
-    stateResolver: IStateResolver,
+    stateResolver: Resolvers,
   ) {
     this.keyLoader = keyLoader;
     this.schemaLoader = schemaLoader;
@@ -67,6 +66,7 @@ export class Verifier {
   public async verifyAuthResponse(
     response: AuthorizationResponseMessage,
     request: AuthorizationRequestMessage,
+    opts?: VerifyOpts,
   ) {
     if ((request.body.message ?? '') !== (response.body.message ?? '')) {
       throw new Error(
@@ -81,12 +81,12 @@ export class Verifier {
       if (!proofResp) {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
-      if (proofResp.circuit_id !== proofRequest.circuit_id) {
+      if (proofResp.circuitId !== proofRequest.circuitId) {
         throw new Error(
-          `proof is not given for requested circuit expected: ${proofRequest.circuit_id}, given ${proofResp.circuit_id}`,
+          `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${proofResp.circuitId}`,
         );
       }
-      const circuitId = proofResp.circuit_id;
+      const circuitId = proofResp.circuitId;
       const key = await this.keyLoader.load(circuitId);
       if (!key) {
         throw new Error(
@@ -107,16 +107,15 @@ export class Verifier {
       }
 
       // verify query
-
       const verifier = new CircuitVerifier(proofResp.pub_signals);
       await verifier.verifyQuery(
-        proofRequest.rules['query'] as Query,
+        proofRequest.query as Query,
         this.schemaLoader,
       );
 
       // verify states
 
-      await verifier.verifyStates(this.stateResolver);
+      await verifier.verifyStates(this.stateResolver, opts);
 
       // verify id ownership
       await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));
@@ -125,7 +124,6 @@ export class Verifier {
 
   public async verifyJWZ(tokenStr: string): Promise<Token> {
     const token = await Token.parse(tokenStr);
-
     const key = await this.keyLoader.load(token.circuitId);
     if (!key) {
       throw new Error(

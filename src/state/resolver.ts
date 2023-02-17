@@ -1,10 +1,17 @@
-import { Core } from '@lib/core/core';
-import { toLittleEndian } from '@lib/core/util';
+import { Id } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
-import { stateABI } from '@lib/state/abi';
+import { Abi__factory } from '@lib/state/types/ethers-contracts';
+import { StateV2, Smt } from './types/ethers-contracts/Abi';
+
+const zeroInt = BigInt(0);
+
+export type Resolvers = {
+  [key: string]: IStateResolver;
+};
 
 export interface IStateResolver {
   resolve(id: bigint, state: bigint): Promise<ResolvedState>;
+  rootResolve(state: bigint): Promise<ResolvedState>;
 }
 export type ResolvedState = {
   latest: boolean;
@@ -20,6 +27,7 @@ export class EthStateResolver implements IStateResolver {
     this.rpcUrl = rpcUrl;
     this.contractAddress = contractAddress;
   }
+
   public async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
     const url = new URL(this.rpcUrl);
     const ethersProvider = new ethers.providers.JsonRpcProvider({
@@ -27,71 +35,96 @@ export class EthStateResolver implements IStateResolver {
       user: url.username,
       password: url.password,
     });
-    const contract = new ethers.Contract(
-      this.contractAddress,
-      stateABI,
-      ethersProvider,
-    );
+    const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
+
     // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
 
-    // get latest state of identity from contract
-    const contractState = await contract.getState(id);
-
-    if (contractState.toBigInt() === 0n) {
-      if (!isGenesis) {
+    let contractState: StateV2.StateInfoStructOutput;
+    try {
+      contractState = await contract.getStateInfoByState(state);
+    } catch (e) {
+      if (e.errorArgs[0] === 'State does not exist') {
+        if (isGenesis) {
+          return {
+            latest: true,
+            genesis: isGenesis,
+            state: state,
+            transitionTimestamp: 0,
+          };
+        }
         throw new Error(
-          'state is not genesis and not registered in the smart contract',
+          'State is not genesis and not registered in the smart contract',
         );
       }
-      return {
-        latest: true,
-        genesis: isGenesis,
-        state,
-        transitionTimestamp: 0,
-      };
+      throw e;
     }
 
-    if (contractState.toBigInt() !== state) {
-      const transitionInfo = await contract.getTransitionInfo(state);
+    if (!contractState.id.eq(id)) {
+      throw new Error(`state was recorded for another identity`);
+    }
 
-      if (transitionInfo[4].toBigInt() === 0n) {
-        throw new Error('transition info contains invalid id');
+    if (!contractState.state.eq(state)) {
+      if (contractState.replacedAtTimestamp.eq(zeroInt)) {
+        throw new Error(`no information about state transition`);
       }
-
-      if (transitionInfo[0].toBigInt() === 0n) {
-        throw new Error('no information of transition for non-latest state');
-      }
-
       return {
         latest: false,
-        state,
-        genesis: isGenesis,
-        transitionTimestamp: transitionInfo[0].toBigInt(),
+        genesis: false,
+        state: state,
+        transitionTimestamp: contractState.replacedAtTimestamp.toNumber(),
       };
     }
 
     return { latest: true, genesis: isGenesis, state, transitionTimestamp: 0 };
   }
+
+  public async rootResolve(state: bigint): Promise<ResolvedState> {
+    const url = new URL(this.rpcUrl);
+    const ethersProvider = new ethers.providers.JsonRpcProvider({
+      url: url.href,
+      user: url.username,
+      password: url.password,
+    });
+    const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
+
+    let globalStateInfo: Smt.RootInfoStructOutput;
+    try {
+      globalStateInfo = await contract.getGISTRootInfo(state);
+    } catch (e) {
+      if (e.errorArgs[0] === 'Root does not exist') {
+        throw new Error('GIST root does not exist in the smart contract');
+      }
+      throw e;
+    }
+
+    if (!globalStateInfo.root.eq(state)) {
+      throw new Error(`gist info contains invalid state`);
+    }
+
+    if (!globalStateInfo.replacedByRoot.eq(zeroInt)) {
+      if (globalStateInfo.replacedAtTimestamp.eq(zeroInt)) {
+        throw new Error(`state was replaced, but replaced time unknown`);
+      }
+      return {
+        latest: false,
+        state: state,
+        transitionTimestamp: globalStateInfo.replacedAtTimestamp.toString(),
+        genesis: false,
+      };
+    }
+
+    return {
+      latest: true,
+      state: state,
+      transitionTimestamp: 0,
+      genesis: false,
+    };
+  }
 }
 
 export function isGenesisStateId(id: bigint, state: bigint): boolean {
-  const idBytes = toLittleEndian(id, 31);
-
-  const typeBJP0 = new Uint8Array(2);
-  const stateBytes = toLittleEndian(state, 32);
-  const idGenesisBytes = stateBytes.slice(-27);
-
-  // we take last 27 bytes, because of swapped endianness
-  const idFromStateBytes = Uint8Array.from([
-    ...typeBJP0,
-    ...idGenesisBytes,
-    ...Core.calculateChecksum(typeBJP0, idGenesisBytes),
-  ]);
-
-  if (JSON.stringify(idBytes) !== JSON.stringify(idFromStateBytes)) {
-    return false;
-  }
-
-  return true;
+  const userID = Id.fromBigInt(id);
+  const identifier = Id.idGenesisFromIdenState(userID.type(), state);
+  return userID.equal(identifier);
 }

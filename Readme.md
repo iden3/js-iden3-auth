@@ -83,7 +83,7 @@ The blockchain verification algorithm is used
      ``` javascript
     const proofRequest: protocol.ZKPRequest = {
         id: 1,
-        circuit_id: 'credentialAtomicQueryMTP',
+        circuitId: 'credentialAtomicQueryMTPV2',
         rules: {
           query: {
             allowedIssuers: ['*'],
@@ -91,7 +91,7 @@ The blockchain verification algorithm is used
               type: 'KYCCountryOfResidenceCredential',
               url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
             },
-            req: {
+            query: {
               countryCode: {
                 $nin: [840, 120, 340, 509],
               },
@@ -134,3 +134,13 @@ The blockchain verification algorithm is used
       
           await verifier.verifyAuthResponse(authResponse, authRequest);
   ```
+
+---
+### Generate types for state contract.
+We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for generate TS types for a smart contract.
+1. Install TypeChain;
+2. Install @typechain/ethers-v5;
+3. Run:
+```bash
+typechain --target ethers-v5 /path/to/state_contract.sol
+```

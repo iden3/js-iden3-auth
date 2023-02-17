@@ -1,5 +1,3 @@
-import { DIDDocument } from '@lib/core/doc';
-
 // Message is basic protocol message
 export interface Message {
   id: string;
@@ -39,6 +37,34 @@ export interface AuthorizationRequestBody {
   did_doc?: DIDDocument;
 }
 
+// ContractInvokeRequestMessage is struct the represents iden3message contract invoke request
+export interface ContractInvokeRequestMessage {
+  id: string;
+  typ: string;
+  type: string;
+  thid: string;
+  body: ContractInvokeRequestMessageBody;
+  from: string;
+  to?: string;
+}
+
+// ContractInvokeRequestMessageBody is body for ContractInvokeRequestMessage
+export interface ContractInvokeRequestMessageBody {
+  message?: string;
+  reason: string;
+  transaction_data: TransactionData;
+  scope: ZKPRequest[];
+  did_doc?: DIDDocument;
+}
+
+// TransactionData is data for on-chain verification
+export interface TransactionData {
+  contract_address: string;
+  method_id: string;
+  chain_id: number;
+  network: string;
+}
+
 //AuthorizationRequestBody is body for AuthorizationResponseMessage
 export interface AuthorizationResponseBody {
   message?: string;
@@ -58,22 +84,28 @@ export interface ProofData {
 // ZKPRequest is a request for zkp proof
 export interface ZKPRequest {
   id: number;
-  circuit_id: string;
+  circuitId: string;
   optional?: boolean;
-  rules: unknown;
+  query: unknown;
 }
 
 // ZKPResponse is a response with a zkp
 export interface ZKPResponse {
   id: number;
-  circuit_id: string;
+  circuitId: string; // `circuitId` compatibility with golang implementation.
+  verifiablePresentation?: JSON;
   pub_signals: string[];
   proof: ProofData;
 }
 
-// Schema is a protocol schema
-export interface Schema {
-  hash?: string;
-  url: string;
+export type DIDDocument = {
+  '@context': string | string[];
+  id: string;
+  service?: Service[];
+};
+// Service describes did services
+export type Service = {
+  id: string;
   type: string;
-}
+  serviceEndpoint: string;
+};

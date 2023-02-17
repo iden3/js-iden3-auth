@@ -1,13 +1,21 @@
 import { ISchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver } from '@lib/state/resolver';
-import { AtomicQueryMTPPubSignals } from '@lib/circuits/atomicMtp';
-import { AtomicQuerySigPubSignals } from '@lib/circuits/atomicSig';
-import { AuthPubSignals } from '@lib/circuits/auth';
+import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
+import { AtomicQueryMTPV2PubSignals } from '@lib/circuits/atomicMtpV2';
+import { AtomicQuerySigV2PubSignals } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
+import { Resolvers } from '@lib/state/resolver';
+
+export type VerifyOpts = {
+  AcceptedStateTransitionDelay?: Date;
+};
 
 export interface PubSignalsVerifier {
-  verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void>;
-  verifyStates(resolver: IStateResolver): Promise<void>;
+  verifyQuery(
+    query: Query,
+    schemaLoader: ISchemaLoader,
+    verifiablePresentation?: JSON,
+  ): Promise<void>;
+  verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
 }
 
@@ -15,23 +23,19 @@ export interface PubSignals {
   new (pubSignals: string[]): PubSignalsVerifier;
 }
 
-const auth = AuthPubSignals;
-const credentialAtomicQueryMTP = AtomicQueryMTPPubSignals;
-const credentialAtomicQuerySig = AtomicQuerySigPubSignals;
+const authV2 = AuthPubSignalsV2;
+const credentialAtomicQueryMTPV2 = AtomicQueryMTPV2PubSignals;
+const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignals;
 
 const supportedCircuits = {
-  auth,
-  credentialAtomicQueryMTP,
-  credentialAtomicQuerySig,
+  authV2,
+  credentialAtomicQueryMTPV2,
+  credentialAtomicQuerySigV2,
 };
 
 export type VerifierType = PubSignalsVerifier & PubSignals;
 export class Circuits {
   static getCircuitPubSignals(id: string): VerifierType {
     return supportedCircuits[id];
-  }
-
-  static registerCircuitPubSignals(id: string, circuit: VerifierType): void {
-    supportedCircuits[id] = circuit;
   }
 }

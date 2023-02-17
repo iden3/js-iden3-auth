@@ -1,16 +1,18 @@
-import { Id } from '@lib/core/id';
-import { IStateResolver, ResolvedState } from '@lib/state/resolver';
+import { Id, DID } from '@iden3/js-iden3-core';
+import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
+import { Hash } from '@iden3/js-merkletree';
 
-export const userStateError = new Error('user state is not valid');
+export const userStateError = new Error(`user state is not valid`);
+export const gistStateError = new Error(`gist state is not valid`);
 
 export async function checkUserState(
   resolver: IStateResolver,
   userId: Id,
-  userState: bigint,
+  userState: Hash,
 ): Promise<ResolvedState> {
   const userStateResolved: ResolvedState = await resolver.resolve(
     userId.bigInt(),
-    userState,
+    userState.bigInt(),
   );
   if (!userStateResolved.latest) {
     throw userStateError;
@@ -18,21 +20,36 @@ export async function checkUserState(
   return userStateResolved;
 }
 
+export async function checkGlobalState(
+  resolver: IStateResolver,
+  state: Hash,
+): Promise<ResolvedState> {
+  const gistStateResolved: ResolvedState = await resolver.rootResolve(
+    state.bigInt(),
+  );
+  return gistStateResolved;
+}
+
 export async function checkIssuerNonRevState(
   resolver: IStateResolver,
   issuerId: Id,
-  issuerClaimNonRevState: bigint,
+  issuerClaimNonRevState: Hash,
 ): Promise<ResolvedState> {
   const issuerNonRevStateResolved: ResolvedState = await resolver.resolve(
     issuerId.bigInt(),
-    issuerClaimNonRevState,
+    issuerClaimNonRevState.bigInt(),
   );
-  if (
-    !issuerNonRevStateResolved.latest &&
-    Date.now() - Number(issuerNonRevStateResolved.transitionTimestamp) * 1000 >
-      60 * 60 * 1000 * 24 * 30 * 2 // 2 month
-  ) {
-    throw new Error(`issuer state for non-revocation proofs is not valid`);
-  }
   return issuerNonRevStateResolved;
+}
+
+export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {
+  const userDID = DID.parseFromId(id);
+  return getResolverByDID(resolvers, userDID);
+}
+
+export function getResolverByDID(
+  resolvers: Resolvers,
+  did: DID,
+): IStateResolver {
+  return resolvers[`${did.blockchain}:${did.networkId}`];
 }

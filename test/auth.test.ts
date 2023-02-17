@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { getCurveFromName } from 'ffjavascript';
 import { FSKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader, UniversalSchemaLoader } from '@lib/loaders/schema';
-import { IStateResolver, ResolvedState } from '@lib/state/resolver';
-import { AuthPubSignals } from '@lib/circuits/auth';
+import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
+import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
@@ -28,17 +28,30 @@ const verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./test/data');
 const schemaLoader: ISchemaLoader = new UniversalSchemaLoader('ipfs.io');
 
 class MockResolver implements IStateResolver {
-  async resolve(): Promise<ResolvedState> {
+  resolve(): Promise<ResolvedState> {
     const t: ResolvedState = {
       latest: true,
       state: null,
       genesis: false,
       transitionTimestamp: 0,
     };
-    return t;
+    return Promise.resolve(t);
+  }
+  rootResolve(): Promise<ResolvedState> {
+    const t: ResolvedState = {
+      latest: true,
+      state: null,
+      genesis: false,
+      transitionTimestamp: 0,
+    };
+    return Promise.resolve(t);
   }
 }
+
 const mockStateResolver: MockResolver = new MockResolver();
+const resolvers: Resolvers = {
+  'polygon:mumbai': mockStateResolver,
+};
 
 test('createAuthorizationRequest', () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
@@ -55,18 +68,15 @@ test('createAuthorizationRequest', () => {
 
   const proofRequest: ZKPRequest = {
     id: 1,
-    circuit_id: 'credentialAtomicQueryMTP',
-    rules: {
-      query: {
-        allowedIssuers: ['1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9'],
-        schema: {
-          type: 'KYCAgeCredential',
-          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
-        },
-        req: {
-          birthday: {
-            $lt: 20000101,
-          },
+    circuitId: 'credentialAtomicQueryMTPV2',
+    query: {
+      allowedIssuers: ['1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9'],
+      type: 'KYCAgeCredential',
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      req: {
+        birthday: {
+          $lt: 20000101,
         },
       },
     },
@@ -101,11 +111,7 @@ test('TestVerifyMessageWithoutProof', async () => {
     },
   };
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    mockStateResolver,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   await expect(
     verifier.verifyAuthResponse(response, request),
@@ -115,7 +121,8 @@ test('TestVerifyMessageWithoutProof', async () => {
 test('TestVerifyWithAtomicMTPProof', async () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
   const callback = 'https://test.com/callback';
-  const userId = '119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ';
+  const userId =
+    'did:polygonid:polygon:mumbai:2qNAbfxams2N4enwgBhj7yvPUbDrLwC2bsBZYZCTQR';
   const reason = 'test';
   const message = 'message to sign';
   const request: AuthorizationRequestMessage =
@@ -128,19 +135,16 @@ test('TestVerifyWithAtomicMTPProof', async () => {
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542';
 
   const proofRequest: ZKPRequest = {
-    id: 1,
-    circuit_id: 'credentialAtomicQueryMTP',
-    rules: {
-      query: {
-        allowedIssuers: ['*'],
-        schema: {
-          type: 'KYCCountryOfResidenceCredential',
-          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/test.json-ld',
-        },
-        req: {
-          countryCode: {
-            $nin: [840, 120, 340, 509],
-          },
+    id: 10,
+    circuitId: 'credentialAtomicQueryMTPV2',
+    query: {
+      allowedIssuers: ['*'],
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      type: 'KYCCountryOfResidenceCredential',
+      credentialSubject: {
+        countryCode: {
+          $nin: [840, 120, 340, 509],
         },
       },
     },
@@ -151,42 +155,45 @@ test('TestVerifyWithAtomicMTPProof', async () => {
 
   const mtpProof: ZKPResponse = {
     id: proofRequest.id,
-    circuit_id: 'credentialAtomicQueryMTP',
+    circuitId: 'credentialAtomicQueryMTPV2',
     proof: {
       pi_a: [
-        '13391792855876064159961972635593293420107384528568051553464431930751949164223',
-        '1340234156514424371412608292854628119646495446034903157290847790338828365967',
+        '9517112492422486418344671523752691163637612305590571624363668885796911150333',
+        '8855938450276251202387073646943136306720422603123854769235151758541434807968',
         '1',
       ],
       pi_b: [
         [
-          '15691819979475232094559173077222615349107673259729880872754546424435804210780',
-          '5096136697484789888414648180385423591377893199387718567394854201118306816266',
+          '18880568320884466923930564925565727939067628655227999252296084923782755860476',
+          '8724893415197458543695192455798597402395044930214471497778888748319129905479',
         ],
         [
-          '14415469551251600097134734841213894130439560682036739798548029076915189571196',
-          '20090000223414166057341085632483118175324868197522334211992129524912673014962',
+          '9807559381041464075347519433137353143151890330916363861193891037865993320923',
+          '6995202980453256069532771522391679223085808426805857698209331232672383046019',
         ],
         ['1', '0'],
       ],
       pi_c: [
-        '11415503132297310226070909779026062469592946937699661170150988764296705860650',
-        '10455420445628565470154609245999512669023398128793538476867561521321358405677',
+        '16453660244095377174525331937765624986258178472608723119429308977591704509298',
+        '7523187725705152586426891868747265746542072544935310991409893207335385519512',
         '1',
       ],
       protocol: 'groth16',
       curve: 'bn128',
     },
     pub_signals: [
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
       '1',
-      '17339270624307006522829587570402128825147845744601780689258033623056405933706',
-      '26599707002460144379092755370384635496563807452878989192352627271768342528',
-      '17339270624307006522829587570402128825147845744601780689258033623056405933706',
-      '1642074362',
-      '106590880073303418818490710639556704462',
-      '2',
+      '25054465935916343733470065977393556898165832783214621882239050035846517250',
+      '10',
+      '25054465935916343733470065977393556898165832783214621882239050035846517250',
+      '7120485770008490579908343167068999806468056401802904713650068500000641772574',
+      '1',
+      '7120485770008490579908343167068999806468056401802904713650068500000641772574',
+      '1671543597',
+      '336615423900919464193075592850483704600',
+      '0',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '0',
       '5',
       '840',
       '120',
@@ -268,11 +275,7 @@ test('TestVerifyWithAtomicMTPProof', async () => {
     },
   };
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    mockStateResolver,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   await expect(
     verifier.verifyAuthResponse(response, request),
@@ -280,14 +283,10 @@ test('TestVerifyWithAtomicMTPProof', async () => {
 });
 
 test('TestVerifyJWZ', async () => {
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    mockStateResolver,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
   const token =
-    'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aCIsImNyaXQiOlsiY2lyY3VpdElkIl0sInR5cCI6IkpXWiJ9.eyJpZCI6ImE1NGI3YjJkLWJmMTUtNGU2NC1iZmQ1LTMxYzIwM2U3ZjIzYiIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1wbGFpbi1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiJlZTkyYWIxMi0yNjcxLTQ1N2UtYWE1ZS04MTU4YzIwNWE5ODUiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRfaWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFAiLCJwcm9vZiI6eyJwaV9hIjpbIjEzMzkxNzkyODU1ODc2MDY0MTU5OTYxOTcyNjM1NTkzMjkzNDIwMTA3Mzg0NTI4NTY4MDUxNTUzNDY0NDMxOTMwNzUxOTQ5MTY0MjIzIiwiMTM0MDIzNDE1NjUxNDQyNDM3MTQxMjYwODI5Mjg1NDYyODExOTY0NjQ5NTQ0NjAzNDkwMzE1NzI5MDg0Nzc5MDMzODgyODM2NTk2NyIsIjEiXSwicGlfYiI6W1siMTU2OTE4MTk5Nzk0NzUyMzIwOTQ1NTkxNzMwNzcyMjI2MTUzNDkxMDc2NzMyNTk3Mjk4ODA4NzI3NTQ1NDY0MjQ0MzU4MDQyMTA3ODAiLCI1MDk2MTM2Njk3NDg0Nzg5ODg4NDE0NjQ4MTgwMzg1NDIzNTkxMzc3ODkzMTk5Mzg3NzE4NTY3Mzk0ODU0MjAxMTE4MzA2ODE2MjY2Il0sWyIxNDQxNTQ2OTU1MTI1MTYwMDA5NzEzNDczNDg0MTIxMzg5NDEzMDQzOTU2MDY4MjAzNjczOTc5ODU0ODAyOTA3NjkxNTE4OTU3MTE5NiIsIjIwMDkwMDAwMjIzNDE0MTY2MDU3MzQxMDg1NjMyNDgzMTE4MTc1MzI0ODY4MTk3NTIyMzM0MjExOTkyMTI5NTI0OTEyNjczMDE0OTYyIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxMTQxNTUwMzEzMjI5NzMxMDIyNjA3MDkwOTc3OTAyNjA2MjQ2OTU5Mjk0NjkzNzY5OTY2MTE3MDE1MDk4ODc2NDI5NjcwNTg2MDY1MCIsIjEwNDU1NDIwNDQ1NjI4NTY1NDcwMTU0NjA5MjQ1OTk5NTEyNjY5MDIzMzk4MTI4NzkzNTM4NDc2ODY3NTYxNTIxMzIxMzU4NDA1Njc3IiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIiwiMTg2NTYxNDc1NDY2NjY5NDQ0ODQ0NTM4OTkyNDE5MTY0Njk1NDQwOTAyNTg4MTAxOTI4MDM5NDk1MjI3OTQ0OTA0OTMyNzEwMDUzMTMiLCIxIiwiMTczMzkyNzA2MjQzMDcwMDY1MjI4Mjk1ODc1NzA0MDIxMjg4MjUxNDc4NDU3NDQ2MDE3ODA2ODkyNTgwMzM2MjMwNTY0MDU5MzM3MDYiLCIyNjU5OTcwNzAwMjQ2MDE0NDM3OTA5Mjc1NTM3MDM4NDYzNTQ5NjU2MzgwNzQ1Mjg3ODk4OTE5MjM1MjYyNzI3MTc2ODM0MjUyOCIsIjE3MzM5MjcwNjI0MzA3MDA2NTIyODI5NTg3NTcwNDAyMTI4ODI1MTQ3ODQ1NzQ0NjAxNzgwNjg5MjU4MDMzNjIzMDU2NDA1OTMzNzA2IiwiMTY0MjA3NDM2MiIsIjEwNjU5MDg4MDA3MzMwMzQxODgxODQ5MDcxMDYzOTU1NjcwNDQ2MiIsIjIiLCI1IiwiODQwIiwiMTIwIiwiMzQwIiwiNTA5IiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIl19XX0sImZyb20iOiIxMTl0cWNlV2RSZDJGNlduQXlWdUZRUkZqSzNXVVhxMkxvclNQeUc5TEoiLCJ0byI6IjExMjVHSnFndzZZRXNLRndqNjNHWTg3TU14UEw5a3dES3hQVWl3TUxOWiJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjk0NDkxMDYwMTY0NDk2ODA1ODc1ODgyNjg4NDA1NzAyNjc0NjM4NzE5NTI2MDAzMDY5ODE1ODc5OTE1OTE0MDU4MDk3NzU1NjQ4NCIsIjE5MDM2ODk1MTYyNTU1OTM0NDA3NjE0OTYzNDE0MzQ3NjY0MDAyMDQwMjA3MTk1MjA4NDI4NTM3ODg3Njc3NTI3ODc4OTU5ODg5NTEiLCIxIl0sInBpX2IiOltbIjg5ODQ4NDMwODMwNTk5Nzk5OTAxNjIzOTIzNzc3MTQ4MzkzMzMyOTIxMTE1NDM2Mjg5NzIwNjY5NTYyMTA3MDgxMDg4MDE1Njk3NSIsIjYxMTI0NTUyMTQ3MDg1MTc1NzAxMTEwMTA5NDUwMjE1OTQzMjkxNDk2MzY1OTc3NDE0NDk3MDE3NTcwNzcxMDIyMTMxNjk0MTU1OTAiXSxbIjExNjU2MDAxMzA0NTE2OTAwNTM5MzY4NzM3OTA3MTg5MzEwNjk5MTkyNzAxNjA1OTA0MDkwNDkyNTgxNzk0NTUyMjI2MTExODc4OTcwIiwiMTk2MzgwODk5NjMzMDI1MjYyNzI3ODM0NTA3NDQ1NjA4MTM3NTQyODYyMzA4Mjc3ODcxNDkwNTU4NjA1NDk2OTE1MjEwMTI4MTQ4MDkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjEzODgwNDM2MjkzOTA4MTQyODU2MzYwMTg3NTQxNDQ1ODA4Mzc3ODI4Njg4MzA0NzUzOTMwNTA2NjA2ODM3MDczNzg3OTYzMDQ2NzcwIiwiMjU2MTI0Nzc2OTEyNTU5OTgwOTg5NTg1MjQ4OTM4MjQ2MTM2OTAzMjc1ODQwOTc3OTEzNjU4MDM4MTQxNTc0MjI3OTkyNTI2Mjk4OCIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjgzMzM5MDgzNTc1NjE2MTIxOTc1OTM0MDE1NDY5NzMyODg0Mjk5ODE0NDY3MDIyMzMwNjU1MTg3MTUzNzg5OTM1MDMzNjQzNDgyNzIiLCIxODY1NjE0NzU0NjY2Njk0NDQ4NDQ1Mzg5OTI0MTkxNjQ2OTU0NDA5MDI1ODgxMDE5MjgwMzk0OTUyMjc5NDQ5MDQ5MzI3MTAwNTMxMyIsIjM3OTk0OTE1MDEzMDIxNDcyMzQyMDU4OTYxMDkxMTE2MTg5NTQ5NTY0Nzc4OTAwNjY0OTc4NTI2NDczODE0MTI5OTEzNTQxNDI3MiJdfQ';
+    'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiSldaIn0.bWVzc2FnZQ.eyJwcm9vZiI6eyJwaV9hIjpbIjE2Njg0NTgxNTM5NDI0MjgzMjc5NjAxMzg1MjE5Mzc0MjkzNjQ5MDg5OTgzNjMyNzg1NTk4OTc1ODkxMzM2Njg4NzEzNjc5ODYyNTgzIiwiMTAzNjU5ODAzMDYzMzYyOTUxMDkwNDQ0OTUxNTkwMjIzOTkyMzMwNjU5NzU4MjMzMTk3NTc5MDMwMjQ3ODczNTIxMzE4OTkzODQzMDEiLCIxIl0sInBpX2IiOltbIjQ4MjM0OTk3NTQ0NTk4MjQ2NjM4NTA4NjE0NjgzNzU1MjM2NDc3NzgxNDgwMzI3NDIwNzM2NTA1NTA0MjM4NjU0OTU2NDI1MDMwMTYiLCIxNzUxMDQ5NzY1MzMyODk2MjM5Nzk2NDkwNDczNTAyOTU4ODIxOTQyMjU2NzY2MjMyNDU5OTQ5Mjg4NzMwMTQ4NjAyNjkwNDM3MDc0NSJdLFsiNjYzMzg3NTY3NzY5Mzc2MTQ2MDM0ODIzNTM2OTIxNDgwMTkwNjUyNjg3OTI4MTg2MDY4NDQ0ODA4MzYxMTIwMjA2MjA1MDc1NzUzMSIsIjg3NTgwNzE3MDUwNjUzNTQ0OTY3Mzc5NzAzODY5ODMyNTA2Nzg4OTc4Mjc3NjMxODkxODc4ODk4NDAyMjgxNDE3NTg4MjMwNTE1MjIiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjExMDg0NjQ4MzIyNzc1MTMyOTEwNTI0MTE4Mjg0ODgwOTI3MTk3MjE0NjgwMjU3MTU5NDA0MzU5MDQ0MDM0MTAzMTAyMDYzMDEzMTc3IiwiMzY2NjExNjkxODg0MDMzMDU5MzA5MjcyNjI2ODY0NjMzNjczMjY2MTY0MjI3NjE3NDc0NzczMzk1NjU3MjA1NjgzNDQ3MjYzNDYxNSIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjI1MDU0NDY1OTM1OTE2MzQzNzMzNDcwMDY1OTc3MzkzNTU2ODk4MTY1ODMyNzgzMjE0NjIxODgyMjM5MDUwMDM1ODQ2NTE3MjUwIiwiMTA0NTczNjMzMTkwMjQ4MTQ0NjY5NDQyNjYxMTE5MTc1ODkyNTgzOTE2MzczNDM0OTA5MTM0MTM5NjUxMzcwMzIxNzg3MTg0MDgxMTYiLCI1MzA0Njg1OTQ1NTI0MTc3MjA4MzQ5NDczNzc3MjMzOTcwNjk2NTU1ODA0NzQwNzM2MTU4NjA2ODI1MTE2ODA2MDgwMDU0NjA0Mzg1Il19';
 
   await expect(verifier.verifyJWZ(token)).resolves.not.toThrow();
 });
@@ -305,19 +304,16 @@ test('TestFullVerify', async () => {
   expect(request.from).toEqual(sender);
 
   const proofRequest: ZKPRequest = {
-    id: 1,
-    circuit_id: 'credentialAtomicQueryMTP',
-    rules: {
-      query: {
-        allowedIssuers: ['*'],
-        schema: {
-          type: 'KYCCountryOfResidenceCredential',
-          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/test.json-ld',
-        },
-        req: {
-          countryCode: {
-            $nin: [840, 120, 340, 509],
-          },
+    id: 10,
+    circuitId: 'credentialAtomicQueryMTPV2',
+    query: {
+      allowedIssuers: ['*'],
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      type: 'KYCCountryOfResidenceCredential',
+      credentialSubject: {
+        countryCode: {
+          $nin: [840, 120, 340, 509],
         },
       },
     },
@@ -326,46 +322,41 @@ test('TestFullVerify', async () => {
 
   expect(request.body.scope.length).toEqual(1);
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    mockStateResolver,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
   request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
 
   const token =
-    'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aCIsImNyaXQiOlsiY2lyY3VpdElkIl0sInR5cCI6IkpXWiJ9.eyJpZCI6ImE1NGI3YjJkLWJmMTUtNGU2NC1iZmQ1LTMxYzIwM2U3ZjIzYiIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1wbGFpbi1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiJlZTkyYWIxMi0yNjcxLTQ1N2UtYWE1ZS04MTU4YzIwNWE5ODUiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRfaWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFAiLCJwcm9vZiI6eyJwaV9hIjpbIjEzMzkxNzkyODU1ODc2MDY0MTU5OTYxOTcyNjM1NTkzMjkzNDIwMTA3Mzg0NTI4NTY4MDUxNTUzNDY0NDMxOTMwNzUxOTQ5MTY0MjIzIiwiMTM0MDIzNDE1NjUxNDQyNDM3MTQxMjYwODI5Mjg1NDYyODExOTY0NjQ5NTQ0NjAzNDkwMzE1NzI5MDg0Nzc5MDMzODgyODM2NTk2NyIsIjEiXSwicGlfYiI6W1siMTU2OTE4MTk5Nzk0NzUyMzIwOTQ1NTkxNzMwNzcyMjI2MTUzNDkxMDc2NzMyNTk3Mjk4ODA4NzI3NTQ1NDY0MjQ0MzU4MDQyMTA3ODAiLCI1MDk2MTM2Njk3NDg0Nzg5ODg4NDE0NjQ4MTgwMzg1NDIzNTkxMzc3ODkzMTk5Mzg3NzE4NTY3Mzk0ODU0MjAxMTE4MzA2ODE2MjY2Il0sWyIxNDQxNTQ2OTU1MTI1MTYwMDA5NzEzNDczNDg0MTIxMzg5NDEzMDQzOTU2MDY4MjAzNjczOTc5ODU0ODAyOTA3NjkxNTE4OTU3MTE5NiIsIjIwMDkwMDAwMjIzNDE0MTY2MDU3MzQxMDg1NjMyNDgzMTE4MTc1MzI0ODY4MTk3NTIyMzM0MjExOTkyMTI5NTI0OTEyNjczMDE0OTYyIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxMTQxNTUwMzEzMjI5NzMxMDIyNjA3MDkwOTc3OTAyNjA2MjQ2OTU5Mjk0NjkzNzY5OTY2MTE3MDE1MDk4ODc2NDI5NjcwNTg2MDY1MCIsIjEwNDU1NDIwNDQ1NjI4NTY1NDcwMTU0NjA5MjQ1OTk5NTEyNjY5MDIzMzk4MTI4NzkzNTM4NDc2ODY3NTYxNTIxMzIxMzU4NDA1Njc3IiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiMzc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIiwiMTg2NTYxNDc1NDY2NjY5NDQ0ODQ0NTM4OTkyNDE5MTY0Njk1NDQwOTAyNTg4MTAxOTI4MDM5NDk1MjI3OTQ0OTA0OTMyNzEwMDUzMTMiLCIxIiwiMTczMzkyNzA2MjQzMDcwMDY1MjI4Mjk1ODc1NzA0MDIxMjg4MjUxNDc4NDU3NDQ2MDE3ODA2ODkyNTgwMzM2MjMwNTY0MDU5MzM3MDYiLCIyNjU5OTcwNzAwMjQ2MDE0NDM3OTA5Mjc1NTM3MDM4NDYzNTQ5NjU2MzgwNzQ1Mjg3ODk4OTE5MjM1MjYyNzI3MTc2ODM0MjUyOCIsIjE3MzM5MjcwNjI0MzA3MDA2NTIyODI5NTg3NTcwNDAyMTI4ODI1MTQ3ODQ1NzQ0NjAxNzgwNjg5MjU4MDMzNjIzMDU2NDA1OTMzNzA2IiwiMTY0MjA3NDM2MiIsIjEwNjU5MDg4MDA3MzMwMzQxODgxODQ5MDcxMDYzOTU1NjcwNDQ2MiIsIjIiLCI1IiwiODQwIiwiMTIwIiwiMzQwIiwiNTA5IiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIl19XX0sImZyb20iOiIxMTl0cWNlV2RSZDJGNlduQXlWdUZRUkZqSzNXVVhxMkxvclNQeUc5TEoiLCJ0byI6IjExMjVHSnFndzZZRXNLRndqNjNHWTg3TU14UEw5a3dES3hQVWl3TUxOWiJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjk0NDkxMDYwMTY0NDk2ODA1ODc1ODgyNjg4NDA1NzAyNjc0NjM4NzE5NTI2MDAzMDY5ODE1ODc5OTE1OTE0MDU4MDk3NzU1NjQ4NCIsIjE5MDM2ODk1MTYyNTU1OTM0NDA3NjE0OTYzNDE0MzQ3NjY0MDAyMDQwMjA3MTk1MjA4NDI4NTM3ODg3Njc3NTI3ODc4OTU5ODg5NTEiLCIxIl0sInBpX2IiOltbIjg5ODQ4NDMwODMwNTk5Nzk5OTAxNjIzOTIzNzc3MTQ4MzkzMzMyOTIxMTE1NDM2Mjg5NzIwNjY5NTYyMTA3MDgxMDg4MDE1Njk3NSIsIjYxMTI0NTUyMTQ3MDg1MTc1NzAxMTEwMTA5NDUwMjE1OTQzMjkxNDk2MzY1OTc3NDE0NDk3MDE3NTcwNzcxMDIyMTMxNjk0MTU1OTAiXSxbIjExNjU2MDAxMzA0NTE2OTAwNTM5MzY4NzM3OTA3MTg5MzEwNjk5MTkyNzAxNjA1OTA0MDkwNDkyNTgxNzk0NTUyMjI2MTExODc4OTcwIiwiMTk2MzgwODk5NjMzMDI1MjYyNzI3ODM0NTA3NDQ1NjA4MTM3NTQyODYyMzA4Mjc3ODcxNDkwNTU4NjA1NDk2OTE1MjEwMTI4MTQ4MDkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjEzODgwNDM2MjkzOTA4MTQyODU2MzYwMTg3NTQxNDQ1ODA4Mzc3ODI4Njg4MzA0NzUzOTMwNTA2NjA2ODM3MDczNzg3OTYzMDQ2NzcwIiwiMjU2MTI0Nzc2OTEyNTU5OTgwOTg5NTg1MjQ4OTM4MjQ2MTM2OTAzMjc1ODQwOTc3OTEzNjU4MDM4MTQxNTc0MjI3OTkyNTI2Mjk4OCIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjgzMzM5MDgzNTc1NjE2MTIxOTc1OTM0MDE1NDY5NzMyODg0Mjk5ODE0NDY3MDIyMzMwNjU1MTg3MTUzNzg5OTM1MDMzNjQzNDgyNzIiLCIxODY1NjE0NzU0NjY2Njk0NDQ4NDQ1Mzg5OTI0MTkxNjQ2OTU0NDA5MDI1ODgxMDE5MjgwMzk0OTUyMjc5NDQ5MDQ5MzI3MTAwNTMxMyIsIjM3OTk0OTE1MDEzMDIxNDcyMzQyMDU4OTYxMDkxMTE2MTg5NTQ5NTY0Nzc4OTAwNjY0OTc4NTI2NDczODE0MTI5OTEzNTQxNDI3MiJdfQ';
+    'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiSldaIn0.eyJpZCI6IjI3NGI1ODE5LWMxNDctNGExNy1iNGUxLTRmZDJhOWNmNTdhNSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1wbGFpbi1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiI4NWFjMjc3Yi0xYWZlLTQzY2EtYWNmZC1mOTM5ZTAwODBkZDYiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNzYWdlIHRvIHNpZ24iLCJzY29wZSI6W3siaWQiOjEwLCJjaXJjdWl0SWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlNVFBWMiIsInByb29mIjp7InBpX2EiOlsiOTUxNzExMjQ5MjQyMjQ4NjQxODM0NDY3MTUyMzc1MjY5MTE2MzYzNzYxMjMwNTU5MDU3MTYyNDM2MzY2ODg4NTc5NjkxMTE1MDMzMyIsIjg4NTU5Mzg0NTAyNzYyNTEyMDIzODcwNzM2NDY5NDMxMzYzMDY3MjA0MjI2MDMxMjM4NTQ3NjkyMzUxNTE3NTg1NDE0MzQ4MDc5NjgiLCIxIl0sInBpX2IiOltbIjE4ODgwNTY4MzIwODg0NDY2OTIzOTMwNTY0OTI1NTY1NzI3OTM5MDY3NjI4NjU1MjI3OTk5MjUyMjk2MDg0OTIzNzgyNzU1ODYwNDc2IiwiODcyNDg5MzQxNTE5NzQ1ODU0MzY5NTE5MjQ1NTc5ODU5NzQwMjM5NTA0NDkzMDIxNDQ3MTQ5Nzc3ODg4ODc0ODMxOTEyOTkwNTQ3OSJdLFsiOTgwNzU1OTM4MTA0MTQ2NDA3NTM0NzUxOTQzMzEzNzM1MzE0MzE1MTg5MDMzMDkxNjM2Mzg2MTE5Mzg5MTAzNzg2NTk5MzMyMDkyMyIsIjY5OTUyMDI5ODA0NTMyNTYwNjk1MzI3NzE1MjIzOTE2NzkyMjMwODU4MDg0MjY4MDU4NTc2OTgyMDkzMzEyMzI2NzIzODMwNDYwMTkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE2NDUzNjYwMjQ0MDk1Mzc3MTc0NTI1MzMxOTM3NzY1NjI0OTg2MjU4MTc4NDcyNjA4NzIzMTE5NDI5MzA4OTc3NTkxNzA0NTA5Mjk4IiwiNzUyMzE4NzcyNTcwNTE1MjU4NjQyNjg5MTg2ODc0NzI2NTc0NjU0MjA3MjU0NDkzNTMxMDk5MTQwOTg5MzIwNzMzNTM4NTUxOTUxMiIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjEiLCIyNTA1NDQ2NTkzNTkxNjM0MzczMzQ3MDA2NTk3NzM5MzU1Njg5ODE2NTgzMjc4MzIxNDYyMTg4MjIzOTA1MDAzNTg0NjUxNzI1MCIsIjEwIiwiMjUwNTQ0NjU5MzU5MTYzNDM3MzM0NzAwNjU5NzczOTM1NTY4OTgxNjU4MzI3ODMyMTQ2MjE4ODIyMzkwNTAwMzU4NDY1MTcyNTAiLCI3MTIwNDg1NzcwMDA4NDkwNTc5OTA4MzQzMTY3MDY4OTk5ODA2NDY4MDU2NDAxODAyOTA0NzEzNjUwMDY4NTAwMDAwNjQxNzcyNTc0IiwiMSIsIjcxMjA0ODU3NzAwMDg0OTA1Nzk5MDgzNDMxNjcwNjg5OTk4MDY0NjgwNTY0MDE4MDI5MDQ3MTM2NTAwNjg1MDAwMDA2NDE3NzI1NzQiLCIxNjcxNTQzNTk3IiwiMzM2NjE1NDIzOTAwOTE5NDY0MTkzMDc1NTkyODUwNDgzNzA0NjAwIiwiMCIsIjE3MDAyNDM3MTE5NDM0NjE4NzgzNTQ1Njk0NjMzMDM4NTM3MzgwNzI2MzM5OTk0MjQ0Njg0MzQ4OTEzODQ0OTIzNDIyNDcwODA2ODQ0IiwiMCIsIjUiLCI4NDAiLCIxMjAiLCIzNDAiLCI1MDkiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiXX1dfSwiZnJvbSI6ImRpZDpwb2x5Z29uaWQ6cG9seWdvbjptdW1iYWk6MnFOQWJmeGFtczJONGVud2dCaGo3eXZQVWJEckx3QzJic0JaWVpDVFFSIiwidG8iOiIxMTI1R0pxZ3c2WUVzS0Z3ajYzR1k4N01NeFBMOWt3REt4UFVpd01Ub1IifQ.eyJwcm9vZiI6eyJwaV9hIjpbIjgwMzM1NzQwMzc0MjEyOTIxMDY4Mzk5MjkwMTg5ODA4MzcxMDM3NTY2NTA4MTkyMTgzNjgzODYyOTAxNTY1MzY0MTIyNTY5MjQwOTUiLCI1MjA2ODkzODk0MTg2ODE1Mjg1MzIyNjQ3MDUwOTkyNDk0ODQwNzc1MDUwMTM2MzgwMjYyMjM2MTkyNTIwNzQ2ODY1OTA3OTczNDIyIiwiMSJdLCJwaV9iIjpbWyIyMTQzNzU0OTcxNTU3NzA2MzkzNDM3NTM3ODcyMDQwMzIxMzIzNDExODM5MDQ3NjQyMzI3MDY2NTQxNzUwMDA3ODU2ODg2NDE1NzIzOCIsIjY5MTQ0MjkxMTM0ODEwMDQyODYwODcxOTc3MTI4NjgzNjIzMTcwMTQyMTk2MjA3NDg0NjQ4OTgyMjI1MDU2NjA5MzgyMjQ4NDk4MDciXSxbIjEyMzUwMDk4MjEzMjk2OTM4NTM3Mzk0NTEwODQ0MzAyODM3NTk4MTUyOTQ1NTA5NzExNzk2OTg4MzM0MjAzOTY2NzU2MzY2OTQ1NTA4IiwiMjcwOTE5NDc5NjcyNTEzMzA1ODM4Mzc5MTczMjM2NDIxMjA3MTkyNDg2MTQxMjIyOTU4NjUzNTk3Njc1NTc1MjM4NzQyNjUyNzg0MyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTkwMTQ3MzM1MTgwNTE1Nzg1MDk3Nzc4MzQ0ODEwMjg3NzkzODc1NDI0NjAwMjE5MzI3OTk1MTUxNzY4Mzk1NzE2MDI5MDU0ODQyNTIiLCIyMTUwNDg1MzA5MDQ0MTc3MDMzMzA2NDI4NDk3MjY1MDE3NDI2OTc5MjA3OTg1MTY1Mzk3NzczMjc0MjcyMDY2ODExNDAwMjk1OTQ5MCIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2In0sInB1Yl9zaWduYWxzIjpbIjI1MDU0NDY1OTM1OTE2MzQzNzMzNDcwMDY1OTc3MzkzNTU2ODk4MTY1ODMyNzgzMjE0NjIxODgyMjM5MDUwMDM1ODQ2NTE3MjUwIiwiODE4ODQ4NTI3MDk2MTY2NzYwMTc3MjQ5OTE2ODMwNzU2MDEyNDYxNzM5MjE3NzcxODQyODUxODg3NjgyNjU4MjAzNzk0NjU4MzI2NCIsIjUzMDQ2ODU5NDU1MjQxNzcyMDgzNDk0NzM3NzcyMzM5NzA2OTY1NTU4MDQ3NDA3MzYxNTg2MDY4MjUxMTY4MDYwODAwNTQ2MDQzODUiXX0';
 
   await expect(verifier.fullVerify(token, request)).resolves.not.toThrow();
 });
 
-test('TestResponseWithEmptyQueryRequest', async () => {
+test('TestResponseWithEmptyQueryRequest_ErrorCase', async () => {
   const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
   const callback = 'https://test.com/callback';
-  const userId = '119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ';
+  const userId =
+    'did:polygonid:polygon:mumbai:2qNAbfxams2N4enwgBhj7yvPUbDrLwC2bsBZYZCTQR';
   const reason = 'test';
   const request: AuthorizationRequestMessage = createAuthorizationRequest(
     reason,
     sender,
     callback,
   );
+  request['message'] = 'test';
   expect(request.body.scope.length).toEqual(0);
   expect(request.body.callbackUrl).toEqual(callback);
   expect(request.body.reason).toEqual(reason);
   expect(request.from).toEqual(sender);
 
   const proofRequest: ZKPRequest = {
-    id: 1,
-    circuit_id: 'credentialAtomicQueryMTP',
-    rules: {
-      query: {
-        allowedIssuers: ['*'],
-        schema: {
-          type: 'KYCCountryOfResidenceCredential',
-          url: 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v2.json-ld',
-        },
-      },
+    id: 10,
+    circuitId: 'credentialAtomicQueryMTPV2',
+    query: {
+      allowedIssuers: ['*'],
+      type: 'KYCCountryOfResidenceCredential',
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
     },
   };
   request.body.scope.push(proofRequest);
@@ -374,47 +365,50 @@ test('TestResponseWithEmptyQueryRequest', async () => {
 
   const mtpProof: ZKPResponse = {
     id: proofRequest.id,
-    circuit_id: 'credentialAtomicQueryMTP',
+    circuitId: 'credentialAtomicQueryMTPV2',
     proof: {
       pi_a: [
-        '9742806134969392226546322490560630802447930806537100408086160321763928272376',
-        '21455791203277003434494375277451189817937636213176444019767120099596514163982',
+        '9517112492422486418344671523752691163637612305590571624363668885796911150333',
+        '8855938450276251202387073646943136306720422603123854769235151758541434807968',
         '1',
       ],
       pi_b: [
         [
-          '10380825203862480352812509276126714433521593951138343399902602814224203230644',
-          '3258713202006941217475014546591342349864153477480289203741647764981122849969',
+          '18880568320884466923930564925565727939067628655227999252296084923782755860476',
+          '8724893415197458543695192455798597402395044930214471497778888748319129905479',
         ],
         [
-          '1822645146824926970539316997069683858010941097218414131904374790154170166572',
-          '10353710770765315368364178270577963995559055291780726291909607243297495512681',
+          '9807559381041464075347519433137353143151890330916363861193891037865993320923',
+          '6995202980453256069532771522391679223085808426805857698209331232672383046019',
         ],
         ['1', '0'],
       ],
       pi_c: [
-        '9484567403290042082168690530225028055268796074940883562365588128103915644358',
-        '6661326208907807355087503512595101570698136414120018064634575604679380099060',
+        '16453660244095377174525331937765624986258178472608723119429308977591704509298',
+        '7523187725705152586426891868747265746542072544935310991409893207335385519512',
         '1',
       ],
       protocol: 'groth16',
       curve: 'bn128',
     },
     pub_signals: [
-      '379949150130214723420589610911161895495647789006649785264738141299135414272',
-      '18656147546666944484453899241916469544090258810192803949522794490493271005313',
       '1',
-      '17339270624307006522829587570402128825147845744601780689258033623056405933706',
-      '26599707002460144379092755370384635496563807452878989192352627271768342528',
-      '17339270624307006522829587570402128825147845744601780689258033623056405933706',
-      '1642074362',
-      '106590880073303418818490710639556704462',
+      '25054465935916343733470065977393556898165832783214621882239050035846517250',
+      '10',
+      '25054465935916343733470065977393556898165832783214621882239050035846517250',
+      '7120485770008490579908343167068999806468056401802904713650068500000641772574',
+      '1',
+      '7120485770008490579908343167068999806468056401802904713650068500000641772574',
+      '1671543597',
+      '336615423900919464193075592850483704600',
       '0',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
       '0',
-      '0',
-      '0',
-      '0',
-      '0',
+      '5',
+      '840',
+      '120',
+      '340',
+      '509',
       '0',
       '0',
       '0',
@@ -491,33 +485,36 @@ test('TestResponseWithEmptyQueryRequest', async () => {
     },
   };
 
-  const verifier = new Verifier(
-    verificationKeyLoader,
-    schemaLoader,
-    mockStateResolver,
-  );
+  const verifier = new Verifier(verificationKeyLoader, schemaLoader, resolvers);
 
-  await expect(
-    verifier.verifyAuthResponse(response, request),
-  ).resolves.not.toThrow();
+  try {
+    await verifier.verifyAuthResponse(response, request);
+  } catch (e) {
+    expect(e.toString()).toContain(
+      'operator that was used is not equal to request',
+    );
+  }
 });
 
 test('registry: get existing circuit', () => {
-  const type = Circuits.getCircuitPubSignals('auth');
+  const type = Circuits.getCircuitPubSignals('authV2');
   const instance = new type([
-    '1',
-    '5816868615164565912277677884704888703982258184820398645933682814085602171910',
-    '286312392162647260160287083374160163061246635086990474403590223113720496128',
-  ]) as AuthPubSignals;
+    '19229084873704550357232887142774605442297337229176579229011342091594174977',
+    '6110517768249559238193477435454792024732173865488900270849624328650765691494',
+    '1243904711429961858774220647610724273798918457991486031567244100767259239747',
+  ]) as AuthPubSignalsV2;
 
   expect(type).not.toBeNull();
   expect(instance).not.toBeNull();
   expect(instance.verifyQuery).not.toBeNull();
-  expect(instance.challenge.toString()).toEqual('1');
   expect(instance.userId.string()).toEqual(
-    '113Rq7d5grTGzqF7phKCRjxpC597eMa2USzm9rmpoj',
+    'x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29',
   );
-  expect(instance.userState.toString()).toEqual(
-    '5816868615164565912277677884704888703982258184820398645933682814085602171910',
+  expect(instance.challenge.toString()).toEqual(
+    '6110517768249559238193477435454792024732173865488900270849624328650765691494',
+  );
+  // TODO(illia-korotia): why Hash type doesn't implement `toString()` method?
+  expect(instance.gistRoot.string()).toEqual(
+    '1243904711429961858774220647610724273798918457991486031567244100767259239747',
   );
 });
