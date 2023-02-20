@@ -138,9 +138,8 @@ export class AtomicQuerySigV2PubSignals
     );
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;
-    if (!!opts && !!opts.AcceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay =
-        opts.AcceptedStateTransitionDelay.getMinutes();
+    if (opts?.acceptedStateTransitionDelay) {
+      acceptedStateTransitionDelay = opts.acceptedStateTransitionDelay;
     }
 
     if (!issuerNonRevStateResolved.latest) {

@@ -40,9 +40,8 @@ export class AuthPubSignalsV2
     const gist = await checkGlobalState(resolver, this.gistRoot);
 
     let acceptedStateTransitionDelay = defaultAuthVerifyOpts;
-    if (!!opts && !!opts.AcceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay =
-        opts.AcceptedStateTransitionDelay.getMilliseconds();
+    if (opts?.acceptedStateTransitionDelay) {
+      acceptedStateTransitionDelay = opts.acceptedStateTransitionDelay;
     }
 
     if (!gist.latest) {

@@ -5,9 +5,10 @@ import { AtomicQuerySigV2PubSignals } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 
-export type VerifyOpts = {
-  AcceptedStateTransitionDelay?: Date;
-};
+export interface VerifyOpts {
+  // acceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
+  acceptedStateTransitionDelay?: number;
+}
 
 export interface PubSignalsVerifier {
   verifyQuery(
