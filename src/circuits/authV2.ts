@@ -41,8 +41,7 @@ export class AuthPubSignalsV2
 
     let acceptedStateTransitionDelay = defaultAuthVerifyOpts;
     if (!!opts && !!opts.AcceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay =
-        opts.AcceptedStateTransitionDelay.getMilliseconds();
+      acceptedStateTransitionDelay = opts.AcceptedStateTransitionDelay;
     }
 
     if (!gist.latest) {

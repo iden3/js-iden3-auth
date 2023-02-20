@@ -6,7 +6,8 @@ import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 
 export type VerifyOpts = {
-  AcceptedStateTransitionDelay?: Date;
+  // AcceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
+  AcceptedStateTransitionDelay?: number;
 };
 
 export interface PubSignalsVerifier {
