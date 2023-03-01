@@ -1,7 +1,7 @@
 import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
-import { Merkelizer, Path } from '@iden3/js-jsonld-merklization';
+import { Merklizer, Path } from '@iden3/js-jsonld-merklization';
 import keccak256 from 'keccak256';
 
 const operators: Map<string, number> = new Map([
@@ -161,10 +161,10 @@ async function validateDisclosure(
     }
   }
 
-  let mz: Merkelizer;
+  let mz: Merklizer;
   const strVerifiablePresentation: string = verifiablePresentation.toString();
   try {
-    mz = await Merkelizer.merkelizeJSONLD(strVerifiablePresentation);
+    mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation);
   } catch (e) {
     throw new Error(`can't merkelize verifiablePresentation`);
   }
@@ -188,7 +188,7 @@ async function validateDisclosure(
 
   const mvValue = mz.mkValue(valueByPath);
 
-  if (mvValue.toString(10) !== outputs.value[0].toString(10)) {
+  if (mvValue.toString() !== outputs.value[0].toString(10)) {
     throw new Error(`value that was used is not equal to requested in query`);
   }
 
