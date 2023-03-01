@@ -1,7 +1,7 @@
 import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
-import { Merklizer, Path } from '@iden3/js-jsonld-merklization';
+import { Merklizer, Path, Value } from '@iden3/js-jsonld-merklization';
 import keccak256 from 'keccak256';
 
 const operators: Map<string, number> = new Map([
@@ -179,8 +179,17 @@ async function validateDisclosure(
     throw new Error(`can't build path to '${cq.fieldName}' key`);
   }
 
-  const mtValue = await merkalizedPath.mtEntry();
-  if (mtValue !== outputs.value[0]) {
+  let valueByPath: Value;
+  try {
+    valueByPath = mz.rawValue(merkalizedPath);
+  } catch (e) {
+    throw new Error(`can't get value by path '${cq.fieldName}'`);
+  }
+
+  const mtValue = mz.mkValue(valueByPath);
+  const bi = await mtValue.mtEntry();
+
+  if (bi !== outputs.value[0]) {
     throw new Error(`value that was used is not equal to requested in query`);
   }
 
