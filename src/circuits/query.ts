@@ -3,6 +3,7 @@ import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
 import { Merklizer, Path } from '@iden3/js-jsonld-merklization';
 import keccak256 from 'keccak256';
+import { MtValue } from '@iden3/js-jsonld-merklization/dist/types/lib/mt-value';
 
 const operators: Map<string, number> = new Map([
   ['$noop', 0],
@@ -186,9 +187,12 @@ async function validateDisclosure(
     throw new Error(`can't get value by path '${cq.fieldName}'`);
   }
 
-  const mvValue = mz.mkValue(valueByPath);
+  const v = mz.mkValue(valueByPath);
+  const mtValue = new MtValue(v);
 
-  if (mvValue.toString() !== outputs.value[0].toString(10)) {
+  if (
+    BigInt(await mtValue.mtEntry()).toString() !== outputs.value[0].toString()
+  ) {
     throw new Error(`value that was used is not equal to requested in query`);
   }
 
