@@ -93,7 +93,7 @@ export interface ZKPRequest {
 export interface ZKPResponse {
   id: number;
   circuitId: string; // `circuitId` compatibility with golang implementation.
-  verifiablePresentation?: JSON;
+  vp?: JSON;
   pub_signals: string[];
   proof: ProofData;
 }
