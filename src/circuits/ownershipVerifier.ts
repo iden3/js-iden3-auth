@@ -11,9 +11,9 @@ export abstract class IDOwnershipPubSignals {
         `sender is not used for proof creation, expected ${sender}, user from public signals: ${this.userId.string()}`,
       );
     }
-    if (challenge.toString() !== this.challenge.toString()) {
+    if (challenge !== this.challenge) {
       throw new Error(
-        `challenge is not used for proof creation, expected ${challenge}, challenge from public signals: ${this.challenge.toString()}  `,
+        `challenge is not used for proof creation, expected ${challenge}, challenge from public signals: ${this.challenge}  `,
       );
     }
   }

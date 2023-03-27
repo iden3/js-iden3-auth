@@ -1,8 +1,10 @@
 import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
-import { Merklizer, Path, Value } from '@iden3/js-jsonld-merklization';
+import { Merklizer, Path, MtValue } from '@iden3/js-jsonld-merklization';
+import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
+import * as xsdtypes from 'jsonld/lib/constants';
 
 const operators: Map<string, number> = new Map([
   ['$noop', 0],
@@ -14,6 +16,28 @@ const operators: Map<string, number> = new Map([
   ['$ne', 6],
 ]);
 
+const allOperations: Set<number> = new Set(operators.values());
+
+const availableTypesOperators: Map<string, Set<number>> = new Map([
+  [
+    xsdtypes.XSD_BOOLEAN as string,
+    new Set([operators.get('$eq'), operators.get('$ne')]),
+  ],
+  [xsdtypes.XSD_INTEGER as string, allOperations],
+  [(xsdtypes.XSD_INTEGER + 'nonNegativeInteger') as string, allOperations],
+  [(xsdtypes.XSD_INTEGER + 'positiveInteger') as string, allOperations],
+  [
+    xsdtypes.XSD_STRING as string,
+    new Set([
+      operators.get('$eq'),
+      operators.get('$ne'),
+      operators.get('$in'),
+      operators.get('$nin'),
+    ]),
+  ],
+  [xsdtypes.XSD_DATE as string, allOperations],
+]);
+
 const serializationIndexDataSlotAType = 'serialization:IndexDataSlotA';
 const serializationIndexDataSlotBType = 'serialization:IndexDataSlotB';
 
@@ -23,7 +47,7 @@ const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 // Query is a query to circuit
 export interface Query {
   allowedIssuers: string[];
-  credentialSubject: Map<string, unknown>;
+  credentialSubject: { [key: string]: unknown };
   context: string;
   type: string;
   claimID?: string;
@@ -73,7 +97,7 @@ export async function checkQueryRequest(
     throw new Error(`can't load schema for request query`);
   }
   const schemaHash = createSchemaHash(query.context, query.type);
-  if (schemaHash.toString() !== outputs.schemaHash.toString()) {
+  if (schemaHash.bigInt() !== outputs.schemaHash.bigInt()) {
     throw new Error(`schema that was used is not equal to requested in query`);
   }
 
@@ -81,14 +105,7 @@ export async function checkQueryRequest(
     throw new Error(`check revocation is required`);
   }
 
-  const cq = await parseRequest(
-    query.credentialSubject,
-    loadResult.schema,
-    query.context,
-    query.type,
-    outputs.value.length,
-    outputs.merklized,
-  );
+  const cq = await parseRequest(query, outputs, loadResult.schema);
 
   // validate selective disclosure
   if (cq.isSelectiveDisclosure) {
@@ -107,14 +124,14 @@ export async function checkQueryRequest(
 
   // verify claim
   if (outputs.merklized === 1) {
-    if (outputs.claimPathKey.toString() !== cq.claimPathKey.toString()) {
+    if (outputs.claimPathKey !== cq.claimPathKey) {
       throw new Error(`proof was generated for another path`);
     }
     if (outputs.claimPathNotExists === 1) {
       throw new Error(`proof doesn't contains target query key`);
     }
   } else {
-    if (outputs.slotIndex.toString() !== cq.slotIndex.toString()) {
+    if (outputs.slotIndex !== cq.slotIndex) {
       throw new Error(`wrong claim slot was used in claim`);
     }
   }
@@ -131,8 +148,8 @@ async function validateOperators(cq: CircuitQuery, outputs: ClaimOutputs) {
     return;
   }
 
-  for (let index = 0; index < cq.values.length; index++) {
-    if (outputs.value[index].toString(10) !== cq.values[index].toString(10)) {
+  for (let index = 0; index < outputs.value.length; index++) {
+    if (outputs.value[index] !== cq.values[index]) {
       throw new Error(
         `comparison value that was used is not equal to requested in query`,
       );
@@ -155,40 +172,45 @@ async function validateDisclosure(
     throw new Error(`operator for selective disclosure must be $eq`);
   }
 
-  for (let index = 1; index < cq.values.length; index++) {
-    if (outputs.value[index].toString(10) !== '0') {
+  for (let index = 1; index < outputs.value.length; index++) {
+    if (outputs.value[index] !== 0n) {
       throw new Error(`selective disclosure not available for array of values`);
     }
   }
 
   let mz: Merklizer;
-  const strVerifiablePresentation: string = verifiablePresentation.toString();
+  const strVerifiablePresentation: string = JSON.stringify(
+    verifiablePresentation,
+  );
   try {
     mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation);
   } catch (e) {
     throw new Error(`can't merkelize verifiablePresentation`);
   }
 
-  let merkalizedPath: Path;
+  let merklizedPath: Path;
   try {
-    merkalizedPath = await Path.newPathFromCtx(
-      strVerifiablePresentation,
-      `verifiableCredential.${cq.fieldName}`,
-    );
+    const p = `verifiableCredential.credentialSubject.${cq.fieldName}`;
+    merklizedPath = await Path.fromDocument(null, strVerifiablePresentation, p);
   } catch (e) {
     throw new Error(`can't build path to '${cq.fieldName}' key`);
   }
 
-  let valueByPath: Value;
+  let proof: Proof;
+  let value: MtValue;
   try {
-    valueByPath = mz.rawValue(merkalizedPath);
+    ({ proof, value } = await mz.proof(merklizedPath));
   } catch (e) {
     throw new Error(`can't get value by path '${cq.fieldName}'`);
   }
 
-  const mtValue = mz.mkValue(valueByPath);
-  const bi = await mtValue.mtEntry();
+  if (!proof.existence) {
+    throw new Error(
+      `path [${merklizedPath.parts}] doesn't exist in verifiablePresentation document`,
+    );
+  }
 
+  const bi = await value.mtEntry();
   if (bi !== outputs.value[0]) {
     throw new Error(`value that was used is not equal to requested in query`);
   }
@@ -197,14 +219,11 @@ async function validateDisclosure(
 }
 
 async function parseRequest(
-  req: Map<string, unknown>,
+  query: Query,
+  outputs: ClaimOutputs,
   schema: Uint8Array,
-  credContext: string,
-  credType: string,
-  valueLength: number,
-  merkalized: number,
 ): Promise<CircuitQuery> {
-  if (!req) {
+  if (!query.credentialSubject) {
     return {
       operator: operators.get('$noop'),
       values: null,
@@ -213,64 +232,57 @@ async function parseRequest(
       fieldName: '',
     };
   }
-
-  let fieldName = '';
-  let fieldReq: Map<string, unknown>;
-
-  if (Object.keys(req).length > 1) {
-    throw new Error(`multiple requests  not supported`);
+  if (Object.keys(query.credentialSubject).length > 1) {
+    throw new Error(`multiple requests not supported`);
   }
 
-  for (const [key, value] of Object.entries(req)) {
+  const txtSchema = new TextDecoder().decode(schema);
+
+  let fieldName: string;
+  let predicate: Map<string, unknown>;
+
+  for (const [key, value] of Object.entries(query.credentialSubject)) {
     fieldName = key;
 
-    fieldReq = value as Map<string, unknown>;
+    predicate = value as Map<string, unknown>;
 
-    if (Object.keys(fieldReq).length > 1) {
+    if (Object.keys(predicate).length > 1) {
       throw new Error(`multiple predicates for one field not supported`);
     }
     break;
   }
 
-  let operator: number;
-  const values: bigint[] = new Array<bigint>(valueLength).fill(BigInt(0));
-  for (const [key, value] of Object.entries(fieldReq)) {
-    if (!operators.has(key)) {
-      throw new Error(`operator is not supported by lib`);
-    }
-    operator = operators.get(key);
-
-    if (Array.isArray(value)) {
-      for (let index = 0; index < value.length; index++) {
-        values[index] = BigInt(value[index]);
-      }
-    } else {
-      values[0] = BigInt(value as string);
-    }
-    break;
+  let datatype: string;
+  if (fieldName !== '') {
+    datatype = await Path.newTypeFromContext(
+      txtSchema,
+      `${query.type}.${fieldName}`,
+    );
   }
 
-  let slotIndex: number;
-  let claimPathKey: bigint;
-  if (merkalized === 1) {
-    const txtSchema = new TextDecoder().decode(schema);
-    const path = await Path.getContextPathKey(txtSchema, credType, fieldName);
-    path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
-    claimPathKey = await path.mtEntry();
-  } else {
-    slotIndex = getFieldSlotIndex(fieldName, credType, schema);
-  }
+  const [operator, values] = await parsePredicate(predicate, datatype);
+  const zeros: Array<bigint> = Array.from({
+    length: outputs.valueArraySize - values.length,
+  }).fill(BigInt(0)) as Array<bigint>;
+  const fullArray: Array<bigint> = values.concat(zeros);
+
+  const [claimPathKey, slotIndex] = await verifyClaim(
+    outputs.merklized,
+    txtSchema,
+    query.type,
+    fieldName,
+  );
 
   const cq: CircuitQuery = {
     claimPathKey,
     slotIndex,
     operator,
-    values,
+    values: fullArray,
     isSelectiveDisclosure: false,
     fieldName,
   };
 
-  if (Object.keys(fieldReq).length === 0) {
+  if (Object.keys(predicate).length === 0) {
     cq.isSelectiveDisclosure = true;
   }
 
@@ -319,4 +331,89 @@ export function createSchemaHash(
   const bytes = new Uint8Array([...schemaID]);
   const h = keccak256(Buffer.from(bytes));
   return new SchemaHash(h.slice(-16));
+}
+
+async function getValuesAsArray(v: any, datatype: string): Promise<bigint[]> {
+  const values: Array<bigint> = [];
+  if (Array.isArray(v)) {
+    for (let index = 0; index < v.length; index++) {
+      if (!isPositiveInteger(v[index])) {
+        throw new Error(`value must be positive integer`);
+      }
+      values[index] = await Merklizer.hashValue(datatype, v[index]);
+    }
+    return values;
+  }
+
+  if (!isPositiveInteger(v)) {
+    throw new Error(`value must be positive integer`);
+  }
+  values[0] = await Merklizer.hashValue(datatype, v);
+  return values;
+}
+
+function isPositiveInteger(value: any): boolean {
+  if (!Number.isInteger(value)) {
+    return true;
+  }
+  return value >= 0;
+}
+
+function isValidOperation(datatype: string, op: number): boolean {
+  if (op === operators.get('$noop')) {
+    return true;
+  }
+
+  if (!availableTypesOperators.has(datatype)) {
+    return false;
+  }
+  const ops = availableTypesOperators.get(datatype);
+
+  return ops.has(op);
+}
+
+async function verifyClaim(
+  merklized: number,
+  txtSchema: string,
+  credType: string,
+  fieldName: string,
+): Promise<[bigint, number]> {
+  let slotIndex: number;
+  let claimPathKey: bigint;
+  if (merklized === 1) {
+    const path = await Path.getContextPathKey(txtSchema, credType, fieldName);
+    path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
+    claimPathKey = await path.mtEntry();
+  } else {
+    slotIndex = getFieldSlotIndex(
+      fieldName,
+      credType,
+      new TextEncoder().encode(txtSchema),
+    );
+  }
+
+  return [claimPathKey, slotIndex];
+}
+
+async function parsePredicate(
+  predicate: Map<string, any>,
+  datatype: string,
+): Promise<[number, bigint[]]> {
+  let operator: number;
+  let values: bigint[] = [];
+  for (const [key, value] of Object.entries(predicate)) {
+    if (!operators.has(key)) {
+      throw new Error(`operator is not supported by lib`);
+    }
+    operator = operators.get(key);
+    if (!isValidOperation(datatype, operator)) {
+      throw new Error(
+        `operator '${operator}' is not supported for '${datatype}' datatype`,
+      );
+    }
+
+    values = await getValuesAsArray(value, datatype);
+    break;
+  }
+  return [operator, values];
 }
