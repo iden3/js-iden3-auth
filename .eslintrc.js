@@ -30,5 +30,6 @@ module.exports = {
         caughtErrorsIgnorePattern: '^_',
       },
     ],
+    '@typescript-eslint/no-base-to-string': 'error',
   },
 };
