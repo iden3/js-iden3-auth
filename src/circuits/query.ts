@@ -19,15 +19,12 @@ const operators: Map<string, number> = new Map([
 const allOperations: Set<number> = new Set(operators.values());
 
 const availableTypesOperators: Map<string, Set<number>> = new Map([
+  [xsdtypes.XSD_BOOLEAN, new Set([operators.get('$eq'), operators.get('$ne')])],
+  [xsdtypes.XSD_INTEGER, allOperations],
+  [xsdtypes.XSD_INTEGER + 'nonNegativeInteger', allOperations],
+  [xsdtypes.XSD_INTEGER + 'positiveInteger', allOperations],
   [
-    xsdtypes.XSD_BOOLEAN as string,
-    new Set([operators.get('$eq'), operators.get('$ne')]),
-  ],
-  [xsdtypes.XSD_INTEGER as string, allOperations],
-  [(xsdtypes.XSD_INTEGER + 'nonNegativeInteger') as string, allOperations],
-  [(xsdtypes.XSD_INTEGER + 'positiveInteger') as string, allOperations],
-  [
-    xsdtypes.XSD_STRING as string,
+    xsdtypes.XSD_STRING,
     new Set([
       operators.get('$eq'),
       operators.get('$ne'),
@@ -35,7 +32,7 @@ const availableTypesOperators: Map<string, Set<number>> = new Map([
       operators.get('$nin'),
     ]),
   ],
-  [xsdtypes.XSD_DATE as string, allOperations],
+  [xsdtypes.XSD_DATE, allOperations],
 ]);
 
 const serializationIndexDataSlotAType = 'serialization:IndexDataSlotA';
