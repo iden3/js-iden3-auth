@@ -92,7 +92,7 @@ class MockSchemaLoader {
       }
     ]
   }`;
-  async load(url: string): Promise<{ schema: any; extension: string }> {
+  async load(_: string): Promise<{ schema: any; extension: string }> {
     return {
       schema: new TextEncoder().encode(this.s),
       extension: 'json-ld',

@@ -122,7 +122,9 @@ export class AtomicQuerySigV2PubSignals
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
     const resolver = getResolverByID(resolvers, this.issuerID);
     if (!resolver) {
-      throw new Error(`resolver not found for issuerID ${this.issuerID}`);
+      throw new Error(
+        `resolver not found for issuerID ${this.issuerID.string()}`,
+      );
     }
 
     await checkUserState(resolver, this.issuerID, this.issuerAuthState);
