@@ -6,7 +6,9 @@
   "module": "dist/cjs/index.js",
   "types": "dist/cjs/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "tsconfig.build.json"
   ],
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
@@ -14,7 +16,8 @@
     "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src test --ext .ts",
-    "lint:fix": "eslint src test --ext .ts --fix"
+    "lint:fix": "eslint src test --ext .ts --fix",
+    "prepare": "npm run build"
   },
   "directories": {
     "templates": "templates"
