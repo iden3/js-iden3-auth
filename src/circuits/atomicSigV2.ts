@@ -103,7 +103,11 @@ export class AtomicQuerySigV2PubSignals
     }
   }
 
-  async verifyQuery(query: Query, schemaLoader: ISchemaLoader): Promise<void> {
+  async verifyQuery(
+    query: Query,
+    schemaLoader: ISchemaLoader,
+    verifiablePresentation?: JSON,
+  ): Promise<void> {
     const outs: ClaimOutputs = {
       issuerId: this.issuerID,
       schemaHash: this.claimSchema,
@@ -117,7 +121,12 @@ export class AtomicQuerySigV2PubSignals
       valueArraySize: valuesSize,
       isRevocationChecked: this.isRevocationChecked,
     };
-    return await checkQueryRequest(query, outs, schemaLoader);
+    return await checkQueryRequest(
+      query,
+      outs,
+      schemaLoader,
+      verifiablePresentation,
+    );
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
     const resolver = getResolverByID(resolvers, this.issuerID);
