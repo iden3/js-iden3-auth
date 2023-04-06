@@ -1,7 +1,7 @@
 import { Id } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
-import { Abi__factory } from '@lib/state/types/ethers-contracts';
-import { StateV2, Smt } from './types/ethers-contracts/Abi';
+import { Abi__factory } from './types/ethers-contracts';
+import { IState } from './types/ethers-contracts/Abi';
 
 const zeroInt = BigInt(0);
 
@@ -40,9 +40,9 @@ export class EthStateResolver implements IStateResolver {
     // check if id is genesis
     const isGenesis = isGenesisStateId(id, state);
 
-    let contractState: StateV2.StateInfoStructOutput;
+    let contractState: IState.StateInfoStructOutput;
     try {
-      contractState = await contract.getStateInfoByState(state);
+      contractState = await contract.getStateInfoByIdAndState(id, state);
     } catch (e) {
       if (e.errorArgs[0] === 'State does not exist') {
         if (isGenesis) {
@@ -88,7 +88,7 @@ export class EthStateResolver implements IStateResolver {
     });
     const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
 
-    let globalStateInfo: Smt.RootInfoStructOutput;
+    let globalStateInfo: IState.GistRootInfoStructOutput;
     try {
       globalStateInfo = await contract.getGISTRootInfo(state);
     } catch (e) {

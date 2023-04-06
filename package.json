@@ -1,6 +1,6 @@
 {
   "name": "@iden3/js-iden3-auth",
-  "version": "1.0.0-beta.5",
+  "version": "1.0.0-beta.6",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
   "module": "dist/cjs/index.js",
@@ -54,8 +54,8 @@
     "@rollup/plugin-virtual": "^2.0.3",
     "@typechain/ethers-v5": "^10.2.0",
     "@types/jest": "27.4.1",
-    "@types/node": "^16.0.0",
     "@types/jsonld": "^1.5.8",
+    "@types/node": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.13.0",

@@ -36,6 +36,25 @@ const _abi = [
         type: "address",
       },
     ],
+    name: "OwnershipTransferStarted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "previousOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
     name: "OwnershipTransferred",
     type: "event",
   },
@@ -72,15 +91,22 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "ID_HISTORY_RETURN_LIMIT",
+    name: "VERSION",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "string",
         name: "",
-        type: "uint256",
+        type: "string",
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "acceptOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -136,7 +162,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.Proof",
+        internalType: "struct IState.GistProof",
         name: "",
         type: "tuple",
       },
@@ -202,7 +228,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.Proof",
+        internalType: "struct IState.GistProof",
         name: "",
         type: "tuple",
       },
@@ -268,7 +294,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.Proof",
+        internalType: "struct IState.GistProof",
         name: "",
         type: "tuple",
       },
@@ -334,7 +360,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.Proof",
+        internalType: "struct IState.GistProof",
         name: "",
         type: "tuple",
       },
@@ -403,7 +429,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.RootInfo[]",
+        internalType: "struct IState.GistRootInfo[]",
         name: "",
         type: "tuple[]",
       },
@@ -467,7 +493,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.RootInfo",
+        internalType: "struct IState.GistRootInfo",
         name: "",
         type: "tuple",
       },
@@ -518,7 +544,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.RootInfo",
+        internalType: "struct IState.GistRootInfo",
         name: "",
         type: "tuple",
       },
@@ -569,7 +595,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Smt.RootInfo",
+        internalType: "struct IState.GistRootInfo",
         name: "",
         type: "tuple",
       },
@@ -625,7 +651,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct StateV2.StateInfo",
+        internalType: "struct IState.StateInfo",
         name: "",
         type: "tuple",
       },
@@ -637,11 +663,16 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "state",
         type: "uint256",
       },
     ],
-    name: "getStateInfoByState",
+    name: "getStateInfoByIdAndState",
     outputs: [
       {
         components: [
@@ -681,7 +712,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct StateV2.StateInfo",
+        internalType: "struct IState.StateInfo",
         name: "",
         type: "tuple",
       },
@@ -747,7 +778,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct StateV2.StateInfo[]",
+        internalType: "struct IState.StateInfo[]",
         name: "",
         type: "tuple[]",
       },
@@ -809,7 +840,7 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "contract IVerifier",
+        internalType: "contract IStateTransitionVerifier",
         name: "verifierContractAddr",
         type: "address",
       },
@@ -822,6 +853,19 @@ const _abi = [
   {
     inputs: [],
     name: "owner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "pendingOwner",
     outputs: [
       {
         internalType: "address",
@@ -854,6 +898,11 @@ const _abi = [
   },
   {
     inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
       {
         internalType: "uint256",
         name: "state",
