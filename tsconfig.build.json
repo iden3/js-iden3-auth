@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "dist", "test"],
-  "compileOnSave": false,
   "include": ["src"],
   "compilerOptions": {
     "rootDir": "src"

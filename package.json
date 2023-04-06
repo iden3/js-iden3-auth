@@ -1,20 +1,22 @@
 {
   "name": "@iden3/js-iden3-auth",
-  "version": "1.0.0-beta.6",
+  "version": "1.0.0-beta.5",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
-  "module": "dist/cjs/index.js",
-  "types": "dist/cjs/index.d.ts",
+  "source": "./src/index.ts",
+  "typings": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src test --ext .ts",
-    "lint:fix": "eslint src test --ext .ts --fix"
+    "lint:fix": "eslint src test --ext .ts --fix",
+    "build": "npm run clean && npm run build:tsc",
+    "build:tsc": "tsc --module commonjs -p tsconfig.build.json && tsc-alias",
+    "clean": "rimraf ./dist"
   },
   "directories": {
     "templates": "templates"
@@ -47,11 +49,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^17.0.0",
-    "@rollup/plugin-node-resolve": "^11.2.1",
-    "@rollup/plugin-replace": "^2.3.4",
-    "@rollup/plugin-typescript": "^8.3.2",
-    "@rollup/plugin-virtual": "^2.0.3",
     "@typechain/ethers-v5": "^10.2.0",
     "@types/jest": "27.4.1",
     "@types/jsonld": "^1.5.8",
