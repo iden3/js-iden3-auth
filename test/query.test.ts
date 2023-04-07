@@ -1,4 +1,4 @@
-import { checkQueryRequest, ClaimOutputs, Query } from '../src/circuits/query';
+import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { Id, SchemaHash } from '@iden3/js-iden3-core';
 
 class MockSchemaLoader {
