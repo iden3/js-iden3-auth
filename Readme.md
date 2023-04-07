@@ -16,8 +16,15 @@ Currently, library implementation includes support of next message types
 
 ### RUN AND TEST
 
-export IPFS_URL = `https://username:password@ipfs.infura.io:5001`
 `npm run test`
+
+**Temporal:** 
+For now to run jest tests without experimental feature support:
+
+1. add mocked folder
+https://github.com/iden3/js-iden3-auth/tree/develop/__mocks__/%40digitalbazaar/http-client/dist/cjs
+2. change jest config.
+https://github.com/iden3/js-iden3-auth/blob/develop/jest.config.js
 
 ---
 
