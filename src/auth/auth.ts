@@ -1,3 +1,4 @@
+import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import { Query } from '@lib/circuits/query';
 import {
   AuthorizationRequestMessage,
@@ -15,8 +16,9 @@ import { IKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader } from '@lib/loaders/schema';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
-import { Token } from '@iden3/js-jwz';
+import { proving, Token } from '@iden3/js-jwz';
 import { fromBigEndian } from '@iden3/js-iden3-core';
+import { CircuitId, PackageManager, ProvingParams, VerificationHandlerFunc, VerificationParams, ZKPPacker } from '@0xpolygonid/js-sdk';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -52,15 +54,48 @@ export class Verifier {
   private keyLoader: IKeyLoader;
   private schemaLoader: ISchemaLoader;
   private stateResolver: Resolvers;
+  private packageManager: PackageManager;
 
   constructor(
     keyLoader: IKeyLoader,
     schemaLoader: ISchemaLoader,
     stateResolver: Resolvers,
+    packageManager: PackageManager,
   ) {
     this.keyLoader = keyLoader;
     this.schemaLoader = schemaLoader;
     this.stateResolver = stateResolver;
+    this.packageManager = packageManager;
+  }
+
+  // SetupAuthV2ZKPPacker sets the custom packer manager for the VerifierBuilder.
+  public async SetupAuthV2ZKPPacker() {
+    const authV2Set = await this.keyLoader.load(CircuitId.AuthV2);
+
+    const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
+    
+    const provingParamMap: Map<string, ProvingParams> = new Map();
+
+    const stateVerificationFn = async (circuitId: string, pubSignals: Array<string>): Promise<boolean> => {
+      if (circuitId !== CircuitId.AuthV2) {
+        throw new Error(`CircuitId is not supported ${circuitId}`);
+      }
+
+      const verifier = new AuthPubSignalsV2(pubSignals);
+      await verifier.verifyStates(this.stateResolver);
+      return true;
+    };
+
+    const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
+
+    const verificationParamMap: Map<string, VerificationParams> = new Map();
+    verificationParamMap.set(mapKey, {
+      key: authV2Set,
+      verificationFn
+    });
+
+    const packer = new ZKPPacker(provingParamMap, verificationParamMap);
+    return this.packageManager.registerPackers([packer]);
   }
 
   public async verifyAuthResponse(
