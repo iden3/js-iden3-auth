@@ -17,7 +17,18 @@ import { ISchemaLoader } from '@lib/loaders/schema';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';
-import { CircuitId, IPacker, JWSPacker, KMS, PackageManager, ProvingParams, resolveDIDDocument, VerificationHandlerFunc, VerificationParams, ZKPPacker } from '@0xpolygonid/js-sdk';
+import {
+  CircuitId,
+  IPacker,
+  JWSPacker,
+  KMS,
+  PackageManager,
+  ProvingParams,
+  resolveDIDDocument,
+  VerificationHandlerFunc,
+  VerificationParams,
+  ZKPPacker,
+} from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 
 export function createAuthorizationRequest(
@@ -73,7 +84,7 @@ export class Verifier {
     await this.setupJWSPacker(null, { resolve: resolveDIDDocument });
   }
 
-  // SetPackageManager sets the package manager for the VerifierBuilder.
+  // setPackageManager sets the package manager for the Verifier.
   public setPackageManager(manager: PackageManager) {
     this.packageManager = manager;
   }
@@ -83,14 +94,17 @@ export class Verifier {
     return this.packageManager.registerPackers([packer]);
   }
 
-  // SetupAuthV2ZKPPacker sets the custom packer manager for the VerifierBuilder.
+  // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
   public async setupAuthV2ZKPPacker() {
     const authV2Set = await this.keyLoader.load(CircuitId.AuthV2);
-
-    const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
+    const mapKey =
+      proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
-    const stateVerificationFn = async (circuitId: string, pubSignals: Array<string>): Promise<boolean> => {
+    const stateVerificationFn = async (
+      circuitId: string,
+      pubSignals: Array<string>,
+    ): Promise<boolean> => {
       if (circuitId !== CircuitId.AuthV2) {
         throw new Error(`CircuitId is not supported ${circuitId}`);
       }
@@ -105,14 +119,14 @@ export class Verifier {
     const verificationParamMap: Map<string, VerificationParams> = new Map();
     verificationParamMap.set(mapKey, {
       key: authV2Set,
-      verificationFn
+      verificationFn,
     });
 
     const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
     return this.setPacker(zkpPacker);
   }
 
-  // SetupJWSPacker sets the JWS packer for the VerifierBuilder.
+  // setupJWSPacker sets the JWS packer for the Verifier.
   public async setupJWSPacker(kms: KMS, documentResolver: Resolvable) {
     const jwsPacker = new JWSPacker(kms, documentResolver);
     return this.setPacker(jwsPacker);
@@ -214,7 +228,9 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts,
   ): Promise<AuthorizationResponseMessage> {
-    const msg = await this.packageManager.unpack(new TextEncoder().encode(tokenStr));
+    const msg = await this.packageManager.unpack(
+      new TextEncoder().encode(tokenStr),
+    );
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;
