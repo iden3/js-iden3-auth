@@ -410,7 +410,7 @@ test('TestFullVerify JWS', async () => {
       Promise.resolve({ didDocument: exampleDidDoc } as DIDResolutionResult),
   };
 
-  await verifier.setupJWSPacker(null, resolveDIDDocument);
+  verifier.setupJWSPacker(null, resolveDIDDocument);
 
   const opts: VerifyOpts = {
     acceptedStateTransitionDelay: 5 * 60 * 1000, // 5 minutes

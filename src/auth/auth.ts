@@ -81,7 +81,7 @@ export class Verifier {
 
   async initPackers() {
     await this.setupAuthV2ZKPPacker();
-    await this.setupJWSPacker(null, { resolve: resolveDIDDocument });
+    this.setupJWSPacker(null, { resolve: resolveDIDDocument });
   }
 
   // setPackageManager sets the package manager for the Verifier.
@@ -127,7 +127,7 @@ export class Verifier {
   }
 
   // setupJWSPacker sets the JWS packer for the Verifier.
-  public async setupJWSPacker(kms: KMS, documentResolver: Resolvable) {
+  public setupJWSPacker(kms: KMS, documentResolver: Resolvable) {
     const jwsPacker = new JWSPacker(kms, documentResolver);
     return this.setPacker(jwsPacker);
   }
