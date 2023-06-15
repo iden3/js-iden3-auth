@@ -79,6 +79,16 @@ export class Verifier {
     this.packageManager = packageManager;
   }
 
+  static async newVerifier(
+    keyLoader: IKeyLoader,
+    schemaLoader: ISchemaLoader,
+    stateResolver: Resolvers,
+  ): Promise<Verifier> {
+    const verifier = new Verifier(keyLoader, schemaLoader, stateResolver);
+    await verifier.initPackers();
+    return verifier;
+  }
+
   async initPackers() {
     await this.setupAuthV2ZKPPacker();
     this.setupJWSPacker(null, { resolve: resolveDIDDocument });
