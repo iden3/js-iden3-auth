@@ -67,7 +67,7 @@ export class Verifier {
   private stateResolver: Resolvers;
   private packageManager: PackageManager;
 
-  constructor(
+  private constructor(
     keyLoader: IKeyLoader,
     schemaLoader: ISchemaLoader,
     stateResolver: Resolvers,
