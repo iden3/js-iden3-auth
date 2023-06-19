@@ -6,15 +6,17 @@
   "source": "./src/index.ts",
   "typings": "dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "patches"
   ],
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
+    "build:cjs:bundle": "node build.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src test --ext .ts",
     "lint:fix": "eslint src test --ext .ts --fix",
-    "build": "npm run clean && npm run build:tsc",
+    "build": "npm run clean && patch-package && npm run build:tsc && npm run build:cjs:bundle",
     "build:tsc": "tsc --module commonjs -p tsconfig.build.json && tsc-alias",
     "clean": "rimraf ./dist"
   },
@@ -43,6 +45,8 @@
     "jsonld": "^8.1.1",
     "keccak256": "^1.0.6",
     "nested-property": "^4.0.0",
+    "patch-package": "^6.5.1",
+    "postinstall-postinstall": "^2.1.0",
     "rollup": "^2.72.1",
     "snarkjs": "^0.4.16",
     "tslib": "^2.4.0",
@@ -55,6 +59,7 @@
     "@types/node": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "esbuild": "^0.18.3",
     "eslint": "^8.13.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
