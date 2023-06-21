@@ -1,5 +1,4 @@
 const esbuild = require('esbuild');
-const path = require('path');
 
 console.log('START building bundle...');
 esbuild.build({
@@ -7,7 +6,7 @@ esbuild.build({
   bundle: true,
   platform: 'node',
   target: 'es2020',
-  outfile: 'dist/cjs_bundle/index.js',
+  outfile: 'dist/cjs/index.js',
   sourcemap: false,
   format: 'cjs',
   legalComments: 'none',
