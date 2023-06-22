@@ -1,0 +1,13 @@
+diff --git a/node_modules/@digitalbazaar/http-client/dist/cjs/index.cjs b/node_modules/@digitalbazaar/http-client/dist/cjs/index.cjs
+index f859571..6e55925 100644
+--- a/node_modules/@digitalbazaar/http-client/dist/cjs/index.cjs
++++ b/node_modules/@digitalbazaar/http-client/dist/cjs/index.cjs
+@@ -59,7 +59,7 @@ function createFetch(dispatcher) {
+  * Copyright (c) 2020-2022 Digital Bazaar, Inc. All rights reserved.
+  */
+ 
+-const kyOriginalPromise = import('ky-universal')
++const kyOriginalPromise = import('ky')
+   .then(({default: ky}) => ky);
+ 
+ const DEFAULT_HEADERS = {
