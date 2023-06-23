@@ -1,3 +1,4 @@
+import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import { Query } from '@lib/circuits/query';
 import {
   AuthorizationRequestMessage,
@@ -15,8 +16,20 @@ import { IKeyLoader } from '@lib/loaders/key';
 import { ISchemaLoader } from '@lib/loaders/schema';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
-import { Token } from '@iden3/js-jwz';
-import { fromBigEndian } from '@iden3/js-iden3-core';
+import { proving, Token } from '@iden3/js-jwz';
+import {
+  CircuitId,
+  IPacker,
+  JWSPacker,
+  KMS,
+  PackageManager,
+  ProvingParams,
+  resolveDIDDocument,
+  VerificationHandlerFunc,
+  VerificationParams,
+  ZKPPacker,
+} from '@0xpolygonid/js-sdk';
+import { Resolvable } from 'did-resolver';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -52,15 +65,81 @@ export class Verifier {
   private keyLoader: IKeyLoader;
   private schemaLoader: ISchemaLoader;
   private stateResolver: Resolvers;
+  private packageManager: PackageManager;
 
-  constructor(
+  private constructor(
     keyLoader: IKeyLoader,
     schemaLoader: ISchemaLoader,
     stateResolver: Resolvers,
+    packageManager: PackageManager = new PackageManager(),
   ) {
     this.keyLoader = keyLoader;
     this.schemaLoader = schemaLoader;
     this.stateResolver = stateResolver;
+    this.packageManager = packageManager;
+  }
+
+  static async newVerifier(
+    keyLoader: IKeyLoader,
+    schemaLoader: ISchemaLoader,
+    stateResolver: Resolvers,
+  ): Promise<Verifier> {
+    const verifier = new Verifier(keyLoader, schemaLoader, stateResolver);
+    await verifier.initPackers();
+    return verifier;
+  }
+
+  async initPackers() {
+    await this.setupAuthV2ZKPPacker();
+    this.setupJWSPacker(null, { resolve: resolveDIDDocument });
+  }
+
+  // setPackageManager sets the package manager for the Verifier.
+  public setPackageManager(manager: PackageManager) {
+    this.packageManager = manager;
+  }
+
+  // setPacker sets the custom packer manager for the Verifier.
+  public setPacker(packer: IPacker) {
+    return this.packageManager.registerPackers([packer]);
+  }
+
+  // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
+  public async setupAuthV2ZKPPacker() {
+    const authV2Set = await this.keyLoader.load(CircuitId.AuthV2);
+    const mapKey =
+      proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
+    const provingParamMap: Map<string, ProvingParams> = new Map();
+
+    const stateVerificationFn = async (
+      circuitId: string,
+      pubSignals: Array<string>,
+    ): Promise<boolean> => {
+      if (circuitId !== CircuitId.AuthV2) {
+        throw new Error(`CircuitId is not supported ${circuitId}`);
+      }
+
+      const verifier = new AuthPubSignalsV2(pubSignals);
+      await verifier.verifyStates(this.stateResolver);
+      return true;
+    };
+
+    const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
+
+    const verificationParamMap: Map<string, VerificationParams> = new Map();
+    verificationParamMap.set(mapKey, {
+      key: authV2Set,
+      verificationFn,
+    });
+
+    const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
+    return this.setPacker(zkpPacker);
+  }
+
+  // setupJWSPacker sets the JWS packer for the Verifier.
+  public setupJWSPacker(kms: KMS, documentResolver: Resolvable) {
+    const jwsPacker = new JWSPacker(kms, documentResolver);
+    return this.setPacker(jwsPacker);
   }
 
   public async verifyAuthResponse(
@@ -159,27 +238,11 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts,
   ): Promise<AuthorizationResponseMessage> {
-    const token = await this.verifyJWZ(tokenStr, opts);
-
-    const payload = token.getPayload();
-
-    const response = JSON.parse(
-      payload.toString(),
-    ) as AuthorizationResponseMessage;
-
-    /* 
-      verify that sender of AuthorizationResponseMessage is in token zkproof pubsignals
-    */
-    const signalsVerifierType = Circuits.getCircuitPubSignals(token.circuitId);
-    const signalsVerifier = new signalsVerifierType(token.zkProof.pub_signals);
-
-    await signalsVerifier.verifyIdOwnership(
-      response.from,
-      fromBigEndian(await token.getMessageHash()),
+    const msg = await this.packageManager.unpack(
+      new TextEncoder().encode(tokenStr),
     );
-
+    const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
-
     return response;
   }
 }
