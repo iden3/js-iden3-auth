@@ -15,7 +15,7 @@ export class UniversalSchemaLoader implements ISchemaLoader {
     const l = getDocumentLoader({
       ipfsNodeURL: this.ipfsUrl ?? null,
     });
-    const schemaRes = await l(url);
+    const schemaRes = (await l(url)).document;
     return {
       schema: new TextEncoder().encode(JSON.stringify(schemaRes)),
       extension: 'json-ld',
