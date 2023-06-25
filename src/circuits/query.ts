@@ -6,6 +6,8 @@ import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
 
+const bytesDecoder = new TextDecoder();
+
 const operators: Map<string, number> = new Map([
   ['$noop', 0],
   ['$eq', 1],
@@ -69,16 +71,12 @@ export interface ClaimOutputs {
 export async function checkQueryRequest(
   query: Query,
   outputs: ClaimOutputs,
+  // todo: add schema loader from merklizer
   schemaLoader: ISchemaLoader,
   verifiablePresentation?: JSON,
 ): Promise<void> {
   // validate issuer
-  let userDID: DID;
-  try {
-    userDID = DID.parseFromId(outputs.issuerId);
-  } catch (e) {
-    throw new Error("invalid issuerId in circuit's output");
-  }
+  const userDID = DID.parseFromId(outputs.issuerId);
   const issuerAllowed = query.allowedIssuers.some(
     (issuer) => issuer === '*' || issuer === userDID.toString(),
   );
@@ -93,7 +91,12 @@ export async function checkQueryRequest(
   } catch (e) {
     throw new Error(`can't load schema for request query`);
   }
-  const schemaHash = createSchemaHash(query.context, query.type);
+
+  const schemaId: string = await Path.getTypeIDFromContext(
+    bytesDecoder.decode(loadResult.schema),
+    query.type,
+  );
+  const schemaHash = createSchemaHash(schemaId);
   if (schemaHash.bigInt() !== outputs.schemaHash.bigInt()) {
     throw new Error(`schema that was used is not equal to requested in query`);
   }
@@ -233,7 +236,7 @@ async function parseRequest(
     throw new Error(`multiple requests not supported`);
   }
 
-  const txtSchema = new TextDecoder().decode(schema);
+  const txtSchema = bytesDecoder.decode(schema);
 
   let fieldName: string;
   let predicate: Map<string, unknown>;
@@ -319,14 +322,8 @@ type CircuitQuery = {
   fieldName: string;
 };
 
-// TODO (illia-korotia): move to core like static method or contructor of SchemaHash type.
-export function createSchemaHash(
-  schemaContext: string,
-  type: string,
-): SchemaHash {
-  const schemaID = new TextEncoder().encode(`${schemaContext}#${type}`);
-  const bytes = new Uint8Array([...schemaID]);
-  const h = keccak256(Buffer.from(bytes));
+export function createSchemaHash(schemaId: string): SchemaHash {
+  const h = keccak256(schemaId);
   return new SchemaHash(h.slice(-16));
 }
 
