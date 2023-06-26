@@ -35,7 +35,7 @@
   "dependencies": {
     "@0xpolygonid/js-sdk": "^1.0.0-beta.9",
     "@iden3/js-iden3-core": "1.0.0-beta.2",
-    "@iden3/js-jsonld-merklization": "1.0.0-beta.10",
+    "@iden3/js-jsonld-merklization": "1.0.0-beta.12",
     "@iden3/js-jwz": "1.0.0-beta.2",
     "@iden3/js-merkletree": "1.0.0-beta.4",
     "axios": "^0.27.2",
