@@ -19,7 +19,7 @@ test('schema ipfs loader', async () => {
     connectionString = 'https://ipfs.io';
   }
   const loader = getDocumentLoader({
-    ipfsNodeURL: connectionString,
+    ipfsGatewayURL: connectionString,
   });
   const schemaResult = (
     await loader('ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP')

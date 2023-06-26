@@ -35,7 +35,7 @@ afterAll(async () => {
 
 const verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./test/data');
 const schemaLoader: DocumentLoader = getDocumentLoader({
-  ipfsNodeURL: 'ipfs.io',
+  ipfsGatewayURL: 'ipfs.io',
 });
 const exampleDidDoc = {
   '@context': [
