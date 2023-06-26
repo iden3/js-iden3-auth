@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getCurveFromName } from 'ffjavascript';
 import { FSKeyLoader } from '@lib/loaders/key';
-import { ISchemaLoader, UniversalSchemaLoader } from '@lib/loaders/schema';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import {
@@ -24,6 +23,10 @@ import {
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { DIDResolutionResult } from 'did-resolver';
 import { bytesToBase64url, hexToBytes } from '@0xpolygonid/js-sdk';
+import {
+  DocumentLoader,
+  getDocumentLoader,
+} from '@iden3/js-jsonld-merklization';
 
 afterAll(async () => {
   const curve = await getCurveFromName('bn128');
@@ -31,7 +34,9 @@ afterAll(async () => {
 });
 
 const verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./test/data');
-const schemaLoader: ISchemaLoader = new UniversalSchemaLoader('ipfs.io');
+const schemaLoader: DocumentLoader = getDocumentLoader({
+  ipfsNodeURL: 'ipfs.io',
+});
 const exampleDidDoc = {
   '@context': [
     'https://www.w3.org/ns/did/v1',
@@ -160,8 +165,10 @@ test('TestVerifyMessageWithoutProof', async () => {
 
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
 
   await expect(
@@ -328,8 +335,10 @@ test('TestVerifyWithAtomicMTPProof', async () => {
 
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
 
   await expect(
@@ -340,8 +349,10 @@ test('TestVerifyWithAtomicMTPProof', async () => {
 test('TestVerifyJWZ', async () => {
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
 
   const token =
@@ -382,8 +393,10 @@ test('TestFullVerify', async () => {
 
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
   request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
@@ -421,8 +434,10 @@ test('TestFullVerify JWS', async () => {
     'did:polygonid:polygon:mumbai:2qEevY9VnKdNsVDdXRv3qSLHRqoMGMRRdE5Gmc6iA7';
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
   const resolveDIDDocument = {
     resolve: () =>
@@ -594,8 +609,10 @@ test('TestResponseWithEmptyQueryRequest_ErrorCase', async () => {
 
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
 
   try {
@@ -660,8 +677,10 @@ test('verify jwz with selective disclosure', async () => {
 
   const verifier = await Verifier.newVerifier(
     verificationKeyLoader,
-    schemaLoader,
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    },
   );
   request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
   request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response

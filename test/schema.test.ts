@@ -1,13 +1,16 @@
-import { UniversalSchemaLoader } from '@lib/loaders/schema';
+import {
+  DocumentLoader,
+  getDocumentLoader,
+} from '@iden3/js-jsonld-merklization';
 
 test('schema http loader', async () => {
   const url =
     'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld';
 
-  const loader = new UniversalSchemaLoader(null);
-  const schemaResult = await loader.load(url);
-  expect(schemaResult.extension).toEqual('json-ld');
-  expect(schemaResult.schema).not.toBeNull();
+  const loader: DocumentLoader = getDocumentLoader();
+  const schemaResult = (await loader(url)).document;
+  expect(schemaResult).not.toBeNull();
+  expect(schemaResult).toBeDefined();
 });
 
 test('schema ipfs loader', async () => {
@@ -15,10 +18,12 @@ test('schema ipfs loader', async () => {
   if (!connectionString) {
     connectionString = 'https://ipfs.io';
   }
-  const loader = new UniversalSchemaLoader(connectionString);
-  const schemaResult = await loader.load(
-    'ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP',
-  );
-  expect(schemaResult.extension).toEqual('json-ld');
-  expect(schemaResult.schema).not.toBeNull();
+  const loader = getDocumentLoader({
+    ipfsNodeURL: connectionString,
+  });
+  const schemaResult = (
+    await loader('ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP')
+  ).document;
+  expect(schemaResult).not.toBeNull();
+  expect(schemaResult).toBeDefined();
 });

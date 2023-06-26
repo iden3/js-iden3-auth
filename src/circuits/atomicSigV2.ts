@@ -1,6 +1,5 @@
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
-import { ISchemaLoader } from '@lib/loaders/schema';
 import { Resolvers } from '@lib/state/resolver';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import {
@@ -10,6 +9,7 @@ import {
 } from '@lib/circuits/common';
 import { Hash, newHashFromString } from '@iden3/js-merkletree';
 import { Id, SchemaHash, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -105,7 +105,7 @@ export class AtomicQuerySigV2PubSignals
 
   async verifyQuery(
     query: Query,
-    schemaLoader: ISchemaLoader,
+    schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
   ): Promise<void> {
     const outs: ClaimOutputs = {

@@ -62,19 +62,21 @@ export function createAuthorizationRequestWithMessage(
   };
   return request;
 }
-export type VerificationOptions =  Options & {
-  packageManager?: PackageManager
-}
+
+export type VerificationOptions = Options & {
+  packageManager?: PackageManager;
+};
+
 export class Verifier {
   private keyLoader: IKeyLoader;
-  private schemaLoader: (url: string) => Promise<RemoteDocument>;;
+  private schemaLoader: (url: string) => Promise<RemoteDocument>;
   private stateResolver: Resolvers;
   private packageManager: PackageManager;
 
   private constructor(
     keyLoader: IKeyLoader,
     stateResolver: Resolvers,
-    opts?: VerificationOptions
+    opts?: VerificationOptions,
   ) {
     this.keyLoader = keyLoader;
     this.schemaLoader = getDocumentLoader(opts as Options);
@@ -85,9 +87,9 @@ export class Verifier {
   static async newVerifier(
     keyLoader: IKeyLoader,
     stateResolver: Resolvers,
-    opts?: VerificationOptions
+    opts?: VerificationOptions,
   ): Promise<Verifier> {
-    const verifier = new Verifier(keyLoader, stateResolver,opts);
+    const verifier = new Verifier(keyLoader, stateResolver, opts);
     await verifier.initPackers();
     return verifier;
   }

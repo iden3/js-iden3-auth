@@ -1,10 +1,16 @@
-import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
-import { Merklizer, Path, MtValue } from '@iden3/js-jsonld-merklization';
+import {
+  Merklizer,
+  Path,
+  MtValue,
+  getDocumentLoader,
+} from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization/dist/types/loaders/jsonld-loader';
+import { byteEncoder } from '@0xpolygonid/js-sdk';
 
 const bytesDecoder = new TextDecoder();
 
@@ -71,8 +77,7 @@ export interface ClaimOutputs {
 export async function checkQueryRequest(
   query: Query,
   outputs: ClaimOutputs,
-  // todo: add schema loader from merklizer
-  schemaLoader: ISchemaLoader,
+  schemaLoader?: DocumentLoader,
   verifiablePresentation?: JSON,
 ): Promise<void> {
   // validate issuer
@@ -85,15 +90,16 @@ export async function checkQueryRequest(
   }
 
   // validate schema
-  let loadResult: SchemaLoadResult;
+  let schema: object;
   try {
-    loadResult = await schemaLoader.load(query.context);
+    const loader = schemaLoader ?? getDocumentLoader();
+    schema = (await loader(query.context)).document;
   } catch (e) {
     throw new Error(`can't load schema for request query`);
   }
 
   const schemaId: string = await Path.getTypeIDFromContext(
-    bytesDecoder.decode(loadResult.schema),
+    JSON.stringify(schema),
     query.type,
   );
   const schemaHash = createSchemaHash(schemaId);
@@ -105,7 +111,11 @@ export async function checkQueryRequest(
     throw new Error(`check revocation is required`);
   }
 
-  const cq = await parseRequest(query, outputs, loadResult.schema);
+  const cq = await parseRequest(
+    query,
+    outputs,
+    byteEncoder.encode(JSON.stringify(schema)),
+  );
 
   // validate selective disclosure
   if (cq.isSelectiveDisclosure) {
