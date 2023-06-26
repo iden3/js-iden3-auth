@@ -34,8 +34,12 @@ afterAll(async () => {
 });
 
 const verificationKeyLoader: FSKeyLoader = new FSKeyLoader('./test/data');
+let connectionString = process.env.IPFS_URL;
+if (!connectionString) {
+  connectionString = 'https://ipfs.io';
+}
 const schemaLoader: DocumentLoader = getDocumentLoader({
-  ipfsGatewayURL: 'ipfs.io',
+  ipfsNodeURL: connectionString
 });
 const exampleDidDoc = {
   '@context': [
