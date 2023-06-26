@@ -12,7 +12,7 @@ import {
 } from '@lib/protocol/constants';
 
 import { verifyProof } from '@lib/proofs/zk';
-import { IKeyLoader } from '@lib/loaders/key';
+import { IKeyLoader } from '@lib/loaders/loaders';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';

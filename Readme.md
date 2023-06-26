@@ -18,13 +18,13 @@ Currently, library implementation includes support of next message types
 
 `npm run test`
 
-**Temporal:** 
+**Temporal:**
 For now to run jest tests without experimental feature support:
 
 1. add mocked folder
-https://github.com/iden3/js-iden3-auth/tree/develop/__mocks__/%40digitalbazaar/http-client/dist/cjs
+<https://github.com/iden3/js-iden3-auth/tree/develop/__mocks__/%40digitalbazaar/http-client/dist/cjs>
 2. change jest config.
-https://github.com/iden3/js-iden3-auth/blob/develop/jest.config.js
+<https://github.com/iden3/js-iden3-auth/blob/develop/jest.config.js>
 
 ---
 
@@ -127,13 +127,18 @@ The blockchain verification algorithm is used
     ['polygon:mumbai']: ethStateResolver,
   };
 
-  const verificationKeyloader = new loaders.FSKeyLoader('../../keys');
-  const sLoader = new loaders.UniversalSchemaLoader('ipfs.io');
+  const verificationKeyLoader = new loaders.FSKeyLoader('../../keys');
+  const schemaLoader = getDocumentLoader({
+    ipfsNodeURL: 'ipfs.io'
+  });
   const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
   const verifier = new auth.Verifier(
-    verificationKeyloader,
+    verificationKeyLoader,
     sLoader, 
     resolvers,
+    {
+      documentLoader: schemaLoader,
+    }
   );
   ```
 
@@ -141,27 +146,31 @@ The blockchain verification algorithm is used
 
   ``` javascript
   let authResponse: protocol.AuthorizationResponseMessage;
-  authResponse = await verifier.fullVerify(tokenStr, authRequest, ?VerifyOpts{});
+  authResponse = await verifier.fullVerify(tokenStr, authRequest);
   ```
 
  Verify manually or thread id is used a session id to match request
 
   ``` javascript
-  const token = await verifier.verifyJWZ(tokenStr, ?VerifyOpts{});
+  const token = await verifier.verifyJWZ(tokenStr);
   authResponse = JSON.parse(
     token.getPayload(),
   ) as protocol.AuthorizationResponseMessage;
   const authRequest: protocol.AuthorizationRequestMessage; // get request from you session storage. You can use authResponse.thid field
 
-  await verifier.verifyAuthResponse(authResponse, authRequest, ?VerifyOpts{});
+  await verifier.verifyAuthResponse(authResponse, authRequest);
   ```
 
 ---
-### Generate types for state contract.
+
+### Generate types for state contract
+
 We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for generate TS types for a smart contract.
+
 1. Install TypeChain;
 2. Install @typechain/ethers-v5;
 3. Run:
+
 ```bash
 typechain --target ethers-v5 /path/to/state_contract.sol
 ```

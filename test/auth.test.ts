@@ -6,7 +6,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import { getCurveFromName } from 'ffjavascript';
-import { FSKeyLoader } from '@lib/loaders/key';
+import { FSKeyLoader } from '@lib/loaders/loaders';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import {
@@ -39,7 +39,7 @@ if (!connectionString) {
   connectionString = 'https://ipfs.io';
 }
 const schemaLoader: DocumentLoader = getDocumentLoader({
-  ipfsNodeURL: connectionString
+  ipfsNodeURL: connectionString,
 });
 const exampleDidDoc = {
   '@context': [
