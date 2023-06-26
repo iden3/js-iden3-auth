@@ -13,7 +13,7 @@ export interface VerifyOpts {
 export interface PubSignalsVerifier {
   verifyQuery(
     query: Query,
-    schemaLoader?: DocumentLoader,
+    schemaLoader: DocumentLoader,
     verifiablePresentation?: JSON,
   ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;

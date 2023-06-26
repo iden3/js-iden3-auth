@@ -13,7 +13,6 @@ import {
 
 import { verifyProof } from '@lib/proofs/zk';
 import { IKeyLoader } from '@lib/loaders/key';
-// import { ISchemaLoader } from '@lib/loaders/schema';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';
@@ -30,8 +29,11 @@ import {
   ZKPPacker,
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
-import { Options, getDocumentLoader } from '@iden3/js-jsonld-merklization';
-import { RemoteDocument } from 'jsonld/jsonld-spec';
+import {
+  Options,
+  getDocumentLoader,
+  DocumentLoader,
+} from '@iden3/js-jsonld-merklization';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -69,7 +71,7 @@ export type VerificationOptions = Options & {
 
 export class Verifier {
   private keyLoader: IKeyLoader;
-  private schemaLoader: (url: string) => Promise<RemoteDocument>;
+  private schemaLoader: DocumentLoader;
   private stateResolver: Resolvers;
   private packageManager: PackageManager;
 
@@ -79,9 +81,10 @@ export class Verifier {
     opts?: VerificationOptions,
   ) {
     this.keyLoader = keyLoader;
-    this.schemaLoader = getDocumentLoader(opts as Options);
+    this.schemaLoader =
+      opts?.documentLoader ?? getDocumentLoader(opts as Options);
     this.stateResolver = stateResolver;
-    this.packageManager = opts.packageManager ?? new PackageManager();
+    this.packageManager = opts?.packageManager ?? new PackageManager();
   }
 
   static async newVerifier(
