@@ -81,8 +81,7 @@ export class Verifier {
     opts?: VerificationOptions,
   ) {
     this.keyLoader = keyLoader;
-    this.schemaLoader =
-      opts?.documentLoader ?? getDocumentLoader(opts as Options);
+    this.schemaLoader = getDocumentLoader(opts as Options);
     this.stateResolver = stateResolver;
     this.packageManager = opts?.packageManager ?? new PackageManager();
   }
@@ -199,6 +198,7 @@ export class Verifier {
         proofRequest.query as Query,
         this.schemaLoader,
         proofResp.vp,
+        opts as Options,
       );
 
       // verify states

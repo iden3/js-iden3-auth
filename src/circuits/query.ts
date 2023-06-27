@@ -5,6 +5,7 @@ import {
   Path,
   MtValue,
   getDocumentLoader,
+  Options,
 } from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
@@ -79,6 +80,7 @@ export async function checkQueryRequest(
   outputs: ClaimOutputs,
   schemaLoader?: DocumentLoader,
   verifiablePresentation?: JSON,
+  opts?: Options,
 ): Promise<void> {
   // validate issuer
   const userDID = DID.parseFromId(outputs.issuerId);
@@ -101,6 +103,7 @@ export async function checkQueryRequest(
   const schemaId: string = await Path.getTypeIDFromContext(
     JSON.stringify(schema),
     query.type,
+    opts,
   );
   const schemaHash = createSchemaHash(schemaId);
   if (schemaHash.bigInt() !== outputs.schemaHash.bigInt()) {
@@ -115,12 +118,13 @@ export async function checkQueryRequest(
     query,
     outputs,
     byteEncoder.encode(JSON.stringify(schema)),
+    opts,
   );
 
   // validate selective disclosure
   if (cq.isSelectiveDisclosure) {
     try {
-      await validateDisclosure(verifiablePresentation, cq, outputs);
+      await validateDisclosure(verifiablePresentation, cq, outputs, opts);
     } catch (e) {
       throw new Error(`failed to validate selective disclosure: ${e.message}`);
     }
@@ -171,6 +175,7 @@ async function validateDisclosure(
   verifiablePresentation: JSON,
   cq: CircuitQuery,
   outputs: ClaimOutputs,
+  opts: Options,
 ) {
   if (!verifiablePresentation) {
     throw new Error(
@@ -193,7 +198,7 @@ async function validateDisclosure(
     verifiablePresentation,
   );
   try {
-    mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation);
+    mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation, opts);
   } catch (e) {
     throw new Error(`can't merkelize verifiablePresentation`);
   }
@@ -201,7 +206,12 @@ async function validateDisclosure(
   let merklizedPath: Path;
   try {
     const p = `verifiableCredential.credentialSubject.${cq.fieldName}`;
-    merklizedPath = await Path.fromDocument(null, strVerifiablePresentation, p);
+    merklizedPath = await Path.fromDocument(
+      null,
+      strVerifiablePresentation,
+      p,
+      opts,
+    );
   } catch (e) {
     throw new Error(`can't build path to '${cq.fieldName}' key`);
   }
@@ -232,6 +242,7 @@ async function parseRequest(
   query: Query,
   outputs: ClaimOutputs,
   schema: Uint8Array,
+  opts?: Options,
 ): Promise<CircuitQuery> {
   if (!query.credentialSubject) {
     return {
@@ -267,6 +278,7 @@ async function parseRequest(
     datatype = await Path.newTypeFromContext(
       txtSchema,
       `${query.type}.${fieldName}`,
+      opts,
     );
   }
 
@@ -281,6 +293,7 @@ async function parseRequest(
     txtSchema,
     query.type,
     fieldName,
+    opts,
   );
 
   const cq: CircuitQuery = {
@@ -381,11 +394,17 @@ async function verifyClaim(
   txtSchema: string,
   credType: string,
   fieldName: string,
+  opts?: Options,
 ): Promise<[bigint, number]> {
   let slotIndex: number;
   let claimPathKey: bigint;
   if (merklized === 1) {
-    const path = await Path.getContextPathKey(txtSchema, credType, fieldName);
+    const path = await Path.getContextPathKey(
+      txtSchema,
+      credType,
+      fieldName,
+      opts,
+    );
     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
     claimPathKey = await path.mtEntry();
   } else {

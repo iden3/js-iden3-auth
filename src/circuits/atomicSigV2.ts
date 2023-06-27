@@ -9,7 +9,7 @@ import {
 } from '@lib/circuits/common';
 import { Hash, newHashFromString } from '@iden3/js-merkletree';
 import { Id, SchemaHash, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
-import { DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { DocumentLoader, Options } from '@iden3/js-jsonld-merklization';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -107,6 +107,7 @@ export class AtomicQuerySigV2PubSignals
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
+    opts?: Options,
   ): Promise<void> {
     const outs: ClaimOutputs = {
       issuerId: this.issuerID,
@@ -126,6 +127,7 @@ export class AtomicQuerySigV2PubSignals
       outs,
       schemaLoader,
       verifiablePresentation,
+      opts,
     );
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
