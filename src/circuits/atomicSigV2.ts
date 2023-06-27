@@ -126,7 +126,7 @@ export class AtomicQuerySigV2PubSignals
       query,
       outs,
       schemaLoader,
-      verifiablePresentation
+      verifiablePresentation,
     );
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
