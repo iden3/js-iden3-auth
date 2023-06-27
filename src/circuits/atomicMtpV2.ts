@@ -126,8 +126,7 @@ export class AtomicQueryMTPV2PubSignals
       query,
       outs,
       schemaLoader,
-      verifiablePresentation,
-      opts,
+      verifiablePresentation
     );
   }
 

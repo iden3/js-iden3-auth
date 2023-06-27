@@ -5,7 +5,7 @@ import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader, Options } from '@iden3/js-jsonld-merklization';
 
-export type VerifyOpts = Options & {
+export type VerifyOpts = {
   // acceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
   acceptedStateTransitionDelay?: number;
 };
@@ -14,8 +14,7 @@ export interface PubSignalsVerifier {
   verifyQuery(
     query: Query,
     schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON,
-    opts?: VerifyOpts,
+    verifiablePresentation?: JSON
   ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
