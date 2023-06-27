@@ -197,7 +197,7 @@ export class Verifier {
       await verifier.verifyQuery(
         proofRequest.query as Query,
         this.schemaLoader,
-        proofResp.vp
+        proofResp.vp,
       );
 
       // verify states

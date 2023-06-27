@@ -10,7 +10,9 @@ export abstract class IDOwnershipPubSignals {
       userDid = DID.parseFromId(this.userId);
     } catch (err: unknown) {
       if (
-        (err as Error).message.includes(Constants.ERRORS.DID_METHOD_NOT_SUPPORTED)
+        (err as Error).message.includes(
+          Constants.ERRORS.DID_METHOD_NOT_SUPPORTED,
+        )
       ) {
         const senderHashedId =
           IDOwnershipPubSignals.idFromUnsupportedDID(sender);

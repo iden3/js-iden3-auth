@@ -14,7 +14,7 @@ export interface PubSignalsVerifier {
   verifyQuery(
     query: Query,
     schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON
+    verifiablePresentation?: JSON,
   ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;

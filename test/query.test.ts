@@ -111,7 +111,7 @@ test('Selective disclosure', async () => {
     timestamp: 0,
   };
   await expect(
-    checkQueryRequest(query, pubSig,defaultLoader,vp),
+    checkQueryRequest(query, pubSig, defaultLoader, vp),
   ).resolves.not.toThrow();
 });
 
@@ -676,7 +676,7 @@ test('Negative value in request', async () => {
       },
     },
     context:
-    'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
     type: 'KYCEmployee',
   };
   const pubSig: ClaimOutputs = {
