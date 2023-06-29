@@ -154,7 +154,7 @@ test('TestVerifyMessageWithoutProof', async () => {
     verificationKeyLoader,
     resolvers,
     {
-      ipfsGatewayURL:"<gateway url>"
+      documentLoader: schemaLoader,
     },
   );
 
