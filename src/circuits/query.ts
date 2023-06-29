@@ -10,7 +10,7 @@ import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization/dist/types/loaders/jsonld-loader';
-import { byteEncoder } from '@0xpolygonid/js-sdk';
+import { Operators, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const bytesDecoder = new TextDecoder();
 
@@ -132,6 +132,13 @@ export async function checkQueryRequest(
     } catch (e) {
       throw new Error(`failed to validate selective disclosure: ${e.message}`);
     }
+  } else if (!cq.fieldName && cq.operator == operators.get('$noop')) {
+    try {
+      await validateEmptyCredentialSubject(cq, outputs);
+      return
+    } catch (e) {
+      throw new Error(`failed to validate operators: ${e.message}`);
+    }
   } else {
     try {
       await validateOperators(cq, outputs);
@@ -157,6 +164,31 @@ export async function checkQueryRequest(
   return;
 }
 
+async function validateEmptyCredentialSubject(
+  cq: CircuitQuery,
+  outputs: ClaimOutputs,
+) {
+  if (outputs.operator !== Operators.EQ) {
+    throw new Error(
+      'empty credentialSubject request available only for equal operation',
+    );
+  }
+  for (let index = 1; index < outputs.value.length; index++) {
+    if (outputs.value[index] !== BigInt(0)) {
+      throw new Error(
+        `empty credentialSubject request not available for array of values`,
+      );
+    }
+  }
+  const path = await Path.newPath([
+    'https://www.w3.org/2018/credentials#credentialSubject',
+  ]);
+  const subjectEntry = await path.mtEntry();
+  if (outputs.claimPathKey !== subjectEntry) {
+    throw new Error(`proof doesn't contain credentialSubject in claimPathKey`);
+  }
+  return;
+}
 async function validateOperators(cq: CircuitQuery, outputs: ClaimOutputs) {
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
