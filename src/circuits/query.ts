@@ -135,7 +135,7 @@ export async function checkQueryRequest(
   } else if (!cq.fieldName && cq.operator == operators.get('$noop')) {
     try {
       await validateEmptyCredentialSubject(cq, outputs);
-      return
+      return;
     } catch (e) {
       throw new Error(`failed to validate operators: ${e.message}`);
     }
