@@ -14,6 +14,7 @@
     "test:watch": "jest --watch",
     "build:cjs:bundle": "node build.js",
     "build:types": "tsc -p tsconfig.build.json && tsc-alias",
+    "build:types": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src test --ext .ts",
     "lint:fix": "eslint src test --ext .ts --fix",
