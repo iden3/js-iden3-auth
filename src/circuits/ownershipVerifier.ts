@@ -1,4 +1,4 @@
-import { Id, DID, Constants, DIDNetworkFlag } from '@iden3/js-iden3-core';
+import { Id, DID, Constants } from '@iden3/js-iden3-core';
 import { sha256 } from 'cross-sha256';
 
 export abstract class IDOwnershipPubSignals {

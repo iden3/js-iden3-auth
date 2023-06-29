@@ -107,7 +107,6 @@ export class AtomicQueryMTPV2PubSignals
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
-    opts?: VerifyOpts,
   ): Promise<void> {
     const outs: ClaimOutputs = {
       issuerId: this.issuerID,

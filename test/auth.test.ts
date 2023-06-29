@@ -22,7 +22,6 @@ import {
 } from '@lib/auth/auth';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { DIDResolutionResult } from 'did-resolver';
-import { bytesToBase64url, hexToBytes } from '@0xpolygonid/js-sdk';
 import {
   DocumentLoader,
   getDocumentLoader,

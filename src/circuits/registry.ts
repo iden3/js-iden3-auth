@@ -3,7 +3,7 @@ import { AtomicQueryMTPV2PubSignals } from '@lib/circuits/atomicMtpV2';
 import { AtomicQuerySigV2PubSignals } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
-import { DocumentLoader, Options } from '@iden3/js-jsonld-merklization';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
 export type VerifyOpts = {
   // acceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
