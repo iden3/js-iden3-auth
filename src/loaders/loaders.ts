@@ -1,4 +1,7 @@
+import { getDocumentLoader as documentLoader } from '@iden3/js-jsonld-merklization';
 import { promises as fs } from 'fs';
+
+export const getDocumentLoader = documentLoader;
 
 export interface IKeyLoader {
   load(circuitId: string): Promise<Uint8Array>;

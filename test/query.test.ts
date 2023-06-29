@@ -1,105 +1,8 @@
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { Id, SchemaHash } from '@iden3/js-iden3-core';
+import { getDocumentLoader } from '@iden3/js-jsonld-merklization';
 
-class MockSchemaLoader {
-  s = `{
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "$metadata": {
-      "uris": {
-        "jsonLdContext": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
-        "jsonSchema": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json/KYCCountryOfResidenceCredential-v2.json"
-      },
-      "serialization": {
-          "valueDataSlotB": "countryCode"
-      }
-    },
-    "@context": [
-      {
-        "@version": 1.1,
-        "@protected": true,
-        "id": "@id",
-        "type": "@type",
-        "KYCAgeCredential": {
-          "@id": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld#KYCAgeCredential",
-          "@context": {
-            "@version": 1.1,
-            "@protected": true,
-            "id": "@id",
-            "type": "@type",
-            "kyc-vocab": "https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#",
-            "xsd": "http://www.w3.org/2001/XMLSchema#",
-            "birthday": {
-              "@id": "kyc-vocab:birthday",
-              "@type": "xsd:integer"
-            },
-            "documentType": {
-              "@id": "kyc-vocab:documentType",
-              "@type": "xsd:integer"
-            }
-          }
-        },
-        "KYCCountryOfResidenceCredential": {
-          "@id": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld#KYCCountryOfResidenceCredential",
-          "@context": {
-            "@version": 1.1,
-            "@protected": true,
-            "id": "@id",
-            "type": "@type",
-            "kyc-vocab": "https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#",
-            "xsd": "http://www.w3.org/2001/XMLSchema#",
-            "countryCode": {
-              "@id": "kyc-vocab:countryCode",
-              "@type": "xsd:integer"
-            },
-            "documentType": {
-              "@id": "kyc-vocab:documentType",
-              "@type": "xsd:integer"
-            }
-          }
-        },
-        "KYCEmployee": {
-          "@id": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld#KYCEmployee",
-          "@context": {
-            "@version": 1.1,
-            "@protected": true,
-            "id": "@id",
-            "type": "@type",
-            "kyc-vocab": "https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#",
-            "xsd": "http://www.w3.org/2001/XMLSchema#",
-            "documentType": {
-              "@id": "kyc-vocab:documentType",
-              "@type": "xsd:integer"
-            },
-            "ZKPexperiance": {
-              "@id": "kyc-vocab:hasZKPexperiance",
-              "@type": "xsd:boolean"
-            },
-            "hireDate": {
-              "@id": "kyc-vocab:hireDate",
-              "@type": "xsd:dateTime"
-            },
-            "position": {
-              "@id": "kyc-vocab:position",
-              "@type": "xsd:string"
-            },
-            "salary": {
-              "@id": "kyc-vocab:salary",
-              "@type": "xsd:double"
-            }
-          }
-        }
-      }
-    ]
-  }`;
-  async load(_: string): Promise<{ schema: any; extension: string }> {
-    return {
-      schema: new TextEncoder().encode(this.s),
-      extension: 'json-ld',
-    };
-  }
-}
-
+const defaultLoader = getDocumentLoader();
 const vpEmployee = JSON.parse(`{
 	"@type": "VerifiablePresentation",
 	"@context": [
@@ -150,13 +53,13 @@ const KYCCountrySchema = SchemaHash.newSchemaHashFromInt(
   BigInt('336615423900919464193075592850483704600'),
 );
 const KYCEmployeeSchema = SchemaHash.newSchemaHashFromInt(
-  BigInt('40507426258035268209384482717564233104'),
+  BigInt('219578617064540016234161640375755865412'),
 );
 const BigIntTrueHash = BigInt(
   '18586133768512220936620570745912940619677854269274689475585506675881198879027',
 );
 
-test('Check merkalized query', async () => {
+test('Check merklized query', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
@@ -180,7 +83,7 @@ test('Check merkalized query', async () => {
     timestamp: 0,
   };
   await expect(
-    checkQueryRequest(query, pubSig, new MockSchemaLoader()),
+    checkQueryRequest(query, pubSig, defaultLoader),
   ).resolves.not.toThrow();
 });
 
@@ -208,7 +111,7 @@ test('Selective disclosure', async () => {
     timestamp: 0,
   };
   await expect(
-    checkQueryRequest(query, pubSig, new MockSchemaLoader(), vp),
+    checkQueryRequest(query, pubSig, defaultLoader, vp),
   ).resolves.not.toThrow();
 });
 
@@ -221,7 +124,7 @@ test('Query with boolean type', async () => {
       },
     },
     context:
-      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
     type: 'KYCEmployee',
   };
   const pubSig: ClaimOutputs = {
@@ -238,7 +141,7 @@ test('Query with boolean type', async () => {
     timestamp: 0,
   };
   await expect(
-    checkQueryRequest(query, pubSig, new MockSchemaLoader()),
+    checkQueryRequest(query, pubSig, defaultLoader),
   ).resolves.not.toThrow();
 });
 
@@ -249,7 +152,7 @@ test('Selective disclosure with xsd:string type', async () => {
       position: {},
     },
     context:
-      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
     type: 'KYCEmployee',
   };
   const pubSig: ClaimOutputs = {
@@ -270,7 +173,7 @@ test('Selective disclosure with xsd:string type', async () => {
     timestamp: 0,
   };
   await expect(
-    checkQueryRequest(query, pubSig, new MockSchemaLoader(), vpEmployee),
+    checkQueryRequest(query, pubSig, defaultLoader, vpEmployee),
   ).resolves.not.toThrow();
 });
 
@@ -283,7 +186,7 @@ test('EQ operator for xsd:string type', async () => {
       },
     },
     context:
-      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
     type: 'KYCEmployee',
   };
   const pubSig: ClaimOutputs = {
@@ -304,7 +207,7 @@ test('EQ operator for xsd:string type', async () => {
     timestamp: 0,
   };
   await expect(
-    checkQueryRequest(query, pubSig, new MockSchemaLoader()),
+    checkQueryRequest(query, pubSig, defaultLoader),
   ).resolves.not.toThrow();
 });
 
@@ -332,7 +235,7 @@ test('Empty disclosure JSON for disclosure request', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: verifiablePresentation is required for selective disclosure request',
@@ -364,7 +267,7 @@ test('Not EQ operation for disclosure request', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader(), vp);
+    await checkQueryRequest(query, pubSig, defaultLoader, vp);
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: operator for selective disclosure must be $eq',
@@ -396,7 +299,7 @@ test('Not array of values for disclosure request', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader(), vp);
+    await checkQueryRequest(query, pubSig, defaultLoader, vp);
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: selective disclosure not available for array of values',
@@ -428,7 +331,7 @@ test('Proof was generated for another disclosure value', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader(), vp);
+    await checkQueryRequest(query, pubSig, defaultLoader, vp);
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: value that was used is not equal to requested in query',
@@ -460,7 +363,7 @@ test('Different key between proof and disclosure response', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader(), vp);
+    await checkQueryRequest(query, pubSig, defaultLoader, vp);
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate selective disclosure: path [https://www.w3.org/2018/credentials#verifiableCredential,https://www.w3.org/2018/credentials#credentialSubject,https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#documentType] doesn't exist in verifiablePresentation document`,
@@ -492,7 +395,7 @@ test('Invalid issuer', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(`issuer is not in allowed list`);
   }
@@ -524,7 +427,7 @@ test('Invalid Schema ID', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(
       `schema that was used is not equal to requested in query`,
@@ -557,7 +460,7 @@ test('Multiply query', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(`multiple requests not supported`);
   }
@@ -590,7 +493,7 @@ test('Multiple predicates in one request', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(`multiple predicates for one field not supported`);
   }
@@ -622,7 +525,7 @@ test('Proof was generated for another query operator', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate operators: operator that was used is not equal to request`,
@@ -656,7 +559,7 @@ test('Proof was generated for another values', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate operators: comparison value that was used is not equal to requested in query`,
@@ -691,7 +594,7 @@ test('Different slot index', async () => {
     slotIndex: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(`wrong claim slot was used in claim`);
   }
@@ -724,7 +627,7 @@ test('Check revocation is required', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(`check revocation is required`);
   }
@@ -739,7 +642,7 @@ test('Unsupported lt operator for xsd:boolean', async () => {
       },
     },
     context:
-      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
     type: 'KYCEmployee',
   };
   const pubSig: ClaimOutputs = {
@@ -756,7 +659,7 @@ test('Unsupported lt operator for xsd:boolean', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(
       `operator '2' is not supported for 'http://www.w3.org/2001/XMLSchema#boolean' datatype`,
@@ -773,7 +676,7 @@ test('Negative value in request', async () => {
       },
     },
     context:
-      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
     type: 'KYCEmployee',
   };
   const pubSig: ClaimOutputs = {
@@ -790,7 +693,7 @@ test('Negative value in request', async () => {
     timestamp: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, new MockSchemaLoader());
+    await checkQueryRequest(query, pubSig, defaultLoader);
   } catch (e) {
     expect(e.message).toBe(`value must be positive integer`);
   }

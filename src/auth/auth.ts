@@ -12,8 +12,7 @@ import {
 } from '@lib/protocol/constants';
 
 import { verifyProof } from '@lib/proofs/zk';
-import { IKeyLoader } from '@lib/loaders/key';
-import { ISchemaLoader } from '@lib/loaders/schema';
+import { IKeyLoader } from '@lib/loaders/loaders';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';
@@ -30,6 +29,11 @@ import {
   ZKPPacker,
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
+import {
+  Options,
+  getDocumentLoader,
+  DocumentLoader,
+} from '@iden3/js-jsonld-merklization';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -61,30 +65,33 @@ export function createAuthorizationRequestWithMessage(
   return request;
 }
 
+export type VerificationOptions = Options & {
+  packageManager?: PackageManager;
+};
+
 export class Verifier {
   private keyLoader: IKeyLoader;
-  private schemaLoader: ISchemaLoader;
+  private schemaLoader: DocumentLoader;
   private stateResolver: Resolvers;
   private packageManager: PackageManager;
 
   private constructor(
     keyLoader: IKeyLoader,
-    schemaLoader: ISchemaLoader,
     stateResolver: Resolvers,
-    packageManager: PackageManager = new PackageManager(),
+    opts?: VerificationOptions,
   ) {
     this.keyLoader = keyLoader;
-    this.schemaLoader = schemaLoader;
+    this.schemaLoader = getDocumentLoader(opts as Options);
     this.stateResolver = stateResolver;
-    this.packageManager = packageManager;
+    this.packageManager = opts?.packageManager ?? new PackageManager();
   }
 
   static async newVerifier(
     keyLoader: IKeyLoader,
-    schemaLoader: ISchemaLoader,
     stateResolver: Resolvers,
+    opts?: VerificationOptions,
   ): Promise<Verifier> {
-    const verifier = new Verifier(keyLoader, schemaLoader, stateResolver);
+    const verifier = new Verifier(keyLoader, stateResolver, opts);
     await verifier.initPackers();
     return verifier;
   }

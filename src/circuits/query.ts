@@ -1,10 +1,16 @@
-import { ISchemaLoader, SchemaLoadResult } from '@lib/loaders/schema';
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
-import { Merklizer, Path, MtValue } from '@iden3/js-jsonld-merklization';
+import {
+  Merklizer,
+  Path,
+  MtValue,
+  getDocumentLoader,
+} from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization/dist/types/loaders/jsonld-loader';
+import { Operators, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const bytesDecoder = new TextDecoder();
 
@@ -71,8 +77,7 @@ export interface ClaimOutputs {
 export async function checkQueryRequest(
   query: Query,
   outputs: ClaimOutputs,
-  // todo: add schema loader from merklizer
-  schemaLoader: ISchemaLoader,
+  schemaLoader?: DocumentLoader,
   verifiablePresentation?: JSON,
 ): Promise<void> {
   // validate issuer
@@ -85,18 +90,21 @@ export async function checkQueryRequest(
   }
 
   // validate schema
-  let loadResult: SchemaLoadResult;
+  let schema: object;
   try {
-    loadResult = await schemaLoader.load(query.context);
+    const loader = schemaLoader ?? getDocumentLoader();
+    schema = (await loader(query.context)).document;
   } catch (e) {
     throw new Error(`can't load schema for request query`);
   }
 
   const schemaId: string = await Path.getTypeIDFromContext(
-    bytesDecoder.decode(loadResult.schema),
+    JSON.stringify(schema),
     query.type,
+    { documentLoader: schemaLoader },
   );
   const schemaHash = createSchemaHash(schemaId);
+
   if (schemaHash.bigInt() !== outputs.schemaHash.bigInt()) {
     throw new Error(`schema that was used is not equal to requested in query`);
   }
@@ -105,14 +113,31 @@ export async function checkQueryRequest(
     throw new Error(`check revocation is required`);
   }
 
-  const cq = await parseRequest(query, outputs, loadResult.schema);
+  const cq = await parseRequest(
+    query,
+    outputs,
+    byteEncoder.encode(JSON.stringify(schema)),
+    schemaLoader,
+  );
 
   // validate selective disclosure
   if (cq.isSelectiveDisclosure) {
     try {
-      await validateDisclosure(verifiablePresentation, cq, outputs);
+      await validateDisclosure(
+        verifiablePresentation,
+        cq,
+        outputs,
+        schemaLoader,
+      );
     } catch (e) {
       throw new Error(`failed to validate selective disclosure: ${e.message}`);
+    }
+  } else if (!cq.fieldName && cq.operator == operators.get('$noop')) {
+    try {
+      await validateEmptyCredentialSubject(cq, outputs);
+      return;
+    } catch (e) {
+      throw new Error(`failed to validate operators: ${e.message}`);
     }
   } else {
     try {
@@ -139,6 +164,31 @@ export async function checkQueryRequest(
   return;
 }
 
+async function validateEmptyCredentialSubject(
+  cq: CircuitQuery,
+  outputs: ClaimOutputs,
+) {
+  if (outputs.operator !== Operators.EQ) {
+    throw new Error(
+      'empty credentialSubject request available only for equal operation',
+    );
+  }
+  for (let index = 1; index < outputs.value.length; index++) {
+    if (outputs.value[index] !== BigInt(0)) {
+      throw new Error(
+        `empty credentialSubject request not available for array of values`,
+      );
+    }
+  }
+  const path = await Path.newPath([
+    'https://www.w3.org/2018/credentials#credentialSubject',
+  ]);
+  const subjectEntry = await path.mtEntry();
+  if (outputs.claimPathKey !== subjectEntry) {
+    throw new Error(`proof doesn't contain credentialSubject in claimPathKey`);
+  }
+  return;
+}
 async function validateOperators(cq: CircuitQuery, outputs: ClaimOutputs) {
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
@@ -161,6 +211,7 @@ async function validateDisclosure(
   verifiablePresentation: JSON,
   cq: CircuitQuery,
   outputs: ClaimOutputs,
+  ldLoader?: DocumentLoader,
 ) {
   if (!verifiablePresentation) {
     throw new Error(
@@ -183,7 +234,9 @@ async function validateDisclosure(
     verifiablePresentation,
   );
   try {
-    mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation);
+    mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation, {
+      documentLoader: ldLoader,
+    });
   } catch (e) {
     throw new Error(`can't merkelize verifiablePresentation`);
   }
@@ -191,7 +244,12 @@ async function validateDisclosure(
   let merklizedPath: Path;
   try {
     const p = `verifiableCredential.credentialSubject.${cq.fieldName}`;
-    merklizedPath = await Path.fromDocument(null, strVerifiablePresentation, p);
+    merklizedPath = await Path.fromDocument(
+      null,
+      strVerifiablePresentation,
+      p,
+      { documentLoader: ldLoader },
+    );
   } catch (e) {
     throw new Error(`can't build path to '${cq.fieldName}' key`);
   }
@@ -222,6 +280,7 @@ async function parseRequest(
   query: Query,
   outputs: ClaimOutputs,
   schema: Uint8Array,
+  ldLoader?: DocumentLoader,
 ): Promise<CircuitQuery> {
   if (!query.credentialSubject) {
     return {
@@ -257,6 +316,7 @@ async function parseRequest(
     datatype = await Path.newTypeFromContext(
       txtSchema,
       `${query.type}.${fieldName}`,
+      { documentLoader: ldLoader },
     );
   }
 
@@ -271,6 +331,7 @@ async function parseRequest(
     txtSchema,
     query.type,
     fieldName,
+    ldLoader,
   );
 
   const cq: CircuitQuery = {
@@ -371,11 +432,14 @@ async function verifyClaim(
   txtSchema: string,
   credType: string,
   fieldName: string,
+  ldLoader?: DocumentLoader,
 ): Promise<[bigint, number]> {
   let slotIndex: number;
   let claimPathKey: bigint;
   if (merklized === 1) {
-    const path = await Path.getContextPathKey(txtSchema, credType, fieldName);
+    const path = await Path.getContextPathKey(txtSchema, credType, fieldName, {
+      documentLoader: ldLoader,
+    });
     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
     claimPathKey = await path.mtEntry();
   } else {
