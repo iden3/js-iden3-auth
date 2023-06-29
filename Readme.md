@@ -134,7 +134,6 @@ The blockchain verification algorithm is used
   const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
   const verifier = new auth.Verifier(
     verificationKeyLoader,
-    sLoader, 
     resolvers,
     {
       documentLoader: schemaLoader,
