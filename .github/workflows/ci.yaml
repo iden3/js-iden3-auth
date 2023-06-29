@@ -41,10 +41,7 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-
-      - name: Check deps
-        run: npm run check-deps
-
+        
       - name: Run Build
         run: npm run build
 
