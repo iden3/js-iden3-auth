@@ -1,6 +1,6 @@
 {
   "name": "@iden3/js-iden3-auth",
-  "version": "1.0.0-beta.10",
+  "version": "1.0.0-beta.11",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
   "source": "./src/index.ts",
@@ -13,6 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "build:cjs:bundle": "node build.js",
+    "build:types": "tsc -p tsconfig.build.json && tsc-alias",
     "build:types": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src test --ext .ts",
