@@ -3,6 +3,8 @@
   "exclude": ["node_modules", "dist", "test"],
   "include": ["src"],
   "compilerOptions": {
-    "rootDir": "src"
+    "rootDir": "src",
+    "outDir": "dist/tsc",
+    "emitDeclarationOnly": true
   }
 }
