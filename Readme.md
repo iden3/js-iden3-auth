@@ -132,7 +132,7 @@ The blockchain verification algorithm is used
     ipfsNodeURL: 'ipfs.io'
   });
   const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
-  const verifier = new auth.Verifier(
+  const verifier = new Verifier.newVerifier(
     verificationKeyLoader,
     resolvers,
     {
