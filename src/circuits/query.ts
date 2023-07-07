@@ -1,5 +1,5 @@
 import nestedProperty from 'nested-property';
-import { Id, SchemaHash, DID } from '@iden3/js-iden3-core';
+import { Id, SchemaHash, DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import {
   Merklizer,
   Path,
@@ -11,6 +11,7 @@ import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization/dist/types/loaders/jsonld-loader';
 import { Operators, byteEncoder } from '@0xpolygonid/js-sdk';
+import { VerifyOpts } from './registry';
 
 const bytesDecoder = new TextDecoder();
 
@@ -49,6 +50,8 @@ const serializationIndexDataSlotBType = 'serialization:IndexDataSlotB';
 const serializationValueDataSlotAType = 'serialization:ValueDataSlotA';
 const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 
+const defaultProofGenerationDelayOpts = 24 * 60 * 60 * 1000; // 24 hours
+
 // Query is a query to circuit
 export interface Query {
   allowedIssuers: string[];
@@ -79,6 +82,7 @@ export async function checkQueryRequest(
   outputs: ClaimOutputs,
   schemaLoader?: DocumentLoader,
   verifiablePresentation?: JSON,
+  opts?: VerifyOpts
 ): Promise<void> {
   // validate issuer
   const userDID = DID.parseFromId(outputs.issuerId);
@@ -161,6 +165,20 @@ export async function checkQueryRequest(
     }
   }
 
+  // verify timestamp
+  let acceptedProofGenerationDelay = defaultProofGenerationDelayOpts;
+  if (opts?.acceptedProofGenerationDelay) {
+    acceptedProofGenerationDelay = opts.acceptedProofGenerationDelay;
+  }
+
+  const timeDiff =
+        Date.now() -
+        getDateFromUnixTimestamp(
+          Number(outputs.timestamp),
+        ).getTime();
+  if (timeDiff > acceptedProofGenerationDelay) {
+    throw new Error('generated proof is outdated');
+  }
   return;
 }
 

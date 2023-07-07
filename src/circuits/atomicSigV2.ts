@@ -107,6 +107,7 @@ export class AtomicQuerySigV2PubSignals
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
+    opts?: VerifyOpts,
   ): Promise<void> {
     const outs: ClaimOutputs = {
       issuerId: this.issuerID,
@@ -126,6 +127,7 @@ export class AtomicQuerySigV2PubSignals
       outs,
       schemaLoader,
       verifiablePresentation,
+      opts,
     );
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
@@ -158,7 +160,7 @@ export class AtomicQuerySigV2PubSignals
         Date.now() -
         getDateFromUnixTimestamp(
           Number(issuerNonRevStateResolved.transitionTimestamp),
-        ).getMilliseconds();
+        ).getTime();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('issuer state is outdated');
       }

@@ -327,9 +327,11 @@ test('TestVerifyWithAtomicMTPProof', async () => {
       documentLoader: schemaLoader,
     },
   );
-
+  const opts: VerifyOpts = {
+    acceptedProofGenerationDelay: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+  };
   await expect(
-    verifier.verifyAuthResponse(response, request),
+    verifier.verifyAuthResponse(response, request, opts),
   ).resolves.not.toThrow();
 });
 
@@ -393,6 +395,7 @@ test('TestFullVerify', async () => {
 
   const opts: VerifyOpts = {
     acceptedStateTransitionDelay: 5 * 60 * 1000, // 5 minutes
+    acceptedProofGenerationDelay: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
   };
   await expect(
     verifier.fullVerify(token, request, opts),
@@ -454,6 +457,7 @@ test('TestFullVerify JWS', async () => {
 
   const opts: VerifyOpts = {
     acceptedStateTransitionDelay: 5 * 60 * 1000, // 5 minutes
+    acceptedProofGenerationDelay: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
   };
   await expect(
     verifier.fullVerify(token, request, opts),
@@ -696,6 +700,7 @@ test('verify jwz with selective disclosure', async () => {
 
   const opts: VerifyOpts = {
     acceptedStateTransitionDelay: 5 * 60 * 1000, // 5 minutes
+    acceptedProofGenerationDelay: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
   };
   await expect(
     verifier.fullVerify(token, request, opts),
@@ -743,6 +748,7 @@ test('test verify empty credential subject', async () => {
 
   const opts: VerifyOpts = {
     acceptedStateTransitionDelay: 5 * 60 * 1000, // 5 minutes
+    acceptedProofGenerationDelay: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
   };
   await expect(
     verifier.fullVerify(token, request, opts),
