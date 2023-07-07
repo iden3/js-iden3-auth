@@ -626,7 +626,7 @@ test('TestResponseWithEmptyQueryRequest_ErrorCase', async () => {
   );
 
   try {
-    await verifier.verifyAuthResponse(response, request);
+    expect(await verifier.verifyAuthResponse(response, request)).toThrowError();
   } catch (e) {
     expect(e.toString()).toContain(
       'Error: failed to validate operators: empty credentialSubject request available only for equal operation',

@@ -267,7 +267,7 @@ test('Not EQ operation for disclosure request', async () => {
     timestamp: Date.now() / 1000,
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: operator for selective disclosure must be $eq',
@@ -299,7 +299,7 @@ test('Not array of values for disclosure request', async () => {
     timestamp: Date.now() / 1000,
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: selective disclosure not available for array of values',
@@ -331,7 +331,7 @@ test('Proof was generated for another disclosure value', async () => {
     timestamp: Date.now() / 1000,
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: value that was used is not equal to requested in query',
@@ -363,7 +363,7 @@ test('Different key between proof and disclosure response', async () => {
     timestamp: Date.now() / 1000,
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate selective disclosure: path [https://www.w3.org/2018/credentials#verifiableCredential,https://www.w3.org/2018/credentials#credentialSubject,https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#documentType] doesn't exist in verifiablePresentation document`,
