@@ -8,6 +8,8 @@ import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 export type VerifyOpts = {
   // acceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
   acceptedStateTransitionDelay?: number;
+  // acceptedProofGenerationDelay is the period of time in milliseconds that a generated proof remains valid.
+  acceptedProofGenerationDelay?: number;
 };
 
 export interface PubSignalsVerifier {
@@ -15,6 +17,7 @@ export interface PubSignalsVerifier {
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
+    opts?: VerifyOpts,
   ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;

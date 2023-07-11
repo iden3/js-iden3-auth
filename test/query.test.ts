@@ -1,5 +1,5 @@
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
-import { Id, SchemaHash } from '@iden3/js-iden3-core';
+import { getUnixTimestamp, Id, SchemaHash } from '@iden3/js-iden3-core';
 import { getDocumentLoader } from '@iden3/js-jsonld-merklization';
 
 const defaultLoader = getDocumentLoader();
@@ -80,7 +80,7 @@ test('Check merklized query', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   await expect(
     checkQueryRequest(query, pubSig, defaultLoader),
@@ -108,7 +108,7 @@ test('Selective disclosure', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   await expect(
     checkQueryRequest(query, pubSig, defaultLoader, vp),
@@ -138,7 +138,7 @@ test('Query with boolean type', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   await expect(
     checkQueryRequest(query, pubSig, defaultLoader),
@@ -170,7 +170,7 @@ test('Selective disclosure with xsd:string type', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   await expect(
     checkQueryRequest(query, pubSig, defaultLoader, vpEmployee),
@@ -204,7 +204,7 @@ test('EQ operator for xsd:string type', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   await expect(
     checkQueryRequest(query, pubSig, defaultLoader),
@@ -232,10 +232,10 @@ test('Empty disclosure JSON for disclosure request', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: verifiablePresentation is required for selective disclosure request',
@@ -264,10 +264,10 @@ test('Not EQ operation for disclosure request', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: operator for selective disclosure must be $eq',
@@ -296,10 +296,10 @@ test('Not array of values for disclosure request', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: selective disclosure not available for array of values',
@@ -328,10 +328,10 @@ test('Proof was generated for another disclosure value', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       'failed to validate selective disclosure: value that was used is not equal to requested in query',
@@ -360,10 +360,10 @@ test('Different key between proof and disclosure response', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader, vp);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate selective disclosure: path [https://www.w3.org/2018/credentials#verifiableCredential,https://www.w3.org/2018/credentials#credentialSubject,https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#documentType] doesn't exist in verifiablePresentation document`,
@@ -392,10 +392,10 @@ test('Invalid issuer', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`issuer is not in allowed list`);
   }
@@ -424,10 +424,10 @@ test('Invalid Schema ID', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       `schema that was used is not equal to requested in query`,
@@ -457,10 +457,10 @@ test('Multiply query', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`multiple requests not supported`);
   }
@@ -490,10 +490,10 @@ test('Multiple predicates in one request', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`multiple predicates for one field not supported`);
   }
@@ -522,10 +522,10 @@ test('Proof was generated for another query operator', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate operators: operator that was used is not equal to request`,
@@ -556,10 +556,10 @@ test('Proof was generated for another values', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       `failed to validate operators: comparison value that was used is not equal to requested in query`,
@@ -590,11 +590,11 @@ test('Different slot index', async () => {
     merklized: 0,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
     slotIndex: 0,
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`wrong claim slot was used in claim`);
   }
@@ -624,10 +624,10 @@ test('Check revocation is required', async () => {
     merklized: 1,
     isRevocationChecked: 0,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`check revocation is required`);
   }
@@ -656,10 +656,10 @@ test('Unsupported lt operator for xsd:boolean', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
       `operator '2' is not supported for 'http://www.w3.org/2001/XMLSchema#boolean' datatype`,
@@ -690,11 +690,46 @@ test('Negative value in request', async () => {
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: 0,
+    timestamp: getUnixTimestamp(new Date()),
   };
   try {
-    await checkQueryRequest(query, pubSig, defaultLoader);
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`value must be positive integer`);
+  }
+});
+
+test('Generated proof is outdated', async () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setMinutes(yesterday.getMinutes() - 1);
+  const query: Query = {
+    allowedIssuers: ['*'],
+    credentialSubject: {
+      ZKPexperiance: {
+        $eq: true,
+      },
+    },
+    context:
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
+    type: 'KYCEmployee',
+  };
+  const pubSig: ClaimOutputs = {
+    issuerId: issuerID,
+    schemaHash: KYCEmployeeSchema,
+    claimPathKey: BigInt(
+      '1944808975288007371356450257872165609440470546066507760733183342797918372827',
+    ),
+    operator: 1,
+    value: new Array(BigIntTrueHash),
+    merklized: 1,
+    isRevocationChecked: 1,
+    valueArraySize: 64,
+    timestamp: yesterday.getTime() / 1000,
+  };
+  try {
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError()
+  } catch (e) {
+    expect(e.message).toBe(`generated proof is outdated`);
   }
 });

@@ -49,7 +49,7 @@ export class AuthPubSignalsV2
         Date.now() -
         getDateFromUnixTimestamp(
           Number(gist.transitionTimestamp),
-        ).getMilliseconds();
+        ).getTime();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('global state is outdated');
       }

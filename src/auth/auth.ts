@@ -198,6 +198,7 @@ export class Verifier {
         proofRequest.query as Query,
         this.schemaLoader,
         proofResp.vp,
+        opts,
       );
 
       // verify states
