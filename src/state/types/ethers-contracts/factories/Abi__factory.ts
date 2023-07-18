@@ -14,11 +14,11 @@ const _abi = [
         indexed: false,
         internalType: 'uint8',
         name: 'version',
-        type: 'uint8',
-      },
+        type: 'uint8'
+      }
     ],
     name: 'Initialized',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -27,17 +27,17 @@ const _abi = [
         indexed: true,
         internalType: 'address',
         name: 'previousOwner',
-        type: 'address',
+        type: 'address'
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'newOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'OwnershipTransferStarted',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -46,17 +46,17 @@ const _abi = [
         indexed: true,
         internalType: 'address',
         name: 'previousOwner',
-        type: 'address',
+        type: 'address'
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'newOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'OwnershipTransferred',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -65,29 +65,29 @@ const _abi = [
         indexed: false,
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         indexed: false,
         internalType: 'uint256',
         name: 'blockN',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         indexed: false,
         internalType: 'uint256',
         name: 'timestamp',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         indexed: false,
         internalType: 'uint256',
         name: 'state',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'StateUpdated',
-    type: 'event',
+    type: 'event'
   },
   {
     inputs: [],
@@ -96,26 +96,26 @@ const _abi = [
       {
         internalType: 'string',
         name: '',
-        type: 'string',
-      },
+        type: 'string'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
     name: 'acceptOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTProof',
     outputs: [
@@ -124,64 +124,64 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'existence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256[64]',
             name: 'siblings',
-            type: 'uint256[64]',
+            type: 'uint256[64]'
           },
           {
             internalType: 'uint256',
             name: 'index',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'value',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'auxExistence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256',
             name: 'auxIndex',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'auxValue',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistProof',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'blockNumber',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTProofByBlock',
     outputs: [
@@ -190,64 +190,64 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'existence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256[64]',
             name: 'siblings',
-            type: 'uint256[64]',
+            type: 'uint256[64]'
           },
           {
             internalType: 'uint256',
             name: 'index',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'value',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'auxExistence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256',
             name: 'auxIndex',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'auxValue',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistProof',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'root',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTProofByRoot',
     outputs: [
@@ -256,64 +256,64 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'existence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256[64]',
             name: 'siblings',
-            type: 'uint256[64]',
+            type: 'uint256[64]'
           },
           {
             internalType: 'uint256',
             name: 'index',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'value',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'auxExistence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256',
             name: 'auxIndex',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'auxValue',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistProof',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'timestamp',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTProofByTime',
     outputs: [
@@ -322,51 +322,51 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'existence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256[64]',
             name: 'siblings',
-            type: 'uint256[64]',
+            type: 'uint256[64]'
           },
           {
             internalType: 'uint256',
             name: 'index',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'value',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'bool',
             name: 'auxExistence',
-            type: 'bool',
+            type: 'bool'
           },
           {
             internalType: 'uint256',
             name: 'auxIndex',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'auxValue',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistProof',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -375,24 +375,24 @@ const _abi = [
       {
         internalType: 'uint256',
         name: '',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'start',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'length',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTRootHistory',
     outputs: [
@@ -401,41 +401,41 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByRoot',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistRootInfo[]',
         name: '',
-        type: 'tuple[]',
-      },
+        type: 'tuple[]'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -444,19 +444,19 @@ const _abi = [
       {
         internalType: 'uint256',
         name: '',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'root',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTRootInfo',
     outputs: [
@@ -465,49 +465,49 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByRoot',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistRootInfo',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'blockNumber',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTRootInfoByBlock',
     outputs: [
@@ -516,49 +516,49 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByRoot',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistRootInfo',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'timestamp',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getGISTRootInfoByTime',
     outputs: [
@@ -567,49 +567,49 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'root',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByRoot',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.GistRootInfo',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getStateInfoById',
     outputs: [
@@ -618,59 +618,59 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'id',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'state',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByState',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.StateInfo',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'state',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getStateInfoByIdAndState',
     outputs: [
@@ -679,64 +679,64 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'id',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'state',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByState',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.StateInfo',
         name: '',
-        type: 'tuple',
-      },
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'startIndex',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'length',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getStateInfoHistoryById',
     outputs: [
@@ -745,65 +745,65 @@ const _abi = [
           {
             internalType: 'uint256',
             name: 'id',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'state',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedByState',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtTimestamp',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'createdAtBlock',
-            type: 'uint256',
+            type: 'uint256'
           },
           {
             internalType: 'uint256',
             name: 'replacedAtBlock',
-            type: 'uint256',
-          },
+            type: 'uint256'
+          }
         ],
         internalType: 'struct IState.StateInfo[]',
         name: '',
-        type: 'tuple[]',
-      },
+        type: 'tuple[]'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'getStateInfoHistoryLengthById',
     outputs: [
       {
         internalType: 'uint256',
         name: '',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -812,43 +812,43 @@ const _abi = [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'idExists',
     outputs: [
       {
         internalType: 'bool',
         name: '',
-        type: 'bool',
-      },
+        type: 'bool'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'contract IStateTransitionVerifier',
         name: 'verifierContractAddr',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'initialize',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -857,11 +857,11 @@ const _abi = [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -870,112 +870,112 @@ const _abi = [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
     name: 'renounceOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'newVerifierAddr',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'setVerifier',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'state',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'stateExists',
     outputs: [
       {
         internalType: 'bool',
         name: '',
-        type: 'bool',
-      },
+        type: 'bool'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'newOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'transferOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'uint256',
         name: 'id',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'oldState',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'uint256',
         name: 'newState',
-        type: 'uint256',
+        type: 'uint256'
       },
       {
         internalType: 'bool',
         name: 'isOldStateGenesis',
-        type: 'bool',
+        type: 'bool'
       },
       {
         internalType: 'uint256[2]',
         name: 'a',
-        type: 'uint256[2]',
+        type: 'uint256[2]'
       },
       {
         internalType: 'uint256[2][2]',
         name: 'b',
-        type: 'uint256[2][2]',
+        type: 'uint256[2][2]'
       },
       {
         internalType: 'uint256[2]',
         name: 'c',
-        type: 'uint256[2]',
-      },
+        type: 'uint256[2]'
+      }
     ],
     name: 'transitState',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
-  },
+    type: 'function'
+  }
 ] as const;
 
 export class Abi__factory {

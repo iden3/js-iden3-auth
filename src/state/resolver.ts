@@ -16,7 +16,7 @@ export interface IStateResolver {
 export type ResolvedState = {
   latest: boolean;
   genesis: boolean;
-  state: any;
+  state: unknown;
   transitionTimestamp: number | string;
 };
 export class EthStateResolver implements IStateResolver {
@@ -33,7 +33,7 @@ export class EthStateResolver implements IStateResolver {
     const ethersProvider = new ethers.providers.JsonRpcProvider({
       url: url.href,
       user: url.username,
-      password: url.password,
+      password: url.password
     });
     const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
 
@@ -50,12 +50,10 @@ export class EthStateResolver implements IStateResolver {
             latest: true,
             genesis: isGenesis,
             state: state,
-            transitionTimestamp: 0,
+            transitionTimestamp: 0
           };
         }
-        throw new Error(
-          'State is not genesis and not registered in the smart contract',
-        );
+        throw new Error('State is not genesis and not registered in the smart contract');
       }
       throw e;
     }
@@ -72,7 +70,7 @@ export class EthStateResolver implements IStateResolver {
         latest: false,
         genesis: false,
         state: state,
-        transitionTimestamp: contractState.replacedAtTimestamp.toNumber(),
+        transitionTimestamp: contractState.replacedAtTimestamp.toNumber()
       };
     }
 
@@ -84,7 +82,7 @@ export class EthStateResolver implements IStateResolver {
     const ethersProvider = new ethers.providers.JsonRpcProvider({
       url: url.href,
       user: url.username,
-      password: url.password,
+      password: url.password
     });
     const contract = Abi__factory.connect(this.contractAddress, ethersProvider);
 
@@ -110,7 +108,7 @@ export class EthStateResolver implements IStateResolver {
         latest: false,
         state: state,
         transitionTimestamp: globalStateInfo.replacedAtTimestamp.toString(),
-        genesis: false,
+        genesis: false
       };
     }
 
@@ -118,7 +116,7 @@ export class EthStateResolver implements IStateResolver {
       latest: true,
       state: state,
       transitionTimestamp: 0,
-      genesis: false,
+      genesis: false
     };
   }
 }

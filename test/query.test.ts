@@ -42,77 +42,70 @@ const vp = JSON.parse(`{
 	}
 }`);
 
-const issuerDID =
-  'did:polygonid:polygon:mumbai:2qHSHBGWGJ68AosMKcLCTp8FYdVrtYE6MtNHhq8xpK';
+const issuerDID = 'did:polygonid:polygon:mumbai:2qHSHBGWGJ68AosMKcLCTp8FYdVrtYE6MtNHhq8xpK';
 const issuerID = Id.fromBigInt(
-  BigInt(
-    '22638457188543025296541325416907897762715008870723718557276875842936181250',
-  ),
+  BigInt('22638457188543025296541325416907897762715008870723718557276875842936181250')
 );
 const KYCCountrySchema = SchemaHash.newSchemaHashFromInt(
-  BigInt('336615423900919464193075592850483704600'),
+  BigInt('336615423900919464193075592850483704600')
 );
 const KYCEmployeeSchema = SchemaHash.newSchemaHashFromInt(
-  BigInt('219578617064540016234161640375755865412'),
+  BigInt('219578617064540016234161640375755865412')
 );
 const BigIntTrueHash = BigInt(
-  '18586133768512220936620570745912940619677854269274689475585506675881198879027',
+  '18586133768512220936620570745912940619677854269274689475585506675881198879027'
 );
 
 test('Check merklized query', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: { $nin: [800] },
+      countryCode: { $nin: [800] }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 5,
     value: new Array(BigInt(800)),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
-  await expect(
-    checkQueryRequest(query, pubSig, defaultLoader),
-  ).resolves.not.toThrow();
+  await expect(checkQueryRequest(query, pubSig, defaultLoader)).resolves.not.toThrow();
 });
 
 test('Selective disclosure', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: {},
+      countryCode: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt(800)),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
-  await expect(
-    checkQueryRequest(query, pubSig, defaultLoader, vp),
-  ).resolves.not.toThrow();
+  await expect(checkQueryRequest(query, pubSig, defaultLoader, vp)).resolves.not.toThrow();
 });
 
 test('Query with boolean type', async () => {
@@ -120,61 +113,55 @@ test('Query with boolean type', async () => {
     allowedIssuers: ['*'],
     credentialSubject: {
       ZKPexperiance: {
-        $eq: true,
-      },
+        $eq: true
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
-    type: 'KYCEmployee',
+    type: 'KYCEmployee'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCEmployeeSchema,
     claimPathKey: BigInt(
-      '1944808975288007371356450257872165609440470546066507760733183342797918372827',
+      '1944808975288007371356450257872165609440470546066507760733183342797918372827'
     ),
     operator: 1,
     value: new Array(BigIntTrueHash),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
-  await expect(
-    checkQueryRequest(query, pubSig, defaultLoader),
-  ).resolves.not.toThrow();
+  await expect(checkQueryRequest(query, pubSig, defaultLoader)).resolves.not.toThrow();
 });
 
 test('Selective disclosure with xsd:string type', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      position: {},
+      position: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
-    type: 'KYCEmployee',
+    type: 'KYCEmployee'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCEmployeeSchema,
     claimPathKey: BigInt(
-      '15406634529806189041952040954758558497189093183268091368437514469450172572054',
+      '15406634529806189041952040954758558497189093183268091368437514469450172572054'
     ),
     operator: 1,
     value: new Array(
-      BigInt(
-        '957410455271905675920624030785024750144198809104092676617070098470852489834',
-      ),
+      BigInt('957410455271905675920624030785024750144198809104092676617070098470852489834')
     ),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
-  await expect(
-    checkQueryRequest(query, pubSig, defaultLoader, vpEmployee),
-  ).resolves.not.toThrow();
+  await expect(checkQueryRequest(query, pubSig, defaultLoader, vpEmployee)).resolves.not.toThrow();
 });
 
 test('EQ operator for xsd:string type', async () => {
@@ -182,63 +169,59 @@ test('EQ operator for xsd:string type', async () => {
     allowedIssuers: ['*'],
     credentialSubject: {
       position: {
-        $eq: 'Software Engineer',
-      },
+        $eq: 'Software Engineer'
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
-    type: 'KYCEmployee',
+    type: 'KYCEmployee'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCEmployeeSchema,
     claimPathKey: BigInt(
-      '15406634529806189041952040954758558497189093183268091368437514469450172572054',
+      '15406634529806189041952040954758558497189093183268091368437514469450172572054'
     ),
     operator: 1,
     value: new Array(
-      BigInt(
-        '7481731651336040098616464366227645531920423822088928207225802836605991806542',
-      ),
+      BigInt('7481731651336040098616464366227645531920423822088928207225802836605991806542')
     ),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
-  await expect(
-    checkQueryRequest(query, pubSig, defaultLoader),
-  ).resolves.not.toThrow();
+  await expect(checkQueryRequest(query, pubSig, defaultLoader)).resolves.not.toThrow();
 });
 
 test('Empty disclosure JSON for disclosure request', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: {},
+      countryCode: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      'failed to validate selective disclosure: verifiablePresentation is required for selective disclosure request',
+      'failed to validate selective disclosure: verifiablePresentation is required for selective disclosure request'
     );
   }
 });
@@ -247,30 +230,30 @@ test('Not EQ operation for disclosure request', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: {},
+      countryCode: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 5,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      'failed to validate selective disclosure: operator for selective disclosure must be $eq',
+      'failed to validate selective disclosure: operator for selective disclosure must be $eq'
     );
   }
 });
@@ -279,30 +262,30 @@ test('Not array of values for disclosure request', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: {},
+      countryCode: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: [BigInt('800'), BigInt('801')],
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      'failed to validate selective disclosure: selective disclosure not available for array of values',
+      'failed to validate selective disclosure: selective disclosure not available for array of values'
     );
   }
 });
@@ -311,30 +294,30 @@ test('Proof was generated for another disclosure value', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: {},
+      countryCode: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('1')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      'failed to validate selective disclosure: value that was used is not equal to requested in query',
+      'failed to validate selective disclosure: value that was used is not equal to requested in query'
     );
   }
 });
@@ -343,30 +326,30 @@ test('Different key between proof and disclosure response', async () => {
   const query: Query = {
     allowedIssuers: ['*'],
     credentialSubject: {
-      documentType: {},
+      documentType: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      `failed to validate selective disclosure: path [https://www.w3.org/2018/credentials#verifiableCredential,https://www.w3.org/2018/credentials#credentialSubject,https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#documentType] doesn't exist in verifiablePresentation document`,
+      `failed to validate selective disclosure: path [https://www.w3.org/2018/credentials#verifiableCredential,https://www.w3.org/2018/credentials#credentialSubject,https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#documentType] doesn't exist in verifiablePresentation document`
     );
   }
 });
@@ -375,24 +358,24 @@ test('Invalid issuer', async () => {
   const query: Query = {
     allowedIssuers: ['123'],
     credentialSubject: {
-      documentType: {},
+      documentType: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
@@ -406,32 +389,30 @@ test('Invalid Schema ID', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       documentType: {
-        $eq: 3,
-      },
+        $eq: 3
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCAgeCredential',
+    type: 'KYCAgeCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('3')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
-      `schema that was used is not equal to requested in query`,
-    );
+    expect(e.message).toBe(`schema that was used is not equal to requested in query`);
   }
 });
 
@@ -440,24 +421,24 @@ test('Multiply query', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       documentType: {},
-      countryCode: {},
+      countryCode: {}
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
@@ -472,25 +453,25 @@ test('Multiple predicates in one request', async () => {
     credentialSubject: {
       countryCode: {
         $eq: 20,
-        $ne: 10,
-      },
+        $ne: 10
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
@@ -504,31 +485,31 @@ test('Proof was generated for another query operator', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       countryCode: {
-        $eq: 20,
-      },
+        $eq: 20
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 3,
     value: new Array(BigInt('800')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      `failed to validate operators: operator that was used is not equal to request`,
+      `failed to validate operators: operator that was used is not equal to request`
     );
   }
 });
@@ -538,31 +519,31 @@ test('Proof was generated for another values', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       countryCode: {
-        $nin: [20],
-      },
+        $nin: [20]
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 5,
     value: new Array(BigInt('40')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      `failed to validate operators: comparison value that was used is not equal to requested in query`,
+      `failed to validate operators: comparison value that was used is not equal to requested in query`
     );
   }
 });
@@ -572,18 +553,18 @@ test('Different slot index', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       countryCode: {
-        $nin: [20],
-      },
+        $nin: [20]
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential',
+    type: 'KYCCountryOfResidenceCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 5,
     value: new Array(BigInt('20')),
@@ -591,7 +572,7 @@ test('Different slot index', async () => {
     isRevocationChecked: 1,
     valueArraySize: 64,
     timestamp: getUnixTimestamp(new Date()),
-    slotIndex: 0,
+    slotIndex: 0
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
@@ -605,26 +586,26 @@ test('Check revocation is required', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       countryCode: {
-        $nin: [20],
-      },
+        $nin: [20]
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
     type: 'KYCCountryOfResidenceCredential',
-    skipClaimRevocationCheck: false,
+    skipClaimRevocationCheck: false
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCCountrySchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 5,
     value: new Array(BigInt('20')),
     merklized: 1,
     isRevocationChecked: 0,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
@@ -638,31 +619,31 @@ test('Unsupported lt operator for xsd:boolean', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       ZKPexperiance: {
-        $lt: true,
-      },
+        $lt: true
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
-    type: 'KYCEmployee',
+    type: 'KYCEmployee'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCEmployeeSchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 2,
     value: new Array(BigInt('20')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(
-      `operator '2' is not supported for 'http://www.w3.org/2001/XMLSchema#boolean' datatype`,
+      `operator '2' is not supported for 'http://www.w3.org/2001/XMLSchema#boolean' datatype`
     );
   }
 });
@@ -672,25 +653,25 @@ test('Negative value in request', async () => {
     allowedIssuers: [issuerDID],
     credentialSubject: {
       documentType: {
-        $eq: -1,
-      },
+        $eq: -1
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
-    type: 'KYCEmployee',
+    type: 'KYCEmployee'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCEmployeeSchema,
     claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844',
+      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
     ),
     operator: 1,
     value: new Array(BigInt('-1')),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
@@ -707,28 +688,28 @@ test('Generated proof is outdated', async () => {
     allowedIssuers: ['*'],
     credentialSubject: {
       ZKPexperiance: {
-        $eq: true,
-      },
+        $eq: true
+      }
     },
     context:
       'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
-    type: 'KYCEmployee',
+    type: 'KYCEmployee'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
     schemaHash: KYCEmployeeSchema,
     claimPathKey: BigInt(
-      '1944808975288007371356450257872165609440470546066507760733183342797918372827',
+      '1944808975288007371356450257872165609440470546066507760733183342797918372827'
     ),
     operator: 1,
     value: new Array(BigIntTrueHash),
     merklized: 1,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: yesterday.getTime() / 1000,
+    timestamp: yesterday.getTime() / 1000
   };
   try {
-    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError()
+    expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
     expect(e.message).toBe(`generated proof is outdated`);
   }

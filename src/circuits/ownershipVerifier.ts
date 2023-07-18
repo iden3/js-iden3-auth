@@ -9,16 +9,11 @@ export abstract class IDOwnershipPubSignals {
     try {
       userDid = DID.parseFromId(this.userId);
     } catch (err: unknown) {
-      if (
-        (err as Error).message.includes(
-          Constants.ERRORS.DID_METHOD_NOT_SUPPORTED,
-        )
-      ) {
-        const senderHashedId =
-          IDOwnershipPubSignals.idFromUnsupportedDID(sender);
+      if ((err as Error).message.includes(Constants.ERRORS.DID_METHOD_NOT_SUPPORTED)) {
+        const senderHashedId = IDOwnershipPubSignals.idFromUnsupportedDID(sender);
         if (senderHashedId.string() !== this.userId.string()) {
           throw new Error(
-            `sender is not used for proof creation, expected ${senderHashedId.string()}, user from public signals: ${this.userId.string()}`,
+            `sender is not used for proof creation, expected ${senderHashedId.string()}, user from public signals: ${this.userId.string()}`
           );
         }
         return;
@@ -28,12 +23,12 @@ export abstract class IDOwnershipPubSignals {
 
     if (sender !== userDid.toString()) {
       throw new Error(
-        `sender is not used for proof creation, expected ${sender}, user from public signals: ${userDid.toString()}`,
+        `sender is not used for proof creation, expected ${sender}, user from public signals: ${userDid.toString()}`
       );
     }
     if (challenge !== this.challenge) {
       throw new Error(
-        `challenge is not used for proof creation, expected ${challenge}, challenge from public signals: ${this.challenge}  `,
+        `challenge is not used for proof creation, expected ${challenge}, challenge from public signals: ${this.challenge}  `
       );
     }
   }
