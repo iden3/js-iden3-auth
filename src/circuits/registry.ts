@@ -17,7 +17,7 @@ export interface PubSignalsVerifier {
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
-    opts?: VerifyOpts,
+    opts?: VerifyOpts
   ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
@@ -34,7 +34,7 @@ const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignals;
 const supportedCircuits = {
   authV2,
   credentialAtomicQueryMTPV2,
-  credentialAtomicQuerySigV2,
+  credentialAtomicQuerySigV2
 };
 
 export type VerifierType = PubSignalsVerifier & PubSignals;

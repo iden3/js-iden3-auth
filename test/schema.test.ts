@@ -1,7 +1,4 @@
-import {
-  DocumentLoader,
-  getDocumentLoader,
-} from '@iden3/js-jsonld-merklization';
+import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 
 test('schema http loader', async () => {
   const url =
@@ -19,11 +16,10 @@ test('schema ipfs loader', async () => {
     connectionString = 'https://ipfs.io';
   }
   const loader = getDocumentLoader({
-    ipfsNodeURL: connectionString,
+    ipfsNodeURL: connectionString
   });
-  const schemaResult = (
-    await loader('ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP')
-  ).document;
+  const schemaResult = (await loader('ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP'))
+    .document;
   expect(schemaResult).not.toBeNull();
   expect(schemaResult).toBeDefined();
 });

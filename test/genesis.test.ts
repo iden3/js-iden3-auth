@@ -2,8 +2,7 @@ import { DID } from '@iden3/js-iden3-core';
 import { isGenesisStateId } from '@lib/state/resolver';
 
 test('isGenesisState', async () => {
-  const userDID =
-    'did:iden3:polygon:mumbai:x6suHR8HkEYczV9yVeAKKiXCZAd25P8WS6QvNhszk';
+  const userDID = 'did:iden3:polygon:mumbai:x6suHR8HkEYczV9yVeAKKiXCZAd25P8WS6QvNhszk';
   const userID = DID.parse(userDID);
 
   const genesisState =

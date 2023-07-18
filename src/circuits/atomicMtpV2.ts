@@ -3,11 +3,7 @@ import { Resolvers } from '@lib/state/resolver';
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import {
-  checkIssuerNonRevState,
-  checkUserState,
-  getResolverByID,
-} from '@lib/circuits/common';
+import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { Hash, newHashFromString } from '@iden3/js-merkletree';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
@@ -33,11 +29,7 @@ export class AtomicQueryMTPV2PubSignals
   constructor(pubSignals: string[]) {
     super();
     if (pubSignals.length != 13 + valuesSize) {
-      throw new Error(
-        `invalid number of Output values expected ${74} got ${
-          pubSignals.length
-        }`,
-      );
+      throw new Error(`invalid number of Output values expected ${74} got ${pubSignals.length}`);
     }
 
     let fieldIdx = 0;
@@ -75,9 +67,7 @@ export class AtomicQueryMTPV2PubSignals
     fieldIdx++;
 
     //  - claimSchema
-    this.claimSchema = SchemaHash.newSchemaHashFromInt(
-      BigInt(pubSignals[fieldIdx]),
-    );
+    this.claimSchema = SchemaHash.newSchemaHashFromInt(BigInt(pubSignals[fieldIdx]));
     fieldIdx++;
 
     // - ClaimPathNotExists
@@ -107,7 +97,7 @@ export class AtomicQueryMTPV2PubSignals
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
-    opts?: VerifyOpts,
+    opts?: VerifyOpts
   ): Promise<void> {
     const outs: ClaimOutputs = {
       issuerId: this.issuerID,
@@ -120,23 +110,15 @@ export class AtomicQueryMTPV2PubSignals
       claimPathKey: this.claimPathKey,
       claimPathNotExists: this.claimPathNotExists,
       valueArraySize: valuesSize,
-      isRevocationChecked: this.isRevocationChecked,
+      isRevocationChecked: this.isRevocationChecked
     };
-    return await checkQueryRequest(
-      query,
-      outs,
-      schemaLoader,
-      verifiablePresentation,
-      opts,
-    );
+    return await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
   }
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
     const resolver = getResolverByID(resolvers, this.issuerID);
     if (!resolver) {
-      throw new Error(
-        `resolver not found for issuerID ${this.issuerID.string()}`,
-      );
+      throw new Error(`resolver not found for issuerID ${this.issuerID.string()}`);
     }
 
     await checkUserState(resolver, this.issuerID, this.issuerClaimIdenState);
@@ -148,7 +130,7 @@ export class AtomicQueryMTPV2PubSignals
     const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
       this.issuerID,
-      this.issuerClaimNonRevState,
+      this.issuerClaimNonRevState
     );
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;
@@ -159,9 +141,7 @@ export class AtomicQueryMTPV2PubSignals
     if (!issuerNonRevStateResolved.latest) {
       const timeDiff =
         Date.now() -
-        getDateFromUnixTimestamp(
-          Number(issuerNonRevStateResolved.transitionTimestamp),
-        ).getTime();
+        getDateFromUnixTimestamp(Number(issuerNonRevStateResolved.transitionTimestamp)).getTime();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('issuer state is outdated');
       }

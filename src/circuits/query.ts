@@ -1,11 +1,6 @@
 import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
-import {
-  Merklizer,
-  Path,
-  MtValue,
-  getDocumentLoader,
-} from '@iden3/js-jsonld-merklization';
+import { Merklizer, Path, MtValue, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
 import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
@@ -22,7 +17,7 @@ const operators: Map<string, number> = new Map([
   ['$gt', 3],
   ['$in', 4],
   ['$nin', 5],
-  ['$ne', 6],
+  ['$ne', 6]
 ]);
 
 const allOperations: Set<number> = new Set(operators.values());
@@ -38,10 +33,10 @@ const availableTypesOperators: Map<string, Set<number>> = new Map([
       operators.get('$eq'),
       operators.get('$ne'),
       operators.get('$in'),
-      operators.get('$nin'),
-    ]),
+      operators.get('$nin')
+    ])
   ],
-  [xsdtypes.XSD_DATE, allOperations],
+  [xsdtypes.XSD_DATE, allOperations]
 ]);
 
 const serializationIndexDataSlotAType = 'serialization:IndexDataSlotA';
@@ -87,7 +82,7 @@ export async function checkQueryRequest(
   // validate issuer
   const userDID = DID.parseFromId(outputs.issuerId);
   const issuerAllowed = query.allowedIssuers.some(
-    (issuer) => issuer === '*' || issuer === userDID.toString(),
+    (issuer) => issuer === '*' || issuer === userDID.toString()
   );
   if (!issuerAllowed) {
     throw new Error('issuer is not in allowed list');
@@ -102,11 +97,9 @@ export async function checkQueryRequest(
     throw new Error(`can't load schema for request query`);
   }
 
-  const schemaId: string = await Path.getTypeIDFromContext(
-    JSON.stringify(schema),
-    query.type,
-    { documentLoader: schemaLoader },
-  );
+  const schemaId: string = await Path.getTypeIDFromContext(JSON.stringify(schema), query.type, {
+    documentLoader: schemaLoader
+  });
   const schemaHash = createSchemaHash(schemaId);
 
   if (schemaHash.bigInt() !== outputs.schemaHash.bigInt()) {
@@ -121,18 +114,13 @@ export async function checkQueryRequest(
     query,
     outputs,
     byteEncoder.encode(JSON.stringify(schema)),
-    schemaLoader,
+    schemaLoader
   );
 
   // validate selective disclosure
   if (cq.isSelectiveDisclosure) {
     try {
-      await validateDisclosure(
-        verifiablePresentation,
-        cq,
-        outputs,
-        schemaLoader,
-      );
+      await validateDisclosure(verifiablePresentation, cq, outputs, schemaLoader);
     } catch (e) {
       throw new Error(`failed to validate selective disclosure: ${e.message}`);
     }
@@ -171,36 +159,23 @@ export async function checkQueryRequest(
     acceptedProofGenerationDelay = opts.acceptedProofGenerationDelay;
   }
 
-  const timeDiff =
-        Date.now() -
-        getDateFromUnixTimestamp(
-          Number(outputs.timestamp),
-        ).getTime();
+  const timeDiff = Date.now() - getDateFromUnixTimestamp(Number(outputs.timestamp)).getTime();
   if (timeDiff > acceptedProofGenerationDelay) {
     throw new Error('generated proof is outdated');
   }
   return;
 }
 
-async function validateEmptyCredentialSubject(
-  cq: CircuitQuery,
-  outputs: ClaimOutputs,
-) {
+async function validateEmptyCredentialSubject(cq: CircuitQuery, outputs: ClaimOutputs) {
   if (outputs.operator !== Operators.EQ) {
-    throw new Error(
-      'empty credentialSubject request available only for equal operation',
-    );
+    throw new Error('empty credentialSubject request available only for equal operation');
   }
   for (let index = 1; index < outputs.value.length; index++) {
     if (outputs.value[index] !== BigInt(0)) {
-      throw new Error(
-        `empty credentialSubject request not available for array of values`,
-      );
+      throw new Error(`empty credentialSubject request not available for array of values`);
     }
   }
-  const path = await Path.newPath([
-    'https://www.w3.org/2018/credentials#credentialSubject',
-  ]);
+  const path = await Path.newPath(['https://www.w3.org/2018/credentials#credentialSubject']);
   const subjectEntry = await path.mtEntry();
   if (outputs.claimPathKey !== subjectEntry) {
     throw new Error(`proof doesn't contain credentialSubject in claimPathKey`);
@@ -218,9 +193,7 @@ async function validateOperators(cq: CircuitQuery, outputs: ClaimOutputs) {
 
   for (let index = 0; index < outputs.value.length; index++) {
     if (outputs.value[index] !== cq.values[index]) {
-      throw new Error(
-        `comparison value that was used is not equal to requested in query`,
-      );
+      throw new Error(`comparison value that was used is not equal to requested in query`);
     }
   }
 }
@@ -229,12 +202,10 @@ async function validateDisclosure(
   verifiablePresentation: JSON,
   cq: CircuitQuery,
   outputs: ClaimOutputs,
-  ldLoader?: DocumentLoader,
+  ldLoader?: DocumentLoader
 ) {
   if (!verifiablePresentation) {
-    throw new Error(
-      `verifiablePresentation is required for selective disclosure request`,
-    );
+    throw new Error(`verifiablePresentation is required for selective disclosure request`);
   }
 
   if (outputs.operator !== operators.get('$eq')) {
@@ -248,12 +219,10 @@ async function validateDisclosure(
   }
 
   let mz: Merklizer;
-  const strVerifiablePresentation: string = JSON.stringify(
-    verifiablePresentation,
-  );
+  const strVerifiablePresentation: string = JSON.stringify(verifiablePresentation);
   try {
     mz = await Merklizer.merklizeJSONLD(strVerifiablePresentation, {
-      documentLoader: ldLoader,
+      documentLoader: ldLoader
     });
   } catch (e) {
     throw new Error(`can't merkelize verifiablePresentation`);
@@ -262,12 +231,9 @@ async function validateDisclosure(
   let merklizedPath: Path;
   try {
     const p = `verifiableCredential.credentialSubject.${cq.fieldName}`;
-    merklizedPath = await Path.fromDocument(
-      null,
-      strVerifiablePresentation,
-      p,
-      { documentLoader: ldLoader },
-    );
+    merklizedPath = await Path.fromDocument(null, strVerifiablePresentation, p, {
+      documentLoader: ldLoader
+    });
   } catch (e) {
     throw new Error(`can't build path to '${cq.fieldName}' key`);
   }
@@ -282,7 +248,7 @@ async function validateDisclosure(
 
   if (!proof.existence) {
     throw new Error(
-      `path [${merklizedPath.parts}] doesn't exist in verifiablePresentation document`,
+      `path [${merklizedPath.parts}] doesn't exist in verifiablePresentation document`
     );
   }
 
@@ -298,7 +264,7 @@ async function parseRequest(
   query: Query,
   outputs: ClaimOutputs,
   schema: Uint8Array,
-  ldLoader?: DocumentLoader,
+  ldLoader?: DocumentLoader
 ): Promise<CircuitQuery> {
   if (!query.credentialSubject) {
     return {
@@ -306,7 +272,7 @@ async function parseRequest(
       values: null,
       slotIndex: 0,
       isSelectiveDisclosure: false,
-      fieldName: '',
+      fieldName: ''
     };
   }
   if (Object.keys(query.credentialSubject).length > 1) {
@@ -331,16 +297,14 @@ async function parseRequest(
 
   let datatype: string;
   if (fieldName !== '') {
-    datatype = await Path.newTypeFromContext(
-      txtSchema,
-      `${query.type}.${fieldName}`,
-      { documentLoader: ldLoader },
-    );
+    datatype = await Path.newTypeFromContext(txtSchema, `${query.type}.${fieldName}`, {
+      documentLoader: ldLoader
+    });
   }
 
   const [operator, values] = await parsePredicate(predicate, datatype);
   const zeros: Array<bigint> = Array.from({
-    length: outputs.valueArraySize - values.length,
+    length: outputs.valueArraySize - values.length
   }).fill(BigInt(0)) as Array<bigint>;
   const fullArray: Array<bigint> = values.concat(zeros);
 
@@ -349,7 +313,7 @@ async function parseRequest(
     txtSchema,
     query.type,
     fieldName,
-    ldLoader,
+    ldLoader
   );
 
   const cq: CircuitQuery = {
@@ -358,7 +322,7 @@ async function parseRequest(
     operator,
     values: fullArray,
     isSelectiveDisclosure: false,
-    fieldName,
+    fieldName
   };
 
   if (Object.keys(predicate).length === 0) {
@@ -368,16 +332,9 @@ async function parseRequest(
   return cq;
 }
 
-function getFieldSlotIndex(
-  fieldName: string,
-  credentialType: string,
-  schema: Uint8Array,
-): number {
+function getFieldSlotIndex(fieldName: string, credentialType: string, schema: Uint8Array): number {
   const obj = JSON.parse(Buffer.from(schema).toString('utf-8'));
-  const type = nestedProperty.get(
-    obj,
-    `@context.0.${credentialType}.@context.${fieldName}.@type`,
-  );
+  const type = nestedProperty.get(obj, `@context.0.${credentialType}.@context.${fieldName}.@type`);
   switch (type) {
     case serializationIndexDataSlotAType:
       return 2;
@@ -450,22 +407,18 @@ async function verifyClaim(
   txtSchema: string,
   credType: string,
   fieldName: string,
-  ldLoader?: DocumentLoader,
+  ldLoader?: DocumentLoader
 ): Promise<[bigint, number]> {
   let slotIndex: number;
   let claimPathKey: bigint;
   if (merklized === 1) {
     const path = await Path.getContextPathKey(txtSchema, credType, fieldName, {
-      documentLoader: ldLoader,
+      documentLoader: ldLoader
     });
     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
     claimPathKey = await path.mtEntry();
   } else {
-    slotIndex = getFieldSlotIndex(
-      fieldName,
-      credType,
-      new TextEncoder().encode(txtSchema),
-    );
+    slotIndex = getFieldSlotIndex(fieldName, credType, new TextEncoder().encode(txtSchema));
   }
 
   return [claimPathKey, slotIndex];
@@ -473,7 +426,7 @@ async function verifyClaim(
 
 async function parsePredicate(
   predicate: Map<string, any>,
-  datatype: string,
+  datatype: string
 ): Promise<[number, bigint[]]> {
   let operator: number;
   let values: bigint[] = [];
@@ -483,9 +436,7 @@ async function parsePredicate(
     }
     operator = operators.get(key);
     if (!isValidOperation(datatype, operator)) {
-      throw new Error(
-        `operator '${operator}' is not supported for '${datatype}' datatype`,
-      );
+      throw new Error(`operator '${operator}' is not supported for '${datatype}' datatype`);
     }
 
     values = await getValuesAsArray(value, datatype);

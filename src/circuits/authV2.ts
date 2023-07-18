@@ -7,20 +7,13 @@ import { Hash, newHashFromString } from '@iden3/js-merkletree';
 import { Resolvers } from '@lib/state/resolver';
 
 const defaultAuthVerifyOpts = 5 * 60 * 1000; // 5 minutes
-export class AuthPubSignalsV2
-  extends IDOwnershipPubSignals
-  implements PubSignalsVerifier
-{
+export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignalsVerifier {
   gistRoot: Hash;
 
   constructor(pubSignals: string[]) {
     super();
     if (pubSignals.length != 3) {
-      throw new Error(
-        `invalid number of Output values expected ${3} got ${
-          pubSignals.length
-        }`,
-      );
+      throw new Error(`invalid number of Output values expected ${3} got ${pubSignals.length}`);
     }
 
     this.userId = Id.fromBigInt(BigInt(pubSignals[0]));
@@ -46,10 +39,7 @@ export class AuthPubSignalsV2
 
     if (!gist.latest) {
       const timeDiff =
-        Date.now() -
-        getDateFromUnixTimestamp(
-          Number(gist.transitionTimestamp),
-        ).getTime();
+        Date.now() - getDateFromUnixTimestamp(Number(gist.transitionTimestamp)).getTime();
       if (timeDiff > acceptedStateTransitionDelay) {
         throw new Error('global state is outdated');
       }

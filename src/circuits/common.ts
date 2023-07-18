@@ -8,11 +8,11 @@ export const gistStateError = new Error(`gist state is not valid`);
 export async function checkUserState(
   resolver: IStateResolver,
   userId: Id,
-  userState: Hash,
+  userState: Hash
 ): Promise<ResolvedState> {
   const userStateResolved: ResolvedState = await resolver.resolve(
     userId.bigInt(),
-    userState.bigInt(),
+    userState.bigInt()
   );
   if (!userStateResolved.latest) {
     throw userStateError;
@@ -22,22 +22,20 @@ export async function checkUserState(
 
 export async function checkGlobalState(
   resolver: IStateResolver,
-  state: Hash,
+  state: Hash
 ): Promise<ResolvedState> {
-  const gistStateResolved: ResolvedState = await resolver.rootResolve(
-    state.bigInt(),
-  );
+  const gistStateResolved: ResolvedState = await resolver.rootResolve(state.bigInt());
   return gistStateResolved;
 }
 
 export async function checkIssuerNonRevState(
   resolver: IStateResolver,
   issuerId: Id,
-  issuerClaimNonRevState: Hash,
+  issuerClaimNonRevState: Hash
 ): Promise<ResolvedState> {
   const issuerNonRevStateResolved: ResolvedState = await resolver.resolve(
     issuerId.bigInt(),
-    issuerClaimNonRevState.bigInt(),
+    issuerClaimNonRevState.bigInt()
   );
   return issuerNonRevStateResolved;
 }
@@ -47,9 +45,6 @@ export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {
   return getResolverByDID(resolvers, userDID);
 }
 
-export function getResolverByDID(
-  resolvers: Resolvers,
-  did: DID,
-): IStateResolver {
+export function getResolverByDID(resolvers: Resolvers, did: DID): IStateResolver {
   return resolvers[`${did.blockchain}:${did.networkId}`];
 }
