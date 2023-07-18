@@ -16,7 +16,7 @@ export interface IStateResolver {
 export type ResolvedState = {
   latest: boolean;
   genesis: boolean;
-  state: any;
+  state: unknown;
   transitionTimestamp: number | string;
 };
 export class EthStateResolver implements IStateResolver {

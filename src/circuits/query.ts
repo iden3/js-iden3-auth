@@ -363,7 +363,7 @@ export function createSchemaHash(schemaId: string): SchemaHash {
   return new SchemaHash(h.slice(-16));
 }
 
-async function getValuesAsArray(v: any, datatype: string): Promise<bigint[]> {
+async function getValuesAsArray(v: unknown, datatype: string): Promise<bigint[]> {
   const values: Array<bigint> = [];
   if (Array.isArray(v)) {
     for (let index = 0; index < v.length; index++) {
@@ -382,7 +382,7 @@ async function getValuesAsArray(v: any, datatype: string): Promise<bigint[]> {
   return values;
 }
 
-function isPositiveInteger(value: any): boolean {
+function isPositiveInteger(value: unknown): boolean {
   if (!Number.isInteger(value)) {
     return true;
   }
@@ -425,7 +425,7 @@ async function verifyClaim(
 }
 
 async function parsePredicate(
-  predicate: Map<string, any>,
+  predicate: Map<string, unknown>,
   datatype: string
 ): Promise<[number, bigint[]]> {
   let operator: number;
