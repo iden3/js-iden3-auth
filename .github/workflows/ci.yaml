@@ -48,5 +48,8 @@ jobs:
       - name: Download regular circuits for CI 'latest.zip' from S3
         run: mkdir ./test/testdata && wget https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/latest.zip -P ./test/testdata
 
+      - name: Unzip circuits to folder
+        run: cd ./test/testdata && unzip latest.zip && cd - && pwd
+
       - name: Run Tests
         run: npm run test
