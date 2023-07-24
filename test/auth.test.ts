@@ -685,7 +685,7 @@ describe('auth tests', () => {
       '6110517768249559238193477435454792024732173865488900270849624328650765691494'
     );
     // TODO(illia-korotia): why Hash type doesn't implement `toString()` method?
-    expect(instance.gistRoot.string()).toEqual(
+    expect(instance.GISTRoot.string()).toEqual(
       '1243904711429961858774220647610724273798918457991486031567244100767259239747'
     );
   });
