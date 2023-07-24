@@ -1,26 +1,25 @@
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import { Query } from '@lib/circuits/query';
-import { AuthorizationRequestMessage, AuthorizationResponseMessage } from '@lib/protocol/models';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AUTHORIZATION_REQUEST_MESSAGE_TYPE, MEDIA_TYPE_PLAIN } from '@lib/protocol/constants';
-
-import { verifyProof } from '@lib/proofs/zk';
-import { IKeyLoader } from '@lib/loaders/loaders';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';
 import {
+  AuthorizationRequestMessage,
+  AuthorizationResponseMessage,
   CircuitId,
+  IKeyLoader,
   IPacker,
   JWSPacker,
   KMS,
   PackageManager,
   ProvingParams,
-  resolveDIDDocument,
+  PROTOCOL_CONSTANTS,
   VerificationHandlerFunc,
   VerificationParams,
-  ZKPPacker
+  ZKPPacker,
+  ProofService
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, getDocumentLoader, DocumentLoader } from '@iden3/js-jsonld-merklization';
@@ -43,8 +42,8 @@ export function createAuthorizationRequestWithMessage(
     id: uuid,
     thid: uuid,
     from: sender,
-    typ: MEDIA_TYPE_PLAIN,
-    type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+    typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+    type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     body: {
       reason: reason,
       message: message,
@@ -64,9 +63,16 @@ export class Verifier {
   private schemaLoader: DocumentLoader;
   private stateResolver: Resolvers;
   private packageManager: PackageManager;
+  private proofService: ProofService;
 
-  private constructor(keyLoader: IKeyLoader, stateResolver: Resolvers, opts?: VerificationOptions) {
+  private constructor(
+    keyLoader: IKeyLoader,
+    stateResolver: Resolvers,
+    proofService: ProofService,
+    opts?: VerificationOptions
+  ) {
     this.keyLoader = keyLoader;
+    this.proofService = proofService;
     this.schemaLoader = getDocumentLoader(opts as Options);
     this.stateResolver = stateResolver;
     this.packageManager = opts?.packageManager ?? new PackageManager();
@@ -74,17 +80,19 @@ export class Verifier {
 
   static async newVerifier(
     keyLoader: IKeyLoader,
+    proofService: ProofService,
     stateResolver: Resolvers,
+    documentResolver: Resolvable,
     opts?: VerificationOptions
   ): Promise<Verifier> {
-    const verifier = new Verifier(keyLoader, stateResolver, opts);
-    await verifier.initPackers();
+    const verifier = new Verifier(keyLoader, stateResolver, proofService, opts);
+    await verifier.initPackers(documentResolver);
     return verifier;
   }
 
-  async initPackers() {
+  async initPackers(documentResolver: Resolvable) {
     await this.setupAuthV2ZKPPacker();
-    this.setupJWSPacker(null, { resolve: resolveDIDDocument });
+    this.setupJWSPacker(null, documentResolver);
   }
 
   // setPackageManager sets the package manager for the Verifier.
@@ -154,12 +162,12 @@ export class Verifier {
         );
       }
       const circuitId = proofResp.circuitId;
-      const key = await this.keyLoader.load(circuitId);
-      if (!key) {
-        throw new Error(`verification key is not found for circuit ${circuitId}`);
-      }
-      const jsonKey = JSON.parse(new TextDecoder().decode(key));
-      const isValid = await verifyProof(proofResp, jsonKey);
+      // const key = await this.keyLoader.load(circuitId);
+      // if (!key) {
+      //   throw new Error(`verification key is not found for circuit ${circuitId}`);
+      // }
+      // const jsonKey = JSON.parse(new TextDecoder().decode(key));
+      const isValid = await this.proofService.verifyProof(proofResp, CircuitId[circuitId]);
       if (!isValid) {
         throw new Error(
           `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
@@ -174,9 +182,9 @@ export class Verifier {
       // verify query
       const verifier = new CircuitVerifier(proofResp.pub_signals);
       await verifier.verifyQuery(
-        proofRequest.query as Query,
+        proofRequest.query as unknown as Query,
         this.schemaLoader,
-        proofResp.vp,
+        proofResp.vp as JSON,
         opts
       );
 
