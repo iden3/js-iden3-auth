@@ -41,9 +41,12 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-        
+
       - name: Run Build
         run: npm run build
+
+      - name: Download regular circuits for CI 'latest.zip' from S3
+        run: mkdir ./test/testdata && wget https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/latest.zip -P ./test/testdata
 
       - name: Run Tests
         run: npm run test
