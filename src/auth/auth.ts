@@ -107,7 +107,7 @@ export class Verifier {
 
   // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
   public async setupAuthV2ZKPPacker() {
-    const authV2Set = await this.keyLoader.load(CircuitId.AuthV2);
+    const authV2Set = await this.keyLoader.load(CircuitId.AuthV2 + '/verification_key.json');
     const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
@@ -162,12 +162,10 @@ export class Verifier {
         );
       }
       const circuitId = proofResp.circuitId;
-      // const key = await this.keyLoader.load(circuitId);
-      // if (!key) {
-      //   throw new Error(`verification key is not found for circuit ${circuitId}`);
-      // }
-      // const jsonKey = JSON.parse(new TextDecoder().decode(key));
-      const isValid = await this.proofService.verifyProof(proofResp, CircuitId[circuitId]);
+      const isValid = await this.proofService.verifyProof(
+        proofResp,
+        circuitId as unknown as CircuitId
+      );
       if (!isValid) {
         throw new Error(
           `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
@@ -199,7 +197,7 @@ export class Verifier {
 
   public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
     const token = await Token.parse(tokenStr);
-    const key = await this.keyLoader.load(token.circuitId);
+    const key = await this.keyLoader.load(token.circuitId + '/verification_key.json');
     if (!key) {
       throw new Error(`verification key is not found for circuit ${token.circuitId}`);
     }

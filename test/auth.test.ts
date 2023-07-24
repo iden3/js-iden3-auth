@@ -4,28 +4,13 @@ import { getCurveFromName } from 'ffjavascript';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
-  BjjProvider,
   CircuitData,
   CircuitId,
   CircuitStorage,
-  CredentialStatusResolverRegistry,
-  CredentialStatusType,
-  CredentialStorage,
-  CredentialWallet,
   FSKeyLoader,
-  Identity,
-  IdentityStorage,
-  IdentityWallet,
   InMemoryDataSource,
-  InMemoryMerkleTreeStorage,
-  InMemoryPrivateKeyStore,
-  KMS,
-  KmsKeyType,
-  Profile,
   ProofService,
   PROTOCOL_CONSTANTS,
-  RHSResolver,
-  W3CCredential,
   ZeroKnowledgeProofRequest,
   ZeroKnowledgeProofResponse
 } from '@0xpolygonid/js-sdk';
@@ -48,19 +33,6 @@ describe('auth test', () => {
   });
 
   const verificationKeyLoader: FSKeyLoader = new FSKeyLoader(path.join(__dirname, './testdata'));
-
-  // const memoryKeyStore = new InMemoryPrivateKeyStore();
-  // const bjjProvider = new BjjProvider(KmsKeyType.BabyJubJub, memoryKeyStore);
-  // const kms = new KMS();
-  // kms.registerKeyProvider(KmsKeyType.BabyJubJub, bjjProvider);
-  // const dataStorage = {
-  //   credential: new CredentialStorage(new InMemoryDataSource<W3CCredential>()),
-  //   identity: new IdentityStorage(
-  //     new InMemoryDataSource<Identity>(),
-  //     new InMemoryDataSource<Profile>()
-  //   ),
-  //   mt: new InMemoryMerkleTreeStorage(40)
-  // };
 
   const circuitStorage = new CircuitStorage(new InMemoryDataSource<CircuitData>());
   let proofService: ProofService;
@@ -89,13 +61,13 @@ describe('auth test', () => {
       )
     });
 
-    await circuitStorage.saveCircuitData(CircuitId.StateTransition, {
-      circuitId: CircuitId.StateTransition.toString(),
+    await circuitStorage.saveCircuitData(CircuitId.AtomicQueryMTPV2, {
+      circuitId: CircuitId.AtomicQueryMTPV2.toString(),
       wasm: await verificationKeyLoader.load(
-        `${CircuitId.StateTransition.toString()}/circuit.wasm`
+        `${CircuitId.AtomicQueryMTPV2.toString()}/circuit.wasm`
       ),
       provingKey: await verificationKeyLoader.load(
-        `${CircuitId.StateTransition.toString()}/circuit_final.zkey`
+        `${CircuitId.AtomicQueryMTPV2.toString()}/circuit_final.zkey`
       ),
       verificationKey: await verificationKeyLoader.load(
         `${CircuitId.AtomicQueryMTPV2.toString()}/verification_key.json`
@@ -103,14 +75,6 @@ describe('auth test', () => {
     });
     proofService = new ProofService(null, null, circuitStorage, null);
   });
-
-  // const resolvers = new CredentialStatusResolverRegistry();
-  // resolvers.register(
-  //   CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
-  //   new RHSResolver(dataStorage.states)
-  // );
-  // const credWallet = new CredentialWallet(dataStorage, resolvers);
-  // const idWallet = new IdentityWallet(kms, dataStorage, credWallet);
 
   let connectionString = process.env.IPFS_URL;
   if (!connectionString) {
