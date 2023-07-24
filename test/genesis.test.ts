@@ -14,6 +14,6 @@ test('isGenesisState', async () => {
   let isGenesis = isGenesisStateId(userID.bigInt(), BigInt(genesisState));
   expect(isGenesis).toEqual(true);
 
-  isGenesis = isGenesisStateId(BigInt(userID.bigInt()), BigInt(nonGenesisState));
+  isGenesis = isGenesisStateId(userID.bigInt(), BigInt(nonGenesisState));
   expect(isGenesis).toEqual(false);
 });
