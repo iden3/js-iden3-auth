@@ -82,7 +82,7 @@ export async function checkQueryRequest(
   // validate issuer
   const userDID = DID.parseFromId(outputs.issuerId);
   const issuerAllowed = query.allowedIssuers.some(
-    (issuer) => issuer === '*' || issuer === userDID.toString()
+    (issuer) => issuer === '*' || issuer === userDID.string()
   );
   if (!issuerAllowed) {
     throw new Error('issuer is not in allowed list');

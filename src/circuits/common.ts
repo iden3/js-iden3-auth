@@ -46,5 +46,6 @@ export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {
 }
 
 export function getResolverByDID(resolvers: Resolvers, did: DID): IStateResolver {
-  return resolvers[`${did.blockchain}:${did.networkId}`];
+  const { blockchain, networkId } = DID.decodePartsFromId(DID.idFromDID(did));
+  return resolvers[`${blockchain}:${networkId}`];
 }

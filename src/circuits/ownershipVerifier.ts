@@ -9,7 +9,7 @@ export abstract class IDOwnershipPubSignals {
     try {
       userDid = DID.parseFromId(this.userId);
     } catch (err: unknown) {
-      if ((err as Error).message.includes(Constants.ERRORS.DID_METHOD_NOT_SUPPORTED)) {
+      if ((err as Error).message.includes(Constants.ERRORS.UNKNOWN_DID_METHOD.message)) {
         const senderHashedId = IDOwnershipPubSignals.idFromUnsupportedDID(sender);
         if (senderHashedId.string() !== this.userId.string()) {
           throw new Error(
@@ -21,9 +21,9 @@ export abstract class IDOwnershipPubSignals {
       throw err;
     }
 
-    if (sender !== userDid.toString()) {
+    if (sender !== userDid.string()) {
       throw new Error(
-        `sender is not used for proof creation, expected ${sender}, user from public signals: ${userDid.toString()}`
+        `sender is not used for proof creation, expected ${sender}, user from public signals: ${userDid.string()}`
       );
     }
     if (challenge !== this.challenge) {
