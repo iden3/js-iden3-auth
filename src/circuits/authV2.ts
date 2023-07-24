@@ -17,7 +17,6 @@ export class AuthPubSignalsV2
     this.pubSignalsUnmarshal(byteEncoder.encode(JSON.stringify(pubSignals)));
 
     this.userId = this.userID;
-    this.challenge;
   }
 
   async verifyQuery(_query: Query): Promise<void> {
