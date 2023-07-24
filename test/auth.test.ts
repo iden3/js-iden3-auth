@@ -26,7 +26,7 @@ import { DIDResolutionResult } from 'did-resolver';
 import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 
-describe('auth test', () => {
+describe('auth tests', () => {
   afterAll(async () => {
     const curve = await getCurveFromName('bn128');
     curve.terminate();
