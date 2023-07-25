@@ -4,19 +4,19 @@ import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkGlobalState, getResolverByID } from '@lib/circuits/common';
 import { Resolvers } from '@lib/state/resolver';
-import { Mixin } from 'ts-mixer';
 import { AuthV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const defaultAuthVerifyOpts = 5 * 60 * 1000; // 5 minutes
-export class AuthPubSignalsV2
-  extends Mixin(IDOwnershipPubSignals, AuthV2PubSignals)
-  implements PubSignalsVerifier
-{
+export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignalsVerifier {
+  pubSignals = new AuthV2PubSignals();
   constructor(pubSignals: string[]) {
     super();
-    this.pubSignalsUnmarshal(byteEncoder.encode(JSON.stringify(pubSignals)));
+    this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
+      byteEncoder.encode(JSON.stringify(pubSignals))
+    );
 
-    this.userId = this.userID;
+    this.userId = this.pubSignals.userID;
+    this.challenge = this.pubSignals.challenge;
   }
 
   async verifyQuery(_query: Query): Promise<void> {
@@ -28,7 +28,7 @@ export class AuthPubSignalsV2
     if (!resolver) {
       throw new Error(`resolver not found for id ${this.userId.string()}`);
     }
-    const gist = await checkGlobalState(resolver, this.GISTRoot);
+    const gist = await checkGlobalState(resolver, this.pubSignals.GISTRoot);
 
     let acceptedStateTransitionDelay = defaultAuthVerifyOpts;
     if (opts?.acceptedStateTransitionDelay) {

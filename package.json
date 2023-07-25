@@ -51,7 +51,6 @@
     "nested-property": "^4.0.0",
     "rollup": "^2.72.1",
     "snarkjs": "^0.4.16",
-    "ts-mixer": "^6.0.3",
     "tslib": "^2.4.0",
     "uuid": "^8.3.2"
   },

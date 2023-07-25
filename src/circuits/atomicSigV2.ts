@@ -5,22 +5,25 @@ import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { Mixin } from 'ts-mixer';
 import { AtomicQuerySigV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
 
-export class AuthAtomicQuerySigV2PubSignals
-  extends Mixin(IDOwnershipPubSignals, AtomicQuerySigV2PubSignals)
+export class AtomicQuerySigV2PubSignalsVerifier
+  extends IDOwnershipPubSignals
   implements PubSignalsVerifier
 {
+  pubSignals = new AtomicQuerySigV2PubSignals();
+
   constructor(pubSignals: string[]) {
     super();
-    this.pubSignalsUnmarshal(byteEncoder.encode(JSON.stringify(pubSignals)));
+    this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
+      byteEncoder.encode(JSON.stringify(pubSignals))
+    );
 
-    this.userId = this.userID;
-    this.challenge = this.requestID;
+    this.userId = this.pubSignals.userID;
+    this.challenge = this.pubSignals.requestID;
   }
 
   async verifyQuery(
@@ -30,36 +33,36 @@ export class AuthAtomicQuerySigV2PubSignals
     opts?: VerifyOpts
   ): Promise<void> {
     const outs: ClaimOutputs = {
-      issuerId: this.issuerID,
-      schemaHash: this.claimSchema,
-      slotIndex: this.slotIndex,
-      operator: this.operator,
-      value: this.value,
-      timestamp: this.timestamp,
-      merklized: this.merklized,
-      claimPathKey: this.claimPathKey,
-      claimPathNotExists: this.claimPathNotExists,
+      issuerId: this.pubSignals.issuerID,
+      schemaHash: this.pubSignals.claimSchema,
+      slotIndex: this.pubSignals.slotIndex,
+      operator: this.pubSignals.operator,
+      value: this.pubSignals.value,
+      timestamp: this.pubSignals.timestamp,
+      merklized: this.pubSignals.merklized,
+      claimPathKey: this.pubSignals.claimPathKey,
+      claimPathNotExists: this.pubSignals.claimPathNotExists,
       valueArraySize: valuesSize,
-      isRevocationChecked: this.isRevocationChecked
+      isRevocationChecked: this.pubSignals.isRevocationChecked
     };
     return await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
-    const resolver = getResolverByID(resolvers, this.issuerID);
+    const resolver = getResolverByID(resolvers, this.pubSignals.issuerID);
     if (!resolver) {
-      throw new Error(`resolver not found for issuerID ${this.issuerID.string()}`);
+      throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID.string()}`);
     }
 
-    await checkUserState(resolver, this.issuerID, this.issuerAuthState);
+    await checkUserState(resolver, this.pubSignals.issuerID, this.pubSignals.issuerAuthState);
 
-    if (this.isRevocationChecked === 0) {
+    if (this.pubSignals.isRevocationChecked === 0) {
       return;
     }
 
     const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
-      this.issuerID,
-      this.issuerClaimNonRevState
+      this.pubSignals.issuerID,
+      this.pubSignals.issuerClaimNonRevState
     );
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;
