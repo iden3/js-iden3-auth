@@ -2,10 +2,9 @@ import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { Merklizer, Path, MtValue, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
-import keccak256 from 'keccak256';
 import * as xsdtypes from 'jsonld/lib/constants';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization/dist/types/loaders/jsonld-loader';
-import { Operators, byteEncoder } from '@0xpolygonid/js-sdk';
+import { Operators, byteEncoder, createSchemaHash } from '@0xpolygonid/js-sdk';
 import { VerifyOpts } from './registry';
 
 const bytesDecoder = new TextDecoder();
@@ -100,7 +99,7 @@ export async function checkQueryRequest(
   const schemaId: string = await Path.getTypeIDFromContext(JSON.stringify(schema), query.type, {
     documentLoader: schemaLoader
   });
-  const schemaHash = createSchemaHash(schemaId);
+  const schemaHash = createSchemaHash(byteEncoder.encode(schemaId));
 
   if (schemaHash.bigInt() !== outputs.schemaHash.bigInt()) {
     throw new Error(`schema that was used is not equal to requested in query`);
@@ -358,35 +357,16 @@ type CircuitQuery = {
   fieldName: string;
 };
 
-export function createSchemaHash(schemaId: string): SchemaHash {
-  const h = keccak256(schemaId);
-  return new SchemaHash(h.slice(-16));
-}
-
 async function getValuesAsArray(v: unknown, datatype: string): Promise<bigint[]> {
   const values: Array<bigint> = [];
   if (Array.isArray(v)) {
     for (let index = 0; index < v.length; index++) {
-      if (!isPositiveInteger(v[index])) {
-        throw new Error(`value must be positive integer`);
-      }
       values[index] = await Merklizer.hashValue(datatype, v[index]);
     }
     return values;
   }
-
-  if (!isPositiveInteger(v)) {
-    throw new Error(`value must be positive integer`);
-  }
   values[0] = await Merklizer.hashValue(datatype, v);
   return values;
-}
-
-function isPositiveInteger(value: unknown): boolean {
-  if (!Number.isInteger(value)) {
-    return true;
-  }
-  return value >= 0;
 }
 
 function isValidOperation(datatype: string, op: number): boolean {

@@ -676,7 +676,9 @@ test('Negative value in request', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`value must be positive integer`);
+    expect(e.message).toBe(
+      `failed to validate operators: comparison value that was used is not equal to requested in query`
+    );
   }
 });
 

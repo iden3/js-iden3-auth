@@ -9,7 +9,6 @@ import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
   CircuitId,
-  IKeyLoader,
   IPacker,
   JWSPacker,
   KMS,
@@ -19,10 +18,14 @@ import {
   VerificationHandlerFunc,
   VerificationParams,
   ZKPPacker,
-  ProofService
+  NativeProver,
+  IZKProver,
+  FSCircuitStorage,
+  ICircuitStorage
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, getDocumentLoader, DocumentLoader } from '@iden3/js-jsonld-merklization';
+import path from 'path';
 
 export function createAuthorizationRequest(
   reason: string,
@@ -55,44 +58,56 @@ export function createAuthorizationRequestWithMessage(
 }
 
 export type VerificationOptions = Options & {
-  packageManager?: PackageManager;
+  didDocumentResolver?: Resolvable;
+  circuitsDir?: string;
+  custom?: {
+    packageManager: PackageManager;
+    circuitStorage: ICircuitStorage;
+    prover: IZKProver;
+  };
 };
 
 export class Verifier {
-  private keyLoader: IKeyLoader;
   private schemaLoader: DocumentLoader;
   private stateResolver: Resolvers;
-  private packageManager: PackageManager;
-  private proofService: ProofService;
 
-  private constructor(
-    keyLoader: IKeyLoader,
-    stateResolver: Resolvers,
-    proofService: ProofService,
-    opts?: VerificationOptions
-  ) {
-    this.keyLoader = keyLoader;
-    this.proofService = proofService;
+  private packageManager: PackageManager;
+  private prover: IZKProver;
+  private circuitStorage: ICircuitStorage;
+
+  private constructor(stateResolver: Resolvers, opts?: VerificationOptions) {
     this.schemaLoader = getDocumentLoader(opts as Options);
     this.stateResolver = stateResolver;
-    this.packageManager = opts?.packageManager ?? new PackageManager();
+
+    if (opts.custom) {
+      this.prover = opts.custom.prover;
+      this.circuitStorage = opts.custom.circuitStorage;
+      this.packageManager = opts.custom.packageManager;
+    } else {
+      const dirname = opts?.circuitsDir ?? path.join(process.cwd(), 'circuits');
+      this.circuitStorage = new FSCircuitStorage({ dirname });
+      this.prover = new NativeProver(this.circuitStorage);
+      this.packageManager = new PackageManager();
+    }
   }
 
   static async newVerifier(
-    keyLoader: IKeyLoader,
-    proofService: ProofService,
     stateResolver: Resolvers,
-    documentResolver: Resolvable,
     opts?: VerificationOptions
   ): Promise<Verifier> {
-    const verifier = new Verifier(keyLoader, stateResolver, proofService, opts);
-    await verifier.initPackers(documentResolver);
+    const verifier = new Verifier(stateResolver, opts);
+    await verifier.initPackers(opts);
     return verifier;
   }
 
-  async initPackers(documentResolver: Resolvable) {
-    await this.setupAuthV2ZKPPacker();
-    this.setupJWSPacker(null, documentResolver);
+  async initPackers(opts?: VerificationOptions) {
+    if (this.circuitStorage) {
+      await this.setupAuthV2ZKPPacker(this.circuitStorage);
+    }
+    // set default jws packer if packageManager is not present in options but did document resolver is.
+    if (opts && opts.didDocumentResolver) {
+      this.setupJWSPacker(new KMS(), opts.didDocumentResolver);
+    }
   }
 
   // setPackageManager sets the package manager for the Verifier.
@@ -106,8 +121,8 @@ export class Verifier {
   }
 
   // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
-  public async setupAuthV2ZKPPacker() {
-    const authV2Set = await this.keyLoader.load(CircuitId.AuthV2 + '/verification_key.json');
+  public async setupAuthV2ZKPPacker(circuitStorage: ICircuitStorage) {
+    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
     const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
@@ -128,7 +143,7 @@ export class Verifier {
 
     const verificationParamMap: Map<string, VerificationParams> = new Map();
     verificationParamMap.set(mapKey, {
-      key: authV2Set,
+      key: authV2Set.verificationKey,
       verificationFn
     });
 
@@ -162,10 +177,7 @@ export class Verifier {
         );
       }
       const circuitId = proofResp.circuitId;
-      const isValid = await this.proofService.verifyProof(
-        proofResp,
-        circuitId as unknown as CircuitId
-      );
+      const isValid = await this.prover.verify(proofResp, circuitId);
       if (!isValid) {
         throw new Error(
           `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
@@ -197,7 +209,8 @@ export class Verifier {
 
   public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
     const token = await Token.parse(tokenStr);
-    const key = await this.keyLoader.load(token.circuitId + '/verification_key.json');
+    const key = (await this.circuitStorage.loadCircuitData(token.circuitId as CircuitId))
+      .verificationKey;
     if (!key) {
       throw new Error(`verification key is not found for circuit ${token.circuitId}`);
     }

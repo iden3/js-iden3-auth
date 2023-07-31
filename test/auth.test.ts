@@ -1,15 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { getCurveFromName } from 'ffjavascript';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
-  CircuitData,
-  CircuitId,
-  CircuitStorage,
-  FSKeyLoader,
-  InMemoryDataSource,
-  ProofService,
+  KMS,
   PROTOCOL_CONSTANTS,
   ZeroKnowledgeProofRequest,
   ZeroKnowledgeProofResponse
@@ -27,55 +21,6 @@ import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization
 import path from 'path';
 
 describe('auth tests', () => {
-  afterAll(async () => {
-    const curve = await getCurveFromName('bn128');
-    curve.terminate();
-  });
-
-  const verificationKeyLoader: FSKeyLoader = new FSKeyLoader(path.join(__dirname, './testdata'));
-
-  const circuitStorage = new CircuitStorage(new InMemoryDataSource<CircuitData>());
-  let proofService: ProofService;
-  beforeAll(async () => {
-    await circuitStorage.saveCircuitData(CircuitId.AuthV2, {
-      circuitId: CircuitId.AuthV2.toString(),
-      wasm: await verificationKeyLoader.load(`${CircuitId.AuthV2.toString()}/circuit.wasm`),
-      provingKey: await verificationKeyLoader.load(
-        `${CircuitId.AuthV2.toString()}/circuit_final.zkey`
-      ),
-      verificationKey: await verificationKeyLoader.load(
-        `${CircuitId.AuthV2.toString()}/verification_key.json`
-      )
-    });
-
-    await circuitStorage.saveCircuitData(CircuitId.AtomicQuerySigV2, {
-      circuitId: CircuitId.AtomicQuerySigV2.toString(),
-      wasm: await verificationKeyLoader.load(
-        `${CircuitId.AtomicQuerySigV2.toString()}/circuit.wasm`
-      ),
-      provingKey: await verificationKeyLoader.load(
-        `${CircuitId.AtomicQuerySigV2.toString()}/circuit_final.zkey`
-      ),
-      verificationKey: await verificationKeyLoader.load(
-        `${CircuitId.AtomicQuerySigV2.toString()}/verification_key.json`
-      )
-    });
-
-    await circuitStorage.saveCircuitData(CircuitId.AtomicQueryMTPV2, {
-      circuitId: CircuitId.AtomicQueryMTPV2.toString(),
-      wasm: await verificationKeyLoader.load(
-        `${CircuitId.AtomicQueryMTPV2.toString()}/circuit.wasm`
-      ),
-      provingKey: await verificationKeyLoader.load(
-        `${CircuitId.AtomicQueryMTPV2.toString()}/circuit_final.zkey`
-      ),
-      verificationKey: await verificationKeyLoader.load(
-        `${CircuitId.AtomicQueryMTPV2.toString()}/verification_key.json`
-      )
-    });
-    proofService = new ProofService(null, null, circuitStorage, null);
-  });
-
   let connectionString = process.env.IPFS_URL;
   if (!connectionString) {
     connectionString = 'https://ipfs.io';
@@ -194,15 +139,10 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
 
     await expect(verifier.verifyAuthResponse(response, request)).resolves.not.toThrow();
   });
@@ -366,28 +306,18 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
     await expect(verifier.verifyAuthResponse(response, request, opts)).resolves.not.toThrow();
   });
 
   test('TestVerifyJWZ', async () => {
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
 
     const token =
       'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiYXBwbGljYXRpb24vaWRlbjMtemtwLWpzb24ifQ.eyJpZCI6ImYzZjVmM2JkLTJkOGItNDk0OS1hMDY5LTk3NTliZTdjZjUwYSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1wbGFpbi1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiI3ZjM4YTE5My0wOTE4LTRhNDgtOWZhYy0zNmFkZmRiOGI1NDIiLCJmcm9tIjoiZGlkOnBvbHlnb25pZDpwb2x5Z29uOm11bWJhaToycUpwUnFaTlJUeGtpQ1VONFZTZkxRN0tBNFB6SFN3d1Z3blNLU0ZLdHciLCJ0byI6ImRpZDpwb2x5Z29uaWQ6cG9seWdvbjptdW1iYWk6MnFKNjg5a3BvSnhjU3pCNXNBRkp0UHNTQlNySEY1ZHE3MjJCSE1xVVJMIiwiYm9keSI6eyJkaWRfZG9jIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy9ucy9kaWQvdjEiXSwiaWQiOiJkaWQ6cG9seWdvbmlkOnBvbHlnb246bXVtYmFpOjJxSnBScVpOUlR4a2lDVU40VlNmTFE3S0E0UHpIU3d3VnduU0tTRkt0dyIsInNlcnZpY2UiOlt7ImlkIjoiZGlkOnBvbHlnb25pZDpwb2x5Z29uOm11bWJhaToycUpwUnFaTlJUeGtpQ1VONFZTZkxRN0tBNFB6SFN3d1Z3blNLU0ZLdHcjcHVzaCIsInR5cGUiOiJwdXNoLW5vdGlmaWNhdGlvbiIsInNlcnZpY2VFbmRwb2ludCI6Imh0dHBzOi8vcHVzaC1zdGFnaW5nLnBvbHlnb25pZC5jb20vYXBpL3YxIiwibWV0YWRhdGEiOnsiZGV2aWNlcyI6W3siY2lwaGVydGV4dCI6IjBJMHlZYVVqMXg5MXVZb3pCYnJDOG5BMWpkdkM3bmIwS3ByT21TQklqWXRaZnEvZVhVUHZtdDR2amw5cEdkN0xoSXg2bFVZT01NaHNJTTU4VmtWWGNUWHYyd2JaTDA5MkxWd1NXdk92N2Z2VXVoaTJtNG5VVHpvamFUdXZtdXVHbU1aYWZqSVpXMjBaeTRFdHUraXRpVUV3NnFjOU9QbTFmaXFZNitpeGFwYUpjdVYxQ1NHM0VvOFdYdkc1bGtzSllHOGJrQm1mSXNHaVF3aXdZR3BBVmVQbmsydTZGdkdpV2lKTDVscWZ3RjdPZ0kzem1qNUpCaU0vdUpLNGV5QlZTU3Bya2lZa3RKTnZKQWJtM3NYa1hudTh5UzdJZ2t5anpkK25LS1VTT1lhUzRQNmhTN2VNQ05aZ2RsTVBDamQ1UGFnanhNbDViSHBQQjRFbHpCUG5HVDd5ZDhpV0VHRGpWQ25oRDRBUGRUZVFVcjlXRWVtQmpuaWJtK1M4QzhrMnhBdzhBWm80T21zSkh4N0tnNVZJdGFyd3JMeTRDR1M1V1dlYTZTNDg4YzJyNG5vVmxubUFPck5EN0xtUTZMLzBseldNMUF4R2NRMVNzeUNjVHRldVpnNTZnd2lNUSs2Y016QVgvZjJJTjNGbG10cGxSUktxYzJjUkw4bnNWeUlFcTB5MzdRYWFBbG5vdEZJM3ZITnRjdFZUUjVucVozenpuWERhbjVqbXdLZWJFUFZ2ZEx4V3AxMERTTG5TWGlRb0VUMlNySEMxWXZsZmZEQXZqK2IrMVUxNTJxaElOZ1UrT213MlZFMlQxb1AwVUNtYkNrR0JsQys3Q0J3dFVncmhGN2h0eEw5b0FLRUNQV0ZIU1JRc2Y4Z0lrbUFMeU85VkNqMXhlYXBwUTlJPSIsImFsZyI6IlJTQS1PQUVQLTUxMiJ9XX19XX0sIm1lc3NhZ2UiOm51bGwsInNjb3BlIjpbeyJpZCI6MSwiY2lyY3VpdElkIjoiY3JlZGVudGlhbEF0b21pY1F1ZXJ5U2lnVjIiLCJwcm9vZiI6eyJwaV9hIjpbIjEzODIzMDQ0NDcyNzQ1Nzg2OTA4OTk1Mzc4OTc3NDI4NDY4MzM0NjkxMzM5OTAzNjI2MjUzMDUyNDY3NjQ1NTk1ODk2NzUxODg0MzI0IiwiMTQzNTY0NTcwMzIyNjU3ODg1NTcyNzU5NDcxMzAwNTIzNzIzMDc5MzUzNTcyNDUxNzIwODg2OTQ1NDA2MTcwNDgyMDAxNjQ3MzU1NTAiLCIxIl0sInBpX2IiOltbIjE0MDM4ODM3NDY4NzkwMTUwNTU1NzI0MzIxMjE0MzIxOTg3MzAzNjQ1NDA3NTkyMTI3MzYyNDY1MTg1ODA3NzMwNzM0Njg3MDA4NzQ4IiwiMTYxMjcxNzU1MDAzNDY2OTM0MjUyMDEyMzc0OTEyMjE2MDQ2MjYzMTczMzc1MzM2OTkwNTM4NzY5MzE5Njc1MzU3MjM3NDQ2MjM2MjgiXSxbIjc4MzU3MjYyNjY2ODQyOTk1NTY3NTY0ODY2OTU3NDM2Mjc4NDU1MjQzODIyODY2MzY3NTc5OTI3ODY3Mjg1MDA2NDAzMDQwMjQwNzgiLCIxMjYyNTEwOTg2MDAxMzE3NDY2MDY5NzU1MDUyODg3Mzc2MDU5MjI1NTkyOTA0OTk0NzAyNjcwNDcwMjc5MDExNzk1MDQ2NTAzMDg5MyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTQ4MzE4MTIwNzg0MjIyNjgzMDI3MjEyODQ3NjA0OTQ2NTI1ODc4NDY5Mzc5NjY5MDU3MjE3NjMzMjM4NDM2MzY0MDc0MjUwNzM4OTEiLCIxMTQwMzg0OTI3NTUyMzM5MjU5NDE2MTA0MDQ0MDU0NDc5OTk4MTM1ODQ1ODYzMTg2ODI5MDc5MTgwNzE4NjYyNzUxMDMyMTQzODgyMyIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2IiwiY3VydmUiOiJibjEyOCJ9LCJwdWJfc2lnbmFscyI6WyIxIiwiMjE1MTMxNDA1MzAyMzM5MjE1MTU4MDkyMzUzODg3ODAxMzQ2ODEyNDU2MTI4NTg3NDQ5MDAyOTc3NDA0OTA0NDc3Mzg1NzMzMTQiLCIxNDE3Mjc3MDA4ODYwMjI1NTgyNTczMzYxMTM2NTM5ODcxODkzNTM3MTI0NDU3NTI1MzA1NjM2MTMwNzgyMzMwMzAyODQ0MjkwNzk1MCIsIjEiLCIyNzc1Mjc2NjgyMzM3MTQ3MTQwODI0ODIyNTcwODY4MTMxMzc2NDg2NjIzMTY1NTE4NzM2NjA3MTg4MTA3MDkxODk4NDQ3MTA0MiIsIjEiLCIyMjk4MjU4OTcwODk5Njg1MTY3NTExMTk0MDQ5OTIzNjk1OTE5MTM3NzIwODk0NTI1NDY4MzM1ODU3MDU3NjU1MjIxMDk4OTI0OTczIiwiMTY4MTM4NDQ4MyIsIjI2NzgzMTUyMTkyMjU1ODAyNzIwNjA4MjM5MDA0MzMyMTc5Njk0NCIsIjAiLCIyMDM3NjAzMzgzMjM3MTEwOTE3NzY4MzA0ODQ1NjAxNDUyNTkwNTExOTE3MzY3NDk4NTg0MzkxNTQ0NTYzNDcyNjE2NzQ1MDk4OTYzMCIsIjAiLCIxIiwiMTk5NjA0MjQiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiXSwidnAiOnsiQHR5cGUiOiJWZXJpZmlhYmxlUHJlc2VudGF0aW9uIiwiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vaWRlbjMvY2xhaW0tc2NoZW1hLXZvY2FiL21haW4vc2NoZW1hcy9qc29uLWxkL2t5Yy12NC5qc29ubGQiXSwiQHR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJLWUNBZ2VDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7IkB0eXBlIjoiS1lDQWdlQ3JlZGVudGlhbCIsImJpcnRoZGF5IjoxOTk2MDQyNH19fX1dfX0.eyJwcm9vZiI6eyJwaV9hIjpbIjE4ODQ2ODQ0NzY0ODk0Mzc0OTc2ODE4Njc4MDgxNzAwNjMzOTY5NTAzMzQ3MzkxMTQ2ODAzMTQwNjU2NDAxNzQzNzQwMzkxNjMyMzUzIiwiMTI3Mjc1ODM1OTYyNTI1NjgwNjM2NjEwNzk4NTU0MTg2MTAxNDExNDgzOTg4NTc4NjUwNDUzNDk4MjQxODI0Mzg5MDUyNjE3NjQwOTAiLCIxIl0sInBpX2IiOltbIjE5OTQ4MDc5NzU5OTI4Mzk3Nzk3MzUwNDQwNzgwMjEwMjQ3MzA3MTI1MjY4MjE1NDY2MDU0MDI4MzgyNTQ0Mzk2MDM3MjM4OTY1NTMzIiwiMTY2NjE0MDI1ODI1MTQ3NDM2OTc4NTk4NTE0MzcwODAyNjU1MjQ0MjgxNTM5OTE5NTk2MzU2OTI1MTAyMDM2MjkzNzA3MzE2MDY4NDgiXSxbIjE3MzgyMjA4OTc2NzM5NjY1NDYyNTI2OTEwMTQ5MTY2NzE5NzM5MTMwNzgyNzc5NTk2NjI2OTQ4NjI2NDc2ODI2ODU3OTQ2OTE1MjAyIiwiMTc1MzQ1OTM2Mjg1NDQ1NDQ5MzgxOTE0Njc4ODA1MjIyNTg5NjAzNzM4NTExNTk0MDI2NDg5NDE5ODI3Mzk1NjA3MTU1ODg1MTE5NzMiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjIxNTY4OTUwMTU3NDc2MjAwOTU0MDAxNTg3Mjg0NTg4NDQwMDk3ODg5NDQ5MjgyNjgyMzg1MDUyNTczODA3NTExOTU3NTgwNTUzNzcwIiwiMTg4MjcyMzI3NjEyMDEzNTIxNDQ4OTM0ODk3NTcwODEwMjIxMTMzMjExNjMyODg3NDg5NjgxOTc0NTg5NDM4MTYzNjg3MDUwNTM0MTUiLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiIsImN1cnZlIjoiYm4xMjgifSwicHViX3NpZ25hbHMiOlsiMjE1MTMxNDA1MzAyMzM5MjE1MTU4MDkyMzUzODg3ODAxMzQ2ODEyNDU2MTI4NTg3NDQ5MDAyOTc3NDA0OTA0NDc3Mzg1NzMzMTQiLCI4MTcwNzQwNjM1NzM4Mjg0NTk1NzI0NjA2MTQxMzgzMzExNzQ4MzcwNzE1MzAyNjQ3NDQ4NDQ3NDk2MjA1MDcyMTg5NjUzNTQ2MTk3IiwiNTIyOTY2ODY4NjU1NzYzNzAxNzc4MTE1NzM1NjMwNDc2OTY2MTcwOTIzODY3MDI3MDYxMzU2MDg4NzY5OTM1Mjk0NDk5NjU1MDI5NSJdfQ';
@@ -429,15 +359,10 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
 
@@ -485,16 +410,12 @@ describe('auth tests', () => {
     };
     request.body.scope.push(proofRequest);
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
-    verifier.setupJWSPacker(null, resolveDIDDocument);
+    const verifier = await Verifier.newVerifier(resolvers, {
+      documentLoader: schemaLoader,
+      circuitsDir: path.join(__dirname, './testdata'),
+      didDocumentResolver: resolveDIDDocument
+    });
+    verifier.setupJWSPacker(new KMS(), resolveDIDDocument);
 
     await expect(verifier.fullVerify(token, request, opts)).resolves.not.toThrow();
   });
@@ -650,15 +571,10 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
 
     try {
       expect(await verifier.verifyAuthResponse(response, request)).toThrowError();
@@ -722,15 +638,10 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
 
@@ -769,15 +680,10 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier(
-      verificationKeyLoader,
-      proofService,
-      resolvers,
-      resolveDIDDocument,
-      {
-        documentLoader: schemaLoader
-      }
-    );
+    const verifier = await Verifier.newVerifier(resolvers, {
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = 'ee92ab12-2671-457e-aa5e-8158c205a985'; // because it's used in the response
 
