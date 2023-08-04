@@ -1,6 +1,6 @@
 {
   "name": "@iden3/js-iden3-auth",
-  "version": "1.0.0-beta.13",
+  "version": "1.0.0",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/cjs/index.js",
   "source": "./src/index.ts",
@@ -34,7 +34,7 @@
     "url": "https://github.com/iden3/js-iden3-auth"
   },
   "dependencies": {
-    "@0xpolygonid/js-sdk": "https://github.com/0xPolygonID/js-sdk#v2",
+    "@0xpolygonid/js-sdk": "1.0.0",
     "@iden3/eslint-config": "https://github.com/iden3/eslint-config",
     "@iden3/js-iden3-core": "1.0.0",
     "@iden3/js-jsonld-merklization": "1.0.1",
@@ -49,8 +49,9 @@
   "devDependencies": {
     "@typechain/ethers-v5": "^10.2.0",
     "@types/jest": "^29.5.2",
-    "@types/jsonld": "^1.5.8",
+    "@types/jsonld": "^1.5.9",
     "@types/node": "^16.0.0",
+    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "esbuild": "^0.18.3",

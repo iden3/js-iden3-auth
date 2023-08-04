@@ -220,8 +220,8 @@ test('Empty disclosure JSON for disclosure request', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
-      'failed to validate selective disclosure: verifiablePresentation is required for selective disclosure request'
+    expect((e as Error).message).toBe(
+      'failed to validate selective disclosure: no vp present in selective disclosure request'
     );
   }
 });
@@ -252,7 +252,7 @@ test('Not EQ operation for disclosure request', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
+    expect((e as Error).message).toBe(
       'failed to validate selective disclosure: operator for selective disclosure must be $eq'
     );
   }
@@ -284,7 +284,7 @@ test('Not array of values for disclosure request', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
+    expect((e as Error).message).toBe(
       'failed to validate selective disclosure: selective disclosure not available for array of values'
     );
   }
@@ -316,7 +316,7 @@ test('Proof was generated for another disclosure value', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
+    expect((e as Error).message).toBe(
       'failed to validate selective disclosure: value that was used is not equal to requested in query'
     );
   }
@@ -348,8 +348,8 @@ test('Different key between proof and disclosure response', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader, vp)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
-      `failed to validate selective disclosure: path [https://www.w3.org/2018/credentials#verifiableCredential,https://www.w3.org/2018/credentials#credentialSubject,https://github.com/iden3/claim-schema-vocab/blob/main/credentials/kyc.md#documentType] doesn't exist in verifiablePresentation document`
+    expect((e as Error).message).toBe(
+      `failed to validate selective disclosure: can't get merkle value for field 'documentType'`
     );
   }
 });
@@ -380,7 +380,7 @@ test('Invalid issuer', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`issuer is not in allowed list`);
+    expect((e as Error).message).toBe(`issuer is not in allowed list`);
   }
 });
 
@@ -412,7 +412,7 @@ test('Invalid Schema ID', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`schema that was used is not equal to requested in query`);
+    expect((e as Error).message).toBe(`schema that was used is not equal to requested in query`);
   }
 });
 
@@ -443,7 +443,7 @@ test('Multiply query', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`multiple requests not supported`);
+    expect((e as Error).message).toBe(`multiple requests not supported`);
   }
 });
 
@@ -476,7 +476,7 @@ test('Multiple predicates in one request', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`multiple predicates for one field not supported`);
+    expect((e as Error).message).toBe(`multiple predicates for one field not supported`);
   }
 });
 
@@ -508,13 +508,13 @@ test('Proof was generated for another query operator', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
+    expect((e as Error).message).toBe(
       `failed to validate operators: operator that was used is not equal to request`
     );
   }
 });
 
-test('Proof was generated for another values', async () => {
+test('failed to validate operators: comparison value that was used is not equal to requested in query', async () => {
   const query: Query = {
     allowedIssuers: [issuerDID],
     credentialSubject: {
@@ -542,7 +542,7 @@ test('Proof was generated for another values', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
+    expect((e as Error).message).toBe(
       `failed to validate operators: comparison value that was used is not equal to requested in query`
     );
   }
@@ -577,7 +577,7 @@ test('Different slot index', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`wrong claim slot was used in claim`);
+    expect((e as Error).message).toBe(`wrong claim slot was used in claim`);
   }
 });
 
@@ -610,7 +610,7 @@ test('Check revocation is required', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`check revocation is required`);
+    expect((e as Error).message).toBe(`check revocation is required`);
   }
 });
 
@@ -642,8 +642,8 @@ test('Unsupported lt operator for xsd:boolean', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
-      `operator '2' is not supported for 'http://www.w3.org/2001/XMLSchema#boolean' datatype`
+    expect((e as Error).message).toBe(
+      `operator '$lt' is not supported for 'http://www.w3.org/2001/XMLSchema#boolean' datatype`
     );
   }
 });
@@ -676,7 +676,7 @@ test('Negative value in request', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(
+    expect((e as Error).message).toBe(
       `failed to validate operators: comparison value that was used is not equal to requested in query`
     );
   }
@@ -713,6 +713,6 @@ test('Generated proof is outdated', async () => {
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
   } catch (e) {
-    expect(e.message).toBe(`generated proof is outdated`);
+    expect((e as Error).message).toBe(`generated proof is outdated`);
   }
 });

@@ -1,8 +1,8 @@
 import { Id, DID } from '@iden3/js-iden3-core';
 
 export abstract class IDOwnershipPubSignals {
-  userId: Id;
-  challenge: bigint;
+  userId!: Id;
+  challenge!: bigint;
   async verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {
     const senderId = DID.idFromDID(DID.parse(sender));
     if (senderId.string() !== this.userId.string()) {

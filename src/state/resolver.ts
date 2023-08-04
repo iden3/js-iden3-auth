@@ -44,7 +44,7 @@ export class EthStateResolver implements IStateResolver {
     try {
       contractState = await contract.getStateInfoByIdAndState(id, state);
     } catch (e) {
-      if (e.errorArgs[0] === 'State does not exist') {
+      if ((e as { errorArgs: string[] }).errorArgs[0] === 'State does not exist') {
         if (isGenesis) {
           return {
             latest: true,
@@ -89,8 +89,8 @@ export class EthStateResolver implements IStateResolver {
     let globalStateInfo: IState.GistRootInfoStructOutput;
     try {
       globalStateInfo = await contract.getGISTRootInfo(state);
-    } catch (e) {
-      if (e.errorArgs[0] === 'Root does not exist') {
+    } catch (e: unknown) {
+      if ((e as { errorArgs: string[] }).errorArgs[0] === 'Root does not exist') {
         throw new Error('GIST root does not exist in the smart contract');
       }
       throw e;

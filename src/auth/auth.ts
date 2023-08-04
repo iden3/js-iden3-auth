@@ -27,6 +27,13 @@ import { Resolvable } from 'did-resolver';
 import { Options, getDocumentLoader, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 
+/**
+ *  createAuthorizationRequest is a function to create protocol authorization request
+ * @param {string} reason - reason to request proof
+ * @param {string} sender - sender did
+ * @param {string} callbackUrl - callback that user should use to send response
+ * @returns `Promise<AuthorizationRequestMessage>`
+ */
 export function createAuthorizationRequest(
   reason: string,
   sender: string,
@@ -34,6 +41,14 @@ export function createAuthorizationRequest(
 ): AuthorizationRequestMessage {
   return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl);
 }
+/**
+ *  createAuthorizationRequestWithMessage is a function to create protocol authorization request with explicit message to sign
+ * @param {string} reason - reason to request proof
+ * @param {string} message - message to sign in the response
+ * @param {string} sender - sender did
+ * @param {string} callbackUrl - callback that user should use to send response
+ * @returns `Promise<AuthorizationRequestMessage>`
+ */
 export function createAuthorizationRequestWithMessage(
   reason: string,
   message: string,
@@ -56,17 +71,37 @@ export function createAuthorizationRequestWithMessage(
   };
   return request;
 }
-
-export type VerificationOptions = Options & {
+/**
+ *  VerifierParams are params to pass init verifier that contain jsonld document loader options and
+ *  options to verify the query
+ */
+export type VerifierParams = Options & {
+  /* resolvers for state of the identities */
+  stateResolver: Resolvers;
+  /* didDocumentResolver to init default jws packer */
   didDocumentResolver?: Resolvable;
+  /* circuitsDir - directory where circuits files are stored (default - 'circuits') */
   circuitsDir?: string;
-  custom?: {
-    packageManager: PackageManager;
-    circuitStorage: ICircuitStorage;
-    prover: IZKProver;
-  };
+  /* suite - optional suite with prover, circuit storage, package manager and document loader */
+  suite?: VerifierSuiteParams;
 };
 
+/**
+ *  VerifierSuiteParams are custom defined prover, circuit storage, package manager and document loader
+ */
+export interface VerifierSuiteParams {
+  documentLoader: DocumentLoader;
+  packageManager: PackageManager;
+  circuitStorage: ICircuitStorage;
+  prover: IZKProver;
+}
+/**
+ *
+ * Verifier is responsible for verification of JWZ / JWS packed messages with zero-knowledge proofs inside.
+ *
+ * @public
+ * @class Verifier
+ */
 export class Verifier {
   private schemaLoader: DocumentLoader;
   private stateResolver: Resolvers;
@@ -75,39 +110,42 @@ export class Verifier {
   private prover: IZKProver;
   private circuitStorage: ICircuitStorage;
 
-  private constructor(stateResolver: Resolvers, opts?: VerificationOptions) {
-    this.schemaLoader = getDocumentLoader(opts as Options);
+  /**
+   * Creates an instance of the Verifier.
+   * @private
+   * @param {Resolvers} resolvers - state resolvers instances
+   * @param {VerifierSuiteParams} params - suite for verification
+   */
+  private constructor(stateResolver: Resolvers, params: VerifierSuiteParams) {
+    this.schemaLoader = params.documentLoader;
     this.stateResolver = stateResolver;
-
-    if (opts.custom) {
-      this.prover = opts.custom.prover;
-      this.circuitStorage = opts.custom.circuitStorage;
-      this.packageManager = opts.custom.packageManager;
-    } else {
-      const dirname = opts?.circuitsDir ?? path.join(process.cwd(), 'circuits');
-      this.circuitStorage = new FSCircuitStorage({ dirname });
-      this.prover = new NativeProver(this.circuitStorage);
-      this.packageManager = new PackageManager();
-    }
+    this.packageManager = params.packageManager;
+    this.circuitStorage = params.circuitStorage;
+    this.prover = params.prover;
   }
 
-  static async newVerifier(
-    stateResolver: Resolvers,
-    opts?: VerificationOptions
-  ): Promise<Verifier> {
-    const verifier = new Verifier(stateResolver, opts);
-    await verifier.initPackers(opts);
-    return verifier;
-  }
-
-  async initPackers(opts?: VerificationOptions) {
-    if (this.circuitStorage) {
-      await this.setupAuthV2ZKPPacker(this.circuitStorage);
+  /**
+   * Creates an instance of the Verifier.
+   * @public
+   * @param {VerifierParams} params - params to init verifier
+   * @returns `Promise<Verifier>`
+   */
+  static async newVerifier(params: VerifierParams): Promise<Verifier> {
+    if (!params.suite) {
+      const documentLoader = getDocumentLoader(params as Options);
+      const dirname = params?.circuitsDir ?? path.join(process.cwd(), 'circuits');
+      const circuitStorage = new FSCircuitStorage({ dirname });
+      params.suite = {
+        documentLoader,
+        circuitStorage,
+        prover: new NativeProver(circuitStorage),
+        packageManager: new PackageManager()
+      };
+      const verifier = new Verifier(params.stateResolver, params.suite);
+      await verifier.initPackers(params.didDocumentResolver);
+      return verifier;
     }
-    // set default jws packer if packageManager is not present in options but did document resolver is.
-    if (opts && opts.didDocumentResolver) {
-      this.setupJWSPacker(new KMS(), opts.didDocumentResolver);
-    }
+    return new Verifier(params.stateResolver, params.suite);
   }
 
   // setPackageManager sets the package manager for the Verifier.
@@ -122,7 +160,14 @@ export class Verifier {
 
   // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
   public async setupAuthV2ZKPPacker(circuitStorage: ICircuitStorage) {
+    if (!circuitStorage) {
+      throw new Error('circuit storage is not defined');
+    }
     const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
+
+    if (!authV2Set.verificationKey) {
+      throw new Error('verification key is not for authv2 circuit');
+    }
     const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
@@ -157,6 +202,15 @@ export class Verifier {
     return this.setPacker(jwsPacker);
   }
 
+  /**
+   * verifies zero knowledge proof response according to the proof request
+   * @public
+   * @param {AuthorizationResponseMessage} response - auth protocol response
+   * @param {AuthorizationRequestMessage} request - auth protocol request
+   * @param {VerifyOpts} opts - verification options
+   *
+   * @returns `Promise<void>`
+   */
   public async verifyAuthResponse(
     response: AuthorizationResponseMessage,
     request: AuthorizationRequestMessage,
@@ -203,10 +257,18 @@ export class Verifier {
       await verifier.verifyStates(this.stateResolver, opts);
 
       // verify id ownership
-      await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));
+      await verifier.verifyIdOwnership(response.from!, BigInt(proofResp.id));
     }
   }
 
+  /**
+   * verifies jwz token
+   * @public
+   * @param {string} tokenStr - token string
+   * @param {VerifyOpts} opts - verification options
+   *
+   * @returns `Promise<Token>`
+   */
   public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
     const token = await Token.parse(tokenStr);
     const key = (await this.circuitStorage.loadCircuitData(token.circuitId as CircuitId))
@@ -235,6 +297,15 @@ export class Verifier {
     return token;
   }
 
+  /**
+   * perform both verification of jwz / jws token and authorization request message
+   * @public
+   * @param {string} tokenStr - token string
+   * @param {AuthorizationRequestMessage} request - auth protocol request
+   * @param {VerifyOpts} opts - verification options
+   *
+   * @returns `Promise<AuthorizationResponseMessage>`
+   */
   public async fullVerify(
     tokenStr: string,
     request: AuthorizationRequestMessage,
@@ -244,5 +315,13 @@ export class Verifier {
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;
+  }
+
+  private async initPackers(didResolver?: Resolvable) {
+    await this.setupAuthV2ZKPPacker(this.circuitStorage);
+    // set default jws packer if packageManager is not present in options but did document resolver is.
+    if (didResolver) {
+      this.setupJWSPacker(new KMS(), didResolver);
+    }
   }
 }

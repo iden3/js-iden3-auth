@@ -2,40 +2,23 @@ import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { Merklizer, Path, MtValue, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
-import * as xsdtypes from 'jsonld/lib/constants';
-import { DocumentLoader } from '@iden3/js-jsonld-merklization/dist/types/loaders/jsonld-loader';
-import { Operators, byteEncoder, createSchemaHash } from '@0xpolygonid/js-sdk';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { Operators, byteEncoder, createSchemaHash, QueryOperators } from '@0xpolygonid/js-sdk';
 import { VerifyOpts } from './registry';
+import { XSDNS } from './common';
 
 const bytesDecoder = new TextDecoder();
 
-const operators: Map<string, number> = new Map([
-  ['$noop', 0],
-  ['$eq', 1],
-  ['$lt', 2],
-  ['$gt', 3],
-  ['$in', 4],
-  ['$nin', 5],
-  ['$ne', 6]
-]);
+const allOperations = Object.values(QueryOperators);
 
-const allOperations: Set<number> = new Set(operators.values());
-
-const availableTypesOperators: Map<string, Set<number>> = new Map([
-  [xsdtypes.XSD_BOOLEAN, new Set([operators.get('$eq'), operators.get('$ne')])],
-  [xsdtypes.XSD_INTEGER, allOperations],
-  [xsdtypes.XSD_INTEGER + 'nonNegativeInteger', allOperations],
-  [xsdtypes.XSD_INTEGER + 'positiveInteger', allOperations],
-  [
-    xsdtypes.XSD_STRING,
-    new Set([
-      operators.get('$eq'),
-      operators.get('$ne'),
-      operators.get('$in'),
-      operators.get('$nin')
-    ])
-  ],
-  [xsdtypes.XSD_DATE, allOperations]
+const availableTypesOperators: Map<string, Operators[]> = new Map([
+  [XSDNS.Boolean, [QueryOperators.$eq, QueryOperators.$ne]],
+  [XSDNS.Integer, allOperations],
+  [XSDNS.NonNegativeInteger, allOperations],
+  [XSDNS.PositiveInteger, allOperations],
+  [XSDNS.Double, [QueryOperators.$eq, QueryOperators.$ne, QueryOperators.$in, QueryOperators.$nin]],
+  [XSDNS.String, [QueryOperators.$eq, QueryOperators.$ne, QueryOperators.$in, QueryOperators.$nin]],
+  [XSDNS.DateTime, allOperations]
 ]);
 
 const serializationIndexDataSlotAType = 'serialization:IndexDataSlotA';
@@ -119,22 +102,25 @@ export async function checkQueryRequest(
   // validate selective disclosure
   if (cq.isSelectiveDisclosure) {
     try {
+      if (!verifiablePresentation) {
+        throw new Error(`no vp present in selective disclosure request`);
+      }
       await validateDisclosure(verifiablePresentation, cq, outputs, schemaLoader);
     } catch (e) {
-      throw new Error(`failed to validate selective disclosure: ${e.message}`);
+      throw new Error(`failed to validate selective disclosure: ${(e as Error).message}`);
     }
-  } else if (!cq.fieldName && cq.operator == operators.get('$noop')) {
+  } else if (!cq.fieldName && cq.operator == Operators.NOOP) {
     try {
       await validateEmptyCredentialSubject(cq, outputs);
       return;
-    } catch (e) {
-      throw new Error(`failed to validate operators: ${e.message}`);
+    } catch (e: unknown) {
+      throw new Error(`failed to validate operators: ${(e as Error).message}`);
     }
   } else {
     try {
       await validateOperators(cq, outputs);
     } catch (e) {
-      throw new Error(`failed to validate operators: ${e.message}`);
+      throw new Error(`failed to validate operators: ${(e as Error).message}`);
     }
   }
 
@@ -185,7 +171,7 @@ async function validateOperators(cq: CircuitQuery, outputs: ClaimOutputs) {
   if (outputs.operator !== cq.operator) {
     throw new Error(`operator that was used is not equal to request`);
   }
-  if (outputs.operator === operators.get('$noop')) {
+  if (outputs.operator === Operators.NOOP) {
     // for noop operator slot and value are not used in this case
     return;
   }
@@ -207,7 +193,7 @@ async function validateDisclosure(
     throw new Error(`verifiablePresentation is required for selective disclosure request`);
   }
 
-  if (outputs.operator !== operators.get('$eq')) {
+  if (outputs.operator !== Operators.EQ) {
     throw new Error(`operator for selective disclosure must be $eq`);
   }
 
@@ -238,11 +224,14 @@ async function validateDisclosure(
   }
 
   let proof: Proof;
-  let value: MtValue;
+  let value: MtValue | undefined;
   try {
     ({ proof, value } = await mz.proof(merklizedPath));
   } catch (e) {
     throw new Error(`can't get value by path '${cq.fieldName}'`);
+  }
+  if (!value) {
+    throw new Error(`can't get merkle value for field '${cq.fieldName}'`);
   }
 
   if (!proof.existence) {
@@ -267,8 +256,8 @@ async function parseRequest(
 ): Promise<CircuitQuery> {
   if (!query.credentialSubject) {
     return {
-      operator: operators.get('$noop'),
-      values: null,
+      operator: Operators.NOOP,
+      values: [],
       slotIndex: 0,
       isSelectiveDisclosure: false,
       fieldName: ''
@@ -280,8 +269,8 @@ async function parseRequest(
 
   const txtSchema = bytesDecoder.decode(schema);
 
-  let fieldName: string;
-  let predicate: Map<string, unknown>;
+  let fieldName = '';
+  let predicate: Map<string, unknown> = new Map();
 
   for (const [key, value] of Object.entries(query.credentialSubject)) {
     fieldName = key;
@@ -294,7 +283,7 @@ async function parseRequest(
     break;
   }
 
-  let datatype: string;
+  let datatype = '';
   if (fieldName !== '') {
     datatype = await Path.newTypeFromContext(txtSchema, `${query.type}.${fieldName}`, {
       documentLoader: ldLoader
@@ -370,7 +359,7 @@ async function getValuesAsArray(v: unknown, datatype: string): Promise<bigint[]>
 }
 
 function isValidOperation(datatype: string, op: number): boolean {
-  if (op === operators.get('$noop')) {
+  if (op === Operators.NOOP) {
     return true;
   }
 
@@ -378,8 +367,10 @@ function isValidOperation(datatype: string, op: number): boolean {
     return false;
   }
   const ops = availableTypesOperators.get(datatype);
-
-  return ops.has(op);
+  if (!ops) {
+    return false;
+  }
+  return ops.includes(op);
 }
 
 async function verifyClaim(
@@ -389,8 +380,8 @@ async function verifyClaim(
   fieldName: string,
   ldLoader?: DocumentLoader
 ): Promise<[bigint, number]> {
-  let slotIndex: number;
-  let claimPathKey: bigint;
+  let slotIndex = 0;
+  let claimPathKey = BigInt(0);
   if (merklized === 1) {
     const path = await Path.getContextPathKey(txtSchema, credType, fieldName, {
       documentLoader: ldLoader
@@ -408,15 +399,17 @@ async function parsePredicate(
   predicate: Map<string, unknown>,
   datatype: string
 ): Promise<[number, bigint[]]> {
-  let operator: number;
+  let operator = 0;
   let values: bigint[] = [];
+
   for (const [key, value] of Object.entries(predicate)) {
-    if (!operators.has(key)) {
+    if (!Object.keys(QueryOperators).includes(key)) {
       throw new Error(`operator is not supported by lib`);
     }
-    operator = operators.get(key);
+    operator = QueryOperators[key as keyof typeof QueryOperators];
+
     if (!isValidOperation(datatype, operator)) {
-      throw new Error(`operator '${operator}' is not supported for '${datatype}' datatype`);
+      throw new Error(`operator '${key}' is not supported for '${datatype}' datatype`);
     }
 
     values = await getValuesAsArray(value, datatype);

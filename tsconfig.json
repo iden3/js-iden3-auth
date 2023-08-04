@@ -4,11 +4,13 @@
     "declarationDir": "./dist/types",
     "outDir": "dist/cjs",
     "sourceMap": true,
+    "strict": true,
     "target": "es2020",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "paths": {
       "@lib/*": ["./src/*"]

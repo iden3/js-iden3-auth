@@ -31,15 +31,16 @@ const authV2 = AuthPubSignalsV2;
 const credentialAtomicQueryMTPV2 = AtomicQueryMTPV2PubSignalsVerifier;
 const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignalsVerifier;
 
-const supportedCircuits = {
+export type VerifierType = PubSignalsVerifier & PubSignals;
+
+const supportedCircuits: { [key: string]: unknown } = {
   authV2,
   credentialAtomicQueryMTPV2,
   credentialAtomicQuerySigV2
 };
 
-export type VerifierType = PubSignalsVerifier & PubSignals;
 export class Circuits {
   static getCircuitPubSignals(id: string): VerifierType {
-    return supportedCircuits[id];
+    return supportedCircuits[id] as VerifierType;
   }
 }

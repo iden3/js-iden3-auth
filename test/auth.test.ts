@@ -3,8 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
+  FSCircuitStorage,
   KMS,
+  NativeProver,
   PROTOCOL_CONSTANTS,
+  PackageManager,
   ZeroKnowledgeProofRequest,
   ZeroKnowledgeProofResponse
 } from '@0xpolygonid/js-sdk';
@@ -139,9 +142,14 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier(resolvers, {
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
+      suite: {
+        prover: new NativeProver(new FSCircuitStorage({ dirname: '' })),
+        circuitStorage: new FSCircuitStorage({ dirname: '../' }),
+        packageManager: new PackageManager(),
+        documentLoader: schemaLoader
+      }
     });
 
     await expect(verifier.verifyAuthResponse(response, request)).resolves.not.toThrow();
@@ -306,7 +314,8 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
@@ -314,7 +323,8 @@ describe('auth tests', () => {
   });
 
   test('TestVerifyJWZ', async () => {
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
@@ -359,7 +369,8 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
@@ -410,7 +421,8 @@ describe('auth tests', () => {
     };
     request.body.scope.push(proofRequest);
 
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       documentLoader: schemaLoader,
       circuitsDir: path.join(__dirname, './testdata'),
       didDocumentResolver: resolveDIDDocument
@@ -430,7 +442,7 @@ describe('auth tests', () => {
       sender,
       callback
     );
-    request['message'] = 'test';
+    request.body['message'] = 'test';
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
     expect(request.body.reason).toEqual(reason);
@@ -571,16 +583,17 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
 
     try {
       expect(await verifier.verifyAuthResponse(response, request)).toThrowError();
-    } catch (e) {
-      expect(e.toString()).toContain(
-        'Error: failed to validate operators: empty credentialSubject request available only for equal operation'
+    } catch (e: unknown) {
+      expect((e as Error).message).toContain(
+        'failed to validate operators: empty credentialSubject request available only for equal operation'
       );
     }
   });
@@ -638,7 +651,8 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
@@ -680,7 +694,8 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier(resolvers, {
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
