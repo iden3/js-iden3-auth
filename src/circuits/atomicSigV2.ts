@@ -3,94 +3,27 @@ import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
-import { Hash, newHashFromString } from '@iden3/js-merkletree';
-import { Id, SchemaHash, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
+import { getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { AtomicQuerySigV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
 
-export class AtomicQuerySigV2PubSignals
+export class AtomicQuerySigV2PubSignalsVerifier
   extends IDOwnershipPubSignals
   implements PubSignalsVerifier
 {
-  issuerID?: Id;
-  issuerAuthState?: Hash;
-  issuerClaimNonRevState?: Hash;
-  claimSchema: SchemaHash;
-  slotIndex: number;
-  operator: number;
-  value: bigint[] = [];
-  timestamp: number;
-  merklized: number;
-  claimPathKey?: bigint;
-  claimPathNotExists: number;
-  isRevocationChecked: number;
+  pubSignals = new AtomicQuerySigV2PubSignals();
 
   constructor(pubSignals: string[]) {
     super();
-    if (pubSignals.length != 13 + valuesSize) {
-      throw new Error(`invalid number of Output values expected ${74} got ${pubSignals.length}`);
-    }
+    this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
+      byteEncoder.encode(JSON.stringify(pubSignals))
+    );
 
-    let fieldIdx = 0;
-
-    // -- merklized
-    this.merklized = parseInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    //  - userID
-    this.userId = Id.fromBigInt(BigInt(pubSignals[fieldIdx]));
-    fieldIdx++;
-
-    // - issuerAuthState
-    this.issuerAuthState = newHashFromString(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    // - requestID
-    this.challenge = BigInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    // - issuerID
-    this.issuerID = Id.fromBigInt(BigInt(pubSignals[fieldIdx]));
-    fieldIdx++;
-
-    this.isRevocationChecked = parseInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    // - issuerClaimNonRevState
-    this.issuerClaimNonRevState = newHashFromString(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    //  - timestamp
-    this.timestamp = parseInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    //  - claimSchema
-    this.claimSchema = SchemaHash.newSchemaHashFromInt(BigInt(pubSignals[fieldIdx]));
-    fieldIdx++;
-
-    // - ClaimPathNotExists
-    this.claimPathNotExists = parseInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    // - ClaimPathKey
-    this.claimPathKey = BigInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    // - slotIndex
-    this.slotIndex = parseInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    // - operator
-    this.operator = parseInt(pubSignals[fieldIdx]);
-    fieldIdx++;
-
-    //  - values
-    for (let index = 0; index < valuesSize; index++) {
-      this.value.push(BigInt(pubSignals[fieldIdx]));
-      fieldIdx++;
-    }
+    this.userId = this.pubSignals.userID;
+    this.challenge = this.pubSignals.requestID;
   }
 
   async verifyQuery(
@@ -100,36 +33,36 @@ export class AtomicQuerySigV2PubSignals
     opts?: VerifyOpts
   ): Promise<void> {
     const outs: ClaimOutputs = {
-      issuerId: this.issuerID,
-      schemaHash: this.claimSchema,
-      slotIndex: this.slotIndex,
-      operator: this.operator,
-      value: this.value,
-      timestamp: this.timestamp,
-      merklized: this.merklized,
-      claimPathKey: this.claimPathKey,
-      claimPathNotExists: this.claimPathNotExists,
+      issuerId: this.pubSignals.issuerID,
+      schemaHash: this.pubSignals.claimSchema,
+      slotIndex: this.pubSignals.slotIndex,
+      operator: this.pubSignals.operator,
+      value: this.pubSignals.value,
+      timestamp: this.pubSignals.timestamp,
+      merklized: this.pubSignals.merklized,
+      claimPathKey: this.pubSignals.claimPathKey,
+      claimPathNotExists: this.pubSignals.claimPathNotExists,
       valueArraySize: valuesSize,
-      isRevocationChecked: this.isRevocationChecked
+      isRevocationChecked: this.pubSignals.isRevocationChecked
     };
     return await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
-    const resolver = getResolverByID(resolvers, this.issuerID);
+    const resolver = getResolverByID(resolvers, this.pubSignals.issuerID);
     if (!resolver) {
-      throw new Error(`resolver not found for issuerID ${this.issuerID.string()}`);
+      throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID.string()}`);
     }
 
-    await checkUserState(resolver, this.issuerID, this.issuerAuthState);
+    await checkUserState(resolver, this.pubSignals.issuerID, this.pubSignals.issuerAuthState);
 
-    if (this.isRevocationChecked === 0) {
+    if (this.pubSignals.isRevocationChecked === 0) {
       return;
     }
 
     const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
-      this.issuerID,
-      this.issuerClaimNonRevState
+      this.pubSignals.issuerID,
+      this.pubSignals.issuerClaimNonRevState
     );
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;

@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "dist", "test"],
-  "include": ["src"],
+  "include": ["src","types"],
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist/tsc",

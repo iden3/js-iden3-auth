@@ -46,5 +46,18 @@ export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {
 }
 
 export function getResolverByDID(resolvers: Resolvers, did: DID): IStateResolver {
-  return resolvers[`${did.blockchain}:${did.networkId}`];
+  const { blockchain, networkId } = DID.decodePartsFromId(DID.idFromDID(did));
+  return resolvers[`${blockchain}:${networkId}`];
+}
+
+export enum XSDNS {
+  Boolean = 'http://www.w3.org/2001/XMLSchema#boolean',
+  Integer = 'http://www.w3.org/2001/XMLSchema#integer',
+  NonNegativeInteger = 'http://www.w3.org/2001/XMLSchema#nonNegativeInteger',
+  NonPositiveInteger = 'http://www.w3.org/2001/XMLSchema#nonPositiveInteger',
+  NegativeInteger = 'http://www.w3.org/2001/XMLSchema#negativeInteger',
+  PositiveInteger = 'http://www.w3.org/2001/XMLSchema#positiveInteger',
+  DateTime = 'http://www.w3.org/2001/XMLSchema#dateTime',
+  Double = 'http://www.w3.org/2001/XMLSchema#double',
+  String = 'http://www.w3.org/2001/XMLSchema#string'
 }

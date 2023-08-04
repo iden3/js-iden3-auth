@@ -127,16 +127,14 @@ The blockchain verification algorithm is used
     ['polygon:mumbai']: ethStateResolver,
   };
 
-  const verificationKeyLoader = new loaders.FSKeyLoader('../../keys');
   const schemaLoader = getDocumentLoader({
     ipfsNodeURL: 'ipfs.io'
   });
   const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
-  const verifier = await Verifier.newVerifier(
-    verificationKeyLoader,
-    resolvers,
-    {
-      documentLoader: schemaLoader,
+  const verifier = await auth.Verifier.newVerifier({
+      stateResolver: resolvers,
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
     }
   );
   ```

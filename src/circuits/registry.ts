@@ -1,6 +1,6 @@
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
-import { AtomicQueryMTPV2PubSignals } from '@lib/circuits/atomicMtpV2';
-import { AtomicQuerySigV2PubSignals } from '@lib/circuits/atomicSigV2';
+import { AtomicQueryMTPV2PubSignalsVerifier } from '@lib/circuits/atomicMtpV2';
+import { AtomicQuerySigV2PubSignalsVerifier } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
@@ -28,18 +28,19 @@ export interface PubSignals {
 }
 
 const authV2 = AuthPubSignalsV2;
-const credentialAtomicQueryMTPV2 = AtomicQueryMTPV2PubSignals;
-const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignals;
+const credentialAtomicQueryMTPV2 = AtomicQueryMTPV2PubSignalsVerifier;
+const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignalsVerifier;
 
-const supportedCircuits = {
+export type VerifierType = PubSignalsVerifier & PubSignals;
+
+const supportedCircuits: { [key: string]: unknown } = {
   authV2,
   credentialAtomicQueryMTPV2,
   credentialAtomicQuerySigV2
 };
 
-export type VerifierType = PubSignalsVerifier & PubSignals;
 export class Circuits {
   static getCircuitPubSignals(id: string): VerifierType {
-    return supportedCircuits[id];
+    return supportedCircuits[id] as VerifierType;
   }
 }

@@ -1,30 +1,39 @@
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import { Query } from '@lib/circuits/query';
-import { AuthorizationRequestMessage, AuthorizationResponseMessage } from '@lib/protocol/models';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AUTHORIZATION_REQUEST_MESSAGE_TYPE, MEDIA_TYPE_PLAIN } from '@lib/protocol/constants';
-
-import { verifyProof } from '@lib/proofs/zk';
-import { IKeyLoader } from '@lib/loaders/loaders';
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';
 import {
+  AuthorizationRequestMessage,
+  AuthorizationResponseMessage,
   CircuitId,
   IPacker,
   JWSPacker,
   KMS,
   PackageManager,
   ProvingParams,
-  resolveDIDDocument,
+  PROTOCOL_CONSTANTS,
   VerificationHandlerFunc,
   VerificationParams,
-  ZKPPacker
+  ZKPPacker,
+  NativeProver,
+  IZKProver,
+  FSCircuitStorage,
+  ICircuitStorage
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, getDocumentLoader, DocumentLoader } from '@iden3/js-jsonld-merklization';
+import path from 'path';
 
+/**
+ *  createAuthorizationRequest is a function to create protocol authorization request
+ * @param {string} reason - reason to request proof
+ * @param {string} sender - sender did
+ * @param {string} callbackUrl - callback that user should use to send response
+ * @returns `Promise<AuthorizationRequestMessage>`
+ */
 export function createAuthorizationRequest(
   reason: string,
   sender: string,
@@ -32,6 +41,14 @@ export function createAuthorizationRequest(
 ): AuthorizationRequestMessage {
   return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl);
 }
+/**
+ *  createAuthorizationRequestWithMessage is a function to create protocol authorization request with explicit message to sign
+ * @param {string} reason - reason to request proof
+ * @param {string} message - message to sign in the response
+ * @param {string} sender - sender did
+ * @param {string} callbackUrl - callback that user should use to send response
+ * @returns `Promise<AuthorizationRequestMessage>`
+ */
 export function createAuthorizationRequestWithMessage(
   reason: string,
   message: string,
@@ -43,8 +60,8 @@ export function createAuthorizationRequestWithMessage(
     id: uuid,
     thid: uuid,
     from: sender,
-    typ: MEDIA_TYPE_PLAIN,
-    type: AUTHORIZATION_REQUEST_MESSAGE_TYPE,
+    typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+    type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     body: {
       reason: reason,
       message: message,
@@ -54,37 +71,81 @@ export function createAuthorizationRequestWithMessage(
   };
   return request;
 }
-
-export type VerificationOptions = Options & {
-  packageManager?: PackageManager;
+/**
+ *  VerifierParams are params to pass init verifier that contain jsonld document loader options and
+ *  options to verify the query
+ */
+export type VerifierParams = Options & {
+  /* resolvers for state of the identities */
+  stateResolver: Resolvers;
+  /* didDocumentResolver to init default jws packer */
+  didDocumentResolver?: Resolvable;
+  /* circuitsDir - directory where circuits files are stored (default - 'circuits') */
+  circuitsDir?: string;
+  /* suite - optional suite with prover, circuit storage, package manager and document loader */
+  suite?: VerifierSuiteParams;
 };
 
+/**
+ *  VerifierSuiteParams are custom defined prover, circuit storage, package manager and document loader
+ */
+export interface VerifierSuiteParams {
+  documentLoader: DocumentLoader;
+  packageManager: PackageManager;
+  circuitStorage: ICircuitStorage;
+  prover: IZKProver;
+}
+/**
+ *
+ * Verifier is responsible for verification of JWZ / JWS packed messages with zero-knowledge proofs inside.
+ *
+ * @public
+ * @class Verifier
+ */
 export class Verifier {
-  private keyLoader: IKeyLoader;
   private schemaLoader: DocumentLoader;
   private stateResolver: Resolvers;
+
   private packageManager: PackageManager;
+  private prover: IZKProver;
+  private circuitStorage: ICircuitStorage;
 
-  private constructor(keyLoader: IKeyLoader, stateResolver: Resolvers, opts?: VerificationOptions) {
-    this.keyLoader = keyLoader;
-    this.schemaLoader = getDocumentLoader(opts as Options);
+  /**
+   * Creates an instance of the Verifier.
+   * @private
+   * @param {Resolvers} resolvers - state resolvers instances
+   * @param {VerifierSuiteParams} params - suite for verification
+   */
+  private constructor(stateResolver: Resolvers, params: VerifierSuiteParams) {
+    this.schemaLoader = params.documentLoader;
     this.stateResolver = stateResolver;
-    this.packageManager = opts?.packageManager ?? new PackageManager();
+    this.packageManager = params.packageManager;
+    this.circuitStorage = params.circuitStorage;
+    this.prover = params.prover;
   }
 
-  static async newVerifier(
-    keyLoader: IKeyLoader,
-    stateResolver: Resolvers,
-    opts?: VerificationOptions
-  ): Promise<Verifier> {
-    const verifier = new Verifier(keyLoader, stateResolver, opts);
-    await verifier.initPackers();
-    return verifier;
-  }
-
-  async initPackers() {
-    await this.setupAuthV2ZKPPacker();
-    this.setupJWSPacker(null, { resolve: resolveDIDDocument });
+  /**
+   * Creates an instance of the Verifier.
+   * @public
+   * @param {VerifierParams} params - params to init verifier
+   * @returns `Promise<Verifier>`
+   */
+  static async newVerifier(params: VerifierParams): Promise<Verifier> {
+    if (!params.suite) {
+      const documentLoader = getDocumentLoader(params as Options);
+      const dirname = params?.circuitsDir ?? path.join(process.cwd(), 'circuits');
+      const circuitStorage = new FSCircuitStorage({ dirname });
+      params.suite = {
+        documentLoader,
+        circuitStorage,
+        prover: new NativeProver(circuitStorage),
+        packageManager: new PackageManager()
+      };
+      const verifier = new Verifier(params.stateResolver, params.suite);
+      await verifier.initPackers(params.didDocumentResolver);
+      return verifier;
+    }
+    return new Verifier(params.stateResolver, params.suite);
   }
 
   // setPackageManager sets the package manager for the Verifier.
@@ -98,8 +159,15 @@ export class Verifier {
   }
 
   // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
-  public async setupAuthV2ZKPPacker() {
-    const authV2Set = await this.keyLoader.load(CircuitId.AuthV2);
+  public async setupAuthV2ZKPPacker(circuitStorage: ICircuitStorage) {
+    if (!circuitStorage) {
+      throw new Error('circuit storage is not defined');
+    }
+    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
+
+    if (!authV2Set.verificationKey) {
+      throw new Error('verification key is not for authv2 circuit');
+    }
     const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
@@ -120,7 +188,7 @@ export class Verifier {
 
     const verificationParamMap: Map<string, VerificationParams> = new Map();
     verificationParamMap.set(mapKey, {
-      key: authV2Set,
+      key: authV2Set.verificationKey,
       verificationFn
     });
 
@@ -134,6 +202,15 @@ export class Verifier {
     return this.setPacker(jwsPacker);
   }
 
+  /**
+   * verifies zero knowledge proof response according to the proof request
+   * @public
+   * @param {AuthorizationResponseMessage} response - auth protocol response
+   * @param {AuthorizationRequestMessage} request - auth protocol request
+   * @param {VerifyOpts} opts - verification options
+   *
+   * @returns `Promise<void>`
+   */
   public async verifyAuthResponse(
     response: AuthorizationResponseMessage,
     request: AuthorizationRequestMessage,
@@ -154,12 +231,7 @@ export class Verifier {
         );
       }
       const circuitId = proofResp.circuitId;
-      const key = await this.keyLoader.load(circuitId);
-      if (!key) {
-        throw new Error(`verification key is not found for circuit ${circuitId}`);
-      }
-      const jsonKey = JSON.parse(new TextDecoder().decode(key));
-      const isValid = await verifyProof(proofResp, jsonKey);
+      const isValid = await this.prover.verify(proofResp, circuitId);
       if (!isValid) {
         throw new Error(
           `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
@@ -174,9 +246,9 @@ export class Verifier {
       // verify query
       const verifier = new CircuitVerifier(proofResp.pub_signals);
       await verifier.verifyQuery(
-        proofRequest.query as Query,
+        proofRequest.query as unknown as Query,
         this.schemaLoader,
-        proofResp.vp,
+        proofResp.vp as JSON,
         opts
       );
 
@@ -185,13 +257,22 @@ export class Verifier {
       await verifier.verifyStates(this.stateResolver, opts);
 
       // verify id ownership
-      await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));
+      await verifier.verifyIdOwnership(response.from!, BigInt(proofResp.id));
     }
   }
 
+  /**
+   * verifies jwz token
+   * @public
+   * @param {string} tokenStr - token string
+   * @param {VerifyOpts} opts - verification options
+   *
+   * @returns `Promise<Token>`
+   */
   public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
     const token = await Token.parse(tokenStr);
-    const key = await this.keyLoader.load(token.circuitId);
+    const key = (await this.circuitStorage.loadCircuitData(token.circuitId as CircuitId))
+      .verificationKey;
     if (!key) {
       throw new Error(`verification key is not found for circuit ${token.circuitId}`);
     }
@@ -216,6 +297,15 @@ export class Verifier {
     return token;
   }
 
+  /**
+   * perform both verification of jwz / jws token and authorization request message
+   * @public
+   * @param {string} tokenStr - token string
+   * @param {AuthorizationRequestMessage} request - auth protocol request
+   * @param {VerifyOpts} opts - verification options
+   *
+   * @returns `Promise<AuthorizationResponseMessage>`
+   */
   public async fullVerify(
     tokenStr: string,
     request: AuthorizationRequestMessage,
@@ -225,5 +315,13 @@ export class Verifier {
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;
+  }
+
+  private async initPackers(didResolver?: Resolvable) {
+    await this.setupAuthV2ZKPPacker(this.circuitStorage);
+    // set default jws packer if packageManager is not present in options but did document resolver is.
+    if (didResolver) {
+      this.setupJWSPacker(new KMS(), didResolver);
+    }
   }
 }
