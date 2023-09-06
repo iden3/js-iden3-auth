@@ -1,9 +1,14 @@
-import nestedProperty from 'nested-property';
 import { Id, SchemaHash, DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { Merklizer, Path, MtValue, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import { Proof } from '@iden3/js-merkletree';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { Operators, byteEncoder, createSchemaHash, QueryOperators } from '@0xpolygonid/js-sdk';
+import {
+  Operators,
+  byteEncoder,
+  createSchemaHash,
+  QueryOperators,
+  Parser
+} from '@0xpolygonid/js-sdk';
 import { VerifyOpts } from './registry';
 import { XSDNS } from './common';
 
@@ -20,12 +25,6 @@ const availableTypesOperators: Map<string, Operators[]> = new Map([
   [XSDNS.String, [QueryOperators.$eq, QueryOperators.$ne, QueryOperators.$in, QueryOperators.$nin]],
   [XSDNS.DateTime, allOperations]
 ]);
-
-const serializationIndexDataSlotAType = 'serialization:IndexDataSlotA';
-const serializationIndexDataSlotBType = 'serialization:IndexDataSlotB';
-
-const serializationValueDataSlotAType = 'serialization:ValueDataSlotA';
-const serializationValueDataSlotBType = 'serialization:ValueDataSlotB';
 
 const defaultProofGenerationDelayOpts = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -126,14 +125,27 @@ export async function checkQueryRequest(
 
   // verify claim
   if (outputs.merklized === 1) {
-    if (outputs.claimPathKey !== cq.claimPathKey) {
-      throw new Error(`proof was generated for another path`);
-    }
     if (outputs.claimPathNotExists === 1) {
       throw new Error(`proof doesn't contains target query key`);
     }
+
+    const path = await Path.getContextPathKey(JSON.stringify(schema), query.type, cq.fieldName, {
+      documentLoader: schemaLoader
+    });
+    path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
+    const claimPathKey = await path.mtEntry();
+
+    if (outputs.claimPathKey !== claimPathKey) {
+      throw new Error(`proof was generated for another path`);
+    }
   } else {
-    if (outputs.slotIndex !== cq.slotIndex) {
+    const slotIndex = await Parser.getFieldSlotIndex(
+      cq.fieldName,
+      query.type,
+      byteEncoder.encode(JSON.stringify(schema))
+    );
+
+    if (outputs.slotIndex !== slotIndex) {
       throw new Error(`wrong claim slot was used in claim`);
     }
   }
@@ -296,17 +308,7 @@ async function parseRequest(
   }).fill(BigInt(0)) as Array<bigint>;
   const fullArray: Array<bigint> = values.concat(zeros);
 
-  const [claimPathKey, slotIndex] = await verifyClaim(
-    outputs.merklized,
-    txtSchema,
-    query.type,
-    fieldName,
-    ldLoader
-  );
-
   const cq: CircuitQuery = {
-    claimPathKey,
-    slotIndex,
     operator,
     values: fullArray,
     isSelectiveDisclosure: false,
@@ -318,23 +320,6 @@ async function parseRequest(
   }
 
   return cq;
-}
-
-function getFieldSlotIndex(fieldName: string, credentialType: string, schema: Uint8Array): number {
-  const obj = JSON.parse(Buffer.from(schema).toString('utf-8'));
-  const type = nestedProperty.get(obj, `@context.0.${credentialType}.@context.${fieldName}.@type`);
-  switch (type) {
-    case serializationIndexDataSlotAType:
-      return 2;
-    case serializationIndexDataSlotBType:
-      return 3;
-    case serializationValueDataSlotAType:
-      return 6;
-    case serializationValueDataSlotBType:
-      return 7;
-    default:
-      return -1;
-  }
 }
 
 type CircuitQuery = {
@@ -373,27 +358,27 @@ function isValidOperation(datatype: string, op: number): boolean {
   return ops.includes(op);
 }
 
-async function verifyClaim(
-  merklized: number,
-  txtSchema: string,
-  credType: string,
-  fieldName: string,
-  ldLoader?: DocumentLoader
-): Promise<[bigint, number]> {
-  let slotIndex = 0;
-  let claimPathKey = BigInt(0);
-  if (merklized === 1) {
-    const path = await Path.getContextPathKey(txtSchema, credType, fieldName, {
-      documentLoader: ldLoader
-    });
-    path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
-    claimPathKey = await path.mtEntry();
-  } else {
-    slotIndex = getFieldSlotIndex(fieldName, credType, new TextEncoder().encode(txtSchema));
-  }
+// async function verifyClaim(
+//   merklized: number,
+//   txtSchema: string,
+//   credType: string,
+//   fieldName: string,
+//   ldLoader?: DocumentLoader
+// ): Promise<[bigint, number]> {
+//   let slotIndex = 0;
+//   let claimPathKey = BigInt(0);
+//   if (merklized === 1) {
+//     const path = await Path.getContextPathKey(txtSchema, credType, fieldName, {
+//       documentLoader: ldLoader
+//     });
+//     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
+//     claimPathKey = await path.mtEntry();
+//   } else {
+//     slotIndex = getFieldSlotIndex(fieldName, credType, new TextEncoder().encode(txtSchema));
+//   }
 
-  return [claimPathKey, slotIndex];
-}
+//   return [claimPathKey, slotIndex];
+// }
 
 async function parsePredicate(
   predicate: Map<string, unknown>,
