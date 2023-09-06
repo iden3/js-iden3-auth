@@ -358,28 +358,6 @@ function isValidOperation(datatype: string, op: number): boolean {
   return ops.includes(op);
 }
 
-// async function verifyClaim(
-//   merklized: number,
-//   txtSchema: string,
-//   credType: string,
-//   fieldName: string,
-//   ldLoader?: DocumentLoader
-// ): Promise<[bigint, number]> {
-//   let slotIndex = 0;
-//   let claimPathKey = BigInt(0);
-//   if (merklized === 1) {
-//     const path = await Path.getContextPathKey(txtSchema, credType, fieldName, {
-//       documentLoader: ldLoader
-//     });
-//     path.prepend(['https://www.w3.org/2018/credentials#credentialSubject']);
-//     claimPathKey = await path.mtEntry();
-//   } else {
-//     slotIndex = getFieldSlotIndex(fieldName, credType, new TextEncoder().encode(txtSchema));
-//   }
-
-//   return [claimPathKey, slotIndex];
-// }
-
 async function parsePredicate(
   predicate: Map<string, unknown>,
   datatype: string
