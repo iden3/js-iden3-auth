@@ -1,6 +1,7 @@
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { getUnixTimestamp, Id, SchemaHash } from '@iden3/js-iden3-core';
 import { getDocumentLoader } from '@iden3/js-jsonld-merklization';
+import { byteEncoder, createSchemaHash } from '@0xpolygonid/js-sdk';
 
 const defaultLoader = getDocumentLoader();
 const vpEmployee = JSON.parse(`{
@@ -55,6 +56,11 @@ const KYCEmployeeSchema = SchemaHash.newSchemaHashFromInt(
 const BigIntTrueHash = BigInt(
   '18586133768512220936620570745912940619677854269274689475585506675881198879027'
 );
+const KYCAgeNonMerklizedSchema = createSchemaHash(
+  byteEncoder.encode(
+    'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld#KYCAgeCredential'
+  )
+);
 
 test('Check merklized query', async () => {
   const query: Query = {
@@ -75,6 +81,31 @@ test('Check merklized query', async () => {
     operator: 5,
     value: new Array(BigInt(800)),
     merklized: 1,
+    isRevocationChecked: 1,
+    valueArraySize: 64,
+    timestamp: getUnixTimestamp(new Date())
+  };
+  await expect(checkQueryRequest(query, pubSig, defaultLoader)).resolves.not.toThrow();
+});
+
+test('Check non-merklized query', async () => {
+  const query: Query = {
+    allowedIssuers: ['*'],
+    credentialSubject: {
+      birthday: { $eq: [19960424] }
+    },
+    context:
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld',
+    type: 'KYCAgeCredential'
+  };
+  const pubSig: ClaimOutputs = {
+    issuerId: issuerID,
+    schemaHash: KYCAgeNonMerklizedSchema,
+    claimPathKey: BigInt(0),
+    operator: 1,
+    value: new Array(BigInt(19960424)),
+    merklized: 0,
+    slotIndex: 2,
     isRevocationChecked: 1,
     valueArraySize: 64,
     timestamp: getUnixTimestamp(new Date())
@@ -550,29 +581,25 @@ test('failed to validate operators: comparison value that was used is not equal 
 
 test('Different slot index', async () => {
   const query: Query = {
-    allowedIssuers: [issuerDID],
+    allowedIssuers: ['*'],
     credentialSubject: {
-      countryCode: {
-        $nin: [20]
-      }
+      birthday: { $eq: [19960424] }
     },
     context:
-      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
-    type: 'KYCCountryOfResidenceCredential'
+      'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld',
+    type: 'KYCAgeCredential'
   };
   const pubSig: ClaimOutputs = {
     issuerId: issuerID,
-    schemaHash: KYCCountrySchema,
-    claimPathKey: BigInt(
-      '17002437119434618783545694633038537380726339994244684348913844923422470806844'
-    ),
-    operator: 5,
-    value: new Array(BigInt('20')),
+    schemaHash: KYCAgeNonMerklizedSchema,
+    claimPathKey: BigInt(0),
+    operator: 1,
+    value: new Array(BigInt(19960424)),
     merklized: 0,
+    slotIndex: 3,
     isRevocationChecked: 1,
     valueArraySize: 64,
-    timestamp: getUnixTimestamp(new Date()),
-    slotIndex: 0
+    timestamp: getUnixTimestamp(new Date())
   };
   try {
     expect(await checkQueryRequest(query, pubSig, defaultLoader)).toThrowError();
