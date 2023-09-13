@@ -96,7 +96,7 @@ The blockchain verification algorithm is used
     if you want request specific proof (example):
 
      ``` javascript
-    const proofRequest: protocol.ZKPRequest = {
+    const proofRequest: protocol.ZeroKnowledgeProofRequest = {
         id: 1,
         circuitId: 'credentialAtomicQueryMTPV2',
         query: {
