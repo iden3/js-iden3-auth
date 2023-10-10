@@ -9,7 +9,8 @@ import {
   PROTOCOL_CONSTANTS,
   PackageManager,
   ZeroKnowledgeProofRequest,
-  ZeroKnowledgeProofResponse
+  ZeroKnowledgeProofResponse,
+  cacheLoader
 } from '@0xpolygonid/js-sdk';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
@@ -20,7 +21,7 @@ import {
 } from '@lib/auth/auth';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
 import { DIDResolutionResult } from 'did-resolver';
-import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 
 describe('auth tests', () => {
@@ -28,7 +29,7 @@ describe('auth tests', () => {
   if (!connectionString) {
     connectionString = 'https://ipfs.io';
   }
-  const schemaLoader: DocumentLoader = getDocumentLoader({
+  const schemaLoader: DocumentLoader = cacheLoader({
     ipfsNodeURL: connectionString
   });
   const exampleDidDoc = {
@@ -493,7 +494,7 @@ describe('auth tests', () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
       circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
+      ipfsNodeURL: connectionString
     });
 
     const token =
@@ -538,8 +539,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
+      circuitsDir: path.join(__dirname, './testdata')
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response

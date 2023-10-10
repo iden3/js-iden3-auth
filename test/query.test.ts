@@ -1,9 +1,8 @@
 import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
 import { getUnixTimestamp, Id, SchemaHash } from '@iden3/js-iden3-core';
-import { getDocumentLoader } from '@iden3/js-jsonld-merklization';
-import { byteEncoder, createSchemaHash } from '@0xpolygonid/js-sdk';
+import { byteEncoder, cacheLoader, createSchemaHash } from '@0xpolygonid/js-sdk';
 
-const defaultLoader = getDocumentLoader();
+const defaultLoader = cacheLoader();
 const vpEmployee = JSON.parse(`{
 	"@type": "VerifiablePresentation",
 	"@context": [

@@ -21,10 +21,11 @@ import {
   NativeProver,
   IZKProver,
   FSCircuitStorage,
-  ICircuitStorage
+  ICircuitStorage,
+  cacheLoader
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
-import { Options, getDocumentLoader, DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 
 /**
@@ -132,7 +133,7 @@ export class Verifier {
    */
   static async newVerifier(params: VerifierParams): Promise<Verifier> {
     if (!params.suite) {
-      const documentLoader = getDocumentLoader(params as Options);
+      const documentLoader = (params as Options).documentLoader ?? cacheLoader(params as Options);
       const dirname = params?.circuitsDir ?? path.join(process.cwd(), 'circuits');
       const circuitStorage = new FSCircuitStorage({ dirname });
       params.suite = {
