@@ -27,6 +27,7 @@ import {
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
+import { DID } from '@iden3/js-iden3-core';
 
 /**
  *  createAuthorizationRequest is a function to create protocol authorization request
@@ -221,6 +222,12 @@ export class Verifier {
       throw new Error('message for signing from request is not presented in response');
     }
 
+    if (request.from !== response.to) {
+      throw new Error(
+        `sender of the request is not a target of response - expected ${request.from}, given ${response.to}`
+      );
+    }
+
     for (const proofRequest of request.body.scope) {
       const proofResp = response.body.scope.find((proofResp) => proofResp.id === proofRequest.id);
       if (!proofResp) {
@@ -243,6 +250,8 @@ export class Verifier {
       if (!CircuitVerifier) {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
+
+      opts = opts?.verifierDID ? opts : { ...opts, verifierDID: DID.parse(request.from) };
 
       // verify query
       const verifier = new CircuitVerifier(proofResp.pub_signals);

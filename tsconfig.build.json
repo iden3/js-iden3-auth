@@ -4,7 +4,6 @@
   "include": ["src","types"],
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist/tsc",
-    "emitDeclarationOnly": true
+    "outDir": "dist/cjs",
   }
 }
