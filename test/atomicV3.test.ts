@@ -8,7 +8,7 @@ import {
   ZeroKnowledgeProofRequest
 } from '@0xpolygonid/js-sdk';
 
-describe.only('atomicV3', () => {
+describe('atomicV3', () => {
   it('TestVerifyV3MessageWithSigProof_NonMerkalized', async () => {
     const verifierID = 'did:polygonid:polygon:mumbai:2qEevY9VnKdNsVDdXRv3qSLHRqoMGMRRdE5Gmc6iA7';
     const callbackURL = 'https://test.com/callback';
