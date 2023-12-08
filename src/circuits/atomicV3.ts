@@ -47,7 +47,7 @@ export class AtomicQueryV3PubSignalsVerifier
     };
     await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
 
-    const { proofType, verifierID, verifierSessionID, linkID, nullifier } = this.pubSignals;
+    const { proofType, verifierID, nullifier, nullifierSessionID } = this.pubSignals;
 
     if (
       !(query.proofType === ProofType.BJJSignature && proofType === 1) &&
@@ -68,21 +68,17 @@ export class AtomicQueryV3PubSignalsVerifier
         throw new Error('wrong verifier is used for nullification');
       }
 
-      if (!query.verifierSessionId) {
+      if (!query.nullifierSessionId) {
         throw new Error('verifierSessionId is required');
       }
 
-      const vSessionID = BigInt(query.verifierSessionId);
+      const nSessionId = BigInt(query.nullifierSessionId);
 
-      if (verifierSessionID !== vSessionID) {
+      if (nullifierSessionID !== nSessionId) {
         throw new Error(
-          `wrong verifier session id is used for nullification, expected ${vSessionID}, got ${verifierSessionID}`
+          `wrong verifier session id is used for nullification, expected ${nSessionId}, got ${nullifierSessionID}`
         );
       }
-    }
-
-    if (query.linkSessionId && !linkID) {
-      throw new Error("proof doesn't contain link id, but link session id is provided");
     }
   }
 

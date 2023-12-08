@@ -37,8 +37,8 @@ export interface Query {
   claimID?: string;
   skipClaimRevocationCheck?: boolean;
   proofType?: string;
-  verifierSessionId?: string;
-  linkSessionId?: string;
+  nullifierSessionId?: string;
+  groupId?: number;
 }
 
 // ClaimOutputs fields that are used in proof generation
