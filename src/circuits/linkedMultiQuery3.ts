@@ -26,6 +26,26 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     opts?: VerifyOpts
   ): Promise<BaseConfig> {
     // compare query hash
+
+    // const valueHash = [];
+    // for (let i = 0; i < 3; i++) {
+    //   valueHash[i] = poseidon.spongeHashX(valueArraySize, 6); // 6 - max size of poseidon hash available on-chain
+    // }
+
+    /////////////////////////////////////////////////////////////////
+    // Calculate query hash
+    /////////////////////////////////////////////////////////////////
+    // 4950 constraints (SpongeHash+Poseidon)
+
+    // circuitQueryHash[i] <== Poseidon(6)([
+    //     claimSchema,
+    //     slotIndex[i],
+    //     operator[i],
+    //     claimPathKey[i],
+    //     claimPathNotExists[i],
+    //     valueHash[i]
+    // ]);
+
     return this.pubSignals as unknown as BaseConfig;
   }
 

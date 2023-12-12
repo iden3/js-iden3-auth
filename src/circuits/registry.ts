@@ -5,8 +5,9 @@ import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import { DID } from '@iden3/js-iden3-core';
-import { AtomicQueryV3PubSignalsVerifier } from './atomicV3';
+import { AtomicQueryV3PubSignalsVerifier } from '@lib/circuits/atomicV3';
 import { BaseConfig } from '@0xpolygonid/js-sdk';
+import { LinkedMultiQueryVerifier } from '@lib/circuits/linkedMultiQuery3';
 
 export type VerifyOpts = {
   // acceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
@@ -36,6 +37,7 @@ const authV2 = AuthPubSignalsV2;
 const credentialAtomicQueryMTPV2 = AtomicQueryMTPV2PubSignalsVerifier;
 const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignalsVerifier;
 const credentialAtomicQueryV3 = AtomicQueryV3PubSignalsVerifier;
+const linkedMultiQuery3 = LinkedMultiQueryVerifier;
 
 export type VerifierType = PubSignalsVerifier & PubSignals;
 
@@ -43,7 +45,8 @@ const supportedCircuits: { [key: string]: unknown } = {
   authV2,
   credentialAtomicQueryMTPV2,
   credentialAtomicQuerySigV2,
-  credentialAtomicQueryV3
+  credentialAtomicQueryV3,
+  linkedMultiQuery3
 };
 
 export class Circuits {

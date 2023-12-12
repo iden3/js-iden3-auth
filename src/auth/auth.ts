@@ -309,7 +309,7 @@ export class Verifier {
       // write linkId to the proof response
       const pubSig = pubSignals as unknown as { linkID?: number };
 
-      if (pubSig.linkID) {
+      if (pubSig.linkID && groupId) {
         groupIdToLinkIdMap.set(groupId, [
           ...(groupIdToLinkIdMap.get(groupId) ?? []),
           { linkID: pubSig.linkID, requestId: proofResp.id }
