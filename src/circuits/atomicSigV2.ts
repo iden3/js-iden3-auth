@@ -5,7 +5,7 @@ import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQuerySigV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
+import { AtomicQuerySigV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -31,7 +31,7 @@ export class AtomicQuerySigV2PubSignalsVerifier
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
     opts?: VerifyOpts
-  ): Promise<void> {
+  ): Promise<BaseConfig> {
     const outs: ClaimOutputs = {
       issuerId: this.pubSignals.issuerID,
       schemaHash: this.pubSignals.claimSchema,
@@ -45,7 +45,9 @@ export class AtomicQuerySigV2PubSignalsVerifier
       valueArraySize: valuesSize,
       isRevocationChecked: this.pubSignals.isRevocationChecked
     };
-    return await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+
+    return this.pubSignals;
   }
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
     const resolver = getResolverByID(resolvers, this.pubSignals.issuerID);

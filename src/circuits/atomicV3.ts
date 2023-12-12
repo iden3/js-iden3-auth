@@ -5,7 +5,7 @@ import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQueryV3PubSignals, byteEncoder, ProofType } from '@0xpolygonid/js-sdk';
+import { AtomicQueryV3PubSignals, BaseConfig, byteEncoder, ProofType } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -31,7 +31,7 @@ export class AtomicQueryV3PubSignalsVerifier
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
     opts?: VerifyOpts
-  ): Promise<void> {
+  ): Promise<BaseConfig> {
     const outs: ClaimOutputs = {
       issuerId: this.pubSignals.issuerID,
       schemaHash: this.pubSignals.claimSchema,
@@ -68,11 +68,11 @@ export class AtomicQueryV3PubSignalsVerifier
         throw new Error('wrong verifier is used for nullification');
       }
 
-      if (!query.nullifierSessionId) {
-        throw new Error('verifierSessionId is required');
+      if (!opts.params?.nullifierSessionId) {
+        throw new Error('nullifierSessionId is required');
       }
 
-      const nSessionId = BigInt(query.nullifierSessionId);
+      const nSessionId = BigInt(opts.params.nullifierSessionId.toString());
 
       if (nullifierSessionID !== nSessionId) {
         throw new Error(
@@ -80,6 +80,8 @@ export class AtomicQueryV3PubSignalsVerifier
         );
       }
     }
+
+    return this.pubSignals;
   }
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {

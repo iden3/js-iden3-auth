@@ -6,6 +6,7 @@ import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import { DID } from '@iden3/js-iden3-core';
 import { AtomicQueryV3PubSignalsVerifier } from './atomicV3';
+import { BaseConfig } from '@0xpolygonid/js-sdk';
 
 export type VerifyOpts = {
   // acceptedStateTransitionDelay is the period of time in milliseconds that a revoked state remains valid.
@@ -13,6 +14,7 @@ export type VerifyOpts = {
   // acceptedProofGenerationDelay is the period of time in milliseconds that a generated proof remains valid.
   acceptedProofGenerationDelay?: number;
   verifierDID?: DID;
+  params?: { [key: string]: unknown };
 };
 
 export interface PubSignalsVerifier {
@@ -21,7 +23,7 @@ export interface PubSignalsVerifier {
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
     opts?: VerifyOpts
-  ): Promise<void>;
+  ): Promise<BaseConfig>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
 }

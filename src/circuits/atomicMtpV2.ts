@@ -5,7 +5,7 @@ import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQueryMTPV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
+import { AtomicQueryMTPV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -38,7 +38,7 @@ export class AtomicQueryMTPV2PubSignalsVerifier
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
     opts?: VerifyOpts
-  ): Promise<void> {
+  ): Promise<BaseConfig> {
     const outs: ClaimOutputs = {
       // TODO: update when js-sdk is fixed for AtomicQueryMTPV2PubSignals
       issuerId: this.pubSignals.issuerID!,
@@ -53,7 +53,9 @@ export class AtomicQueryMTPV2PubSignalsVerifier
       valueArraySize: valuesSize,
       isRevocationChecked: this.pubSignals.isRevocationChecked!
     };
-    return await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+
+    return this.pubSignals;
   }
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {

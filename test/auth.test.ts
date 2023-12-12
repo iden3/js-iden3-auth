@@ -9,8 +9,7 @@ import {
   PROTOCOL_CONSTANTS,
   PackageManager,
   ZeroKnowledgeProofRequest,
-  ZeroKnowledgeProofResponse,
-  cacheLoader
+  ZeroKnowledgeProofResponse
 } from '@0xpolygonid/js-sdk';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import {
@@ -19,19 +18,11 @@ import {
   Verifier
 } from '@lib/auth/auth';
 import { Circuits } from '@lib/circuits/registry';
-import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
-import { resolveDIDDocument, resolvers, testOpts } from './mocks';
+import { resolveDIDDocument, resolvers, schemaLoader, testOpts } from './mocks';
 
 describe('auth tests', () => {
-  let connectionString = process.env.IPFS_URL;
-  if (!connectionString) {
-    connectionString = 'https://ipfs.io';
-  }
-  const schemaLoader: DocumentLoader = cacheLoader({
-    ipfsNodeURL: connectionString
-  });
-
+  const connectionString = process.env.IPFS_URL ?? 'https://ipfs.io';
   it('createAuthorizationRequest', () => {
     const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
     const callback = 'https://test.com/callback';

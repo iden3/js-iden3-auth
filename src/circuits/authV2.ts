@@ -4,7 +4,7 @@ import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkGlobalState, getResolverByID } from '@lib/circuits/common';
 import { Resolvers } from '@lib/state/resolver';
-import { AuthV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
+import { AuthV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const defaultAuthVerifyOpts = 5 * 60 * 1000; // 5 minutes
 export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignalsVerifier {
@@ -19,7 +19,7 @@ export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignal
     this.challenge = this.pubSignals.challenge;
   }
 
-  async verifyQuery(_query: Query): Promise<void> {
+  async verifyQuery(_query: Query): Promise<BaseConfig> {
     throw new Error(`auth circuit doesn't support queries`);
   }
 

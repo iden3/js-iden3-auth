@@ -1,3 +1,5 @@
+import { cacheLoader } from '@0xpolygonid/js-sdk';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import { VerifyOpts } from '@lib/circuits';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { DIDResolutionResult } from 'did-resolver';
@@ -57,3 +59,7 @@ export const resolvers: Resolvers = {
 export const resolveDIDDocument = {
   resolve: () => Promise.resolve({ didDocument: exampleDidDoc } as DIDResolutionResult)
 };
+
+export const schemaLoader: DocumentLoader = cacheLoader({
+  ipfsNodeURL: process.env.IPFS_URL ?? 'https://ipfs.io'
+});
