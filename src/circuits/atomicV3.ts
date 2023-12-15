@@ -81,6 +81,14 @@ export class AtomicQueryV3PubSignalsVerifier
       }
     }
 
+    if (typeof query.groupId !== 'undefined' && this.pubSignals.linkID === 0n) {
+      throw new Error('linkID is required');
+    }
+
+    if (typeof query.groupId === 'undefined' && this.pubSignals.linkID !== 0n) {
+      throw new Error('Query should not have groupId');
+    }
+
     return this.pubSignals;
   }
 

@@ -2,9 +2,17 @@
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
-import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { BaseConfig, LinkedMultiQueryPubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
-
+import { DocumentLoader, Path } from '@iden3/js-jsonld-merklization';
+import {
+  BaseConfig,
+  JSONObject,
+  LinkedMultiQueryPubSignals,
+  byteEncoder,
+  cacheLoader,
+  createSchemaHash,
+  parseQueriesMetadata
+} from '@0xpolygonid/js-sdk';
+import { poseidon } from '@iden3/js-crypto';
 export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
   pubSignals = new LinkedMultiQueryPubSignals();
 
@@ -25,26 +33,46 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     verifiablePresentation?: JSON,
     opts?: VerifyOpts
   ): Promise<BaseConfig> {
-    // compare query hash
+    let schema: JSONObject;
+    const ldOpts = { documentLoader: schemaLoader ?? cacheLoader() };
+    try {
+      const loader = schemaLoader ?? cacheLoader();
+      schema = (await ldOpts.documentLoader(query.context)).document as JSONObject;
+    } catch (e) {
+      throw new Error(`can't load schema for request query`);
+    }
+    const ldContextJSON = JSON.stringify(schema);
+    const credentialSubject = query.credentialSubject as JSONObject;
+    const schemaId: string = await Path.getTypeIDFromContext(
+      JSON.stringify(schema),
+      query.type,
+      ldOpts
+    );
+    const schemaHash = createSchemaHash(byteEncoder.encode(schemaId));
 
-    // const valueHash = [];
-    // for (let i = 0; i < 3; i++) {
-    //   valueHash[i] = poseidon.spongeHashX(valueArraySize, 6); // 6 - max size of poseidon hash available on-chain
-    // }
+    const queriesMetadata = await parseQueriesMetadata(
+      query.type,
+      ldContextJSON,
+      credentialSubject,
+      ldOpts
+    );
 
-    /////////////////////////////////////////////////////////////////
-    // Calculate query hash
-    /////////////////////////////////////////////////////////////////
-    // 4950 constraints (SpongeHash+Poseidon)
+    const queryHashes = queriesMetadata.map((queryMeta) => {
+      const valueHash = poseidon.spongeHashX(queryMeta.values, 6);
+      return poseidon.hash([
+        schemaHash.bigInt(),
+        BigInt(queryMeta.slotIndex),
+        BigInt(queryMeta.operator),
+        BigInt(queryMeta.claimPathKey),
+        // TODO: claimAPathNotExists
+        BigInt(0),
+        valueHash
+      ]);
+    });
 
-    // circuitQueryHash[i] <== Poseidon(6)([
-    //     claimSchema,
-    //     slotIndex[i],
-    //     operator[i],
-    //     claimPathKey[i],
-    //     claimPathNotExists[i],
-    //     valueHash[i]
-    // ]);
+    if (!queryHashes.every((queryHash, i) => queryHash === this.pubSignals.circuitQueryHash[i])) {
+      throw new Error('query hashes do not match');
+    }
 
     return this.pubSignals as unknown as BaseConfig;
   }
