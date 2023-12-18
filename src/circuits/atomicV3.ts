@@ -5,7 +5,7 @@ import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQueryV3PubSignals, byteEncoder, ProofType } from '@0xpolygonid/js-sdk';
+import { AtomicQueryV3PubSignals, byteEncoder, JSONObject, ProofType } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -30,7 +30,8 @@ export class AtomicQueryV3PubSignalsVerifier
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
-    opts?: VerifyOpts
+    opts?: VerifyOpts,
+    params?: JSONObject
   ): Promise<void> {
     const outs: ClaimOutputs = {
       issuerId: this.pubSignals.issuerID,
@@ -55,30 +56,35 @@ export class AtomicQueryV3PubSignalsVerifier
     ) {
       throw new Error('invalid proof type');
     }
+    const nullifierSessionIDparam = params?.nullifierSessionId;
 
-    if (nullifier && BigInt(nullifier) !== 0n) {
-      // verify nullifier information
-      if (!opts?.verifierDID) {
-        throw new Error('verifierDID is required');
+    if (nullifierSessionIDparam) {
+      if (nullifier && BigInt(nullifier) !== 0n) {
+        // verify nullifier information
+        const verifierIDParam = params?.verifierDid;
+        if (!verifierIDParam) {
+          throw new Error('verifierDid is required');
+        }
+
+        const id = DID.idFromDID(verifierIDParam as DID);
+
+        if (verifierID.bigInt() != id.bigInt()) {
+          throw new Error('wrong verifier is used for nullification');
+        }
+        const nSessionId = BigInt(nullifierSessionIDparam as string);
+
+        if (nullifierSessionID !== nSessionId) {
+          throw new Error(
+            `wrong verifier session id is used for nullification, expected ${nSessionId}, got ${nullifierSessionID}`
+          );
+        }
       }
+    } else if (nullifierSessionID !== 0n) {
+      throw new Error(`Nullifier id is generated but wasn't requested`);
+    }
 
-      const id = DID.idFromDID(opts.verifierDID);
-
-      if (verifierID.bigInt() != id.bigInt()) {
-        throw new Error('wrong verifier is used for nullification');
-      }
-
-      if (!query.nullifierSessionId) {
-        throw new Error('verifierSessionId is required');
-      }
-
-      const nSessionId = BigInt(query.nullifierSessionId);
-
-      if (nullifierSessionID !== nSessionId) {
-        throw new Error(
-          `wrong verifier session id is used for nullification, expected ${nSessionId}, got ${nullifierSessionID}`
-        );
-      }
+    if (typeof query.groupId === 'undefined' && this.pubSignals.linkID !== 0n) {
+      throw new Error(`proof doesn't contain link id, but group id is provided`);
     }
   }
 

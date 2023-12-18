@@ -37,7 +37,6 @@ export interface Query {
   claimID?: string;
   skipClaimRevocationCheck?: boolean;
   proofType?: string;
-  nullifierSessionId?: string;
   groupId?: number;
 }
 

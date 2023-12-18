@@ -4,7 +4,6 @@ import { AtomicQuerySigV2PubSignalsVerifier } from '@lib/circuits/atomicSigV2';
 import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { DID } from '@iden3/js-iden3-core';
 import { AtomicQueryV3PubSignalsVerifier } from './atomicV3';
 
 export type VerifyOpts = {
@@ -12,7 +11,6 @@ export type VerifyOpts = {
   acceptedStateTransitionDelay?: number;
   // acceptedProofGenerationDelay is the period of time in milliseconds that a generated proof remains valid.
   acceptedProofGenerationDelay?: number;
-  verifierDID?: DID;
 };
 
 export interface PubSignalsVerifier {
@@ -20,7 +18,8 @@ export interface PubSignalsVerifier {
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
-    opts?: VerifyOpts
+    opts?: VerifyOpts,
+    circuitParams?: { [key: string]: unknown }
   ): Promise<void>;
   verifyStates(resolver: Resolvers, opts?: VerifyOpts): Promise<void>;
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;

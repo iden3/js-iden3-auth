@@ -251,7 +251,9 @@ export class Verifier {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
-      opts = opts?.verifierDID ? opts : { ...opts, verifierDID: DID.parse(request.from) };
+      const params = proofRequest.params ?? {};
+
+      params.verifierDid = DID.parse(request.from);
 
       // verify query
       const verifier = new CircuitVerifier(proofResp.pub_signals);
@@ -259,7 +261,8 @@ export class Verifier {
         proofRequest.query as unknown as Query,
         this.schemaLoader,
         proofResp.vp as JSON,
-        opts
+        opts,
+        params
       );
 
       // verify states

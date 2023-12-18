@@ -1,5 +1,4 @@
 import { getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
-import { Query } from '@lib/circuits/query';
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkGlobalState, getResolverByID } from '@lib/circuits/common';
@@ -19,7 +18,7 @@ export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignal
     this.challenge = this.pubSignals.challenge;
   }
 
-  async verifyQuery(_query: Query): Promise<void> {
+  async verifyQuery(): Promise<void> {
     throw new Error(`auth circuit doesn't support queries`);
   }
 
