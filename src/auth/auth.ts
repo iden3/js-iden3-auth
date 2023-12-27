@@ -22,7 +22,8 @@ import {
   IZKProver,
   FSCircuitStorage,
   ICircuitStorage,
-  cacheLoader
+  cacheLoader,
+  byteEncoder
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
@@ -229,7 +230,9 @@ export class Verifier {
     }
 
     for (const proofRequest of request.body.scope) {
-      const proofResp = response.body.scope.find((proofResp) => proofResp.id === proofRequest.id);
+      const proofResp = response.body.scope.find(
+        (proofResp: { id: number }) => proofResp.id === proofRequest.id
+      );
       if (!proofResp) {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
@@ -324,7 +327,7 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts
   ): Promise<AuthorizationResponseMessage> {
-    const msg = await this.packageManager.unpack(new TextEncoder().encode(tokenStr));
+    const msg = await this.packageManager.unpack(byteEncoder.encode(tokenStr));
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;
