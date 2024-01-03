@@ -50,10 +50,11 @@ export class AtomicQueryV3PubSignalsVerifier
 
     const { proofType, verifierID, nullifier, nullifierSessionID } = this.pubSignals;
 
-    if (
-      !(query.proofType === ProofType.BJJSignature && proofType === 1) &&
-      !(query.proofType === ProofType.Iden3SparseMerkleTreeProof && proofType === 2)
-    ) {
+    const isValidSigType = query.proofType === ProofType.BJJSignature && proofType === 1;
+    const isValidMTPType =
+      query.proofType === ProofType.Iden3SparseMerkleTreeProof && proofType === 2;
+
+    if (!isValidSigType || !isValidMTPType) {
       throw new Error('invalid proof type');
     }
     const nullifierSessionIDparam = params?.nullifierSessionId;
@@ -61,12 +62,12 @@ export class AtomicQueryV3PubSignalsVerifier
     if (nullifierSessionIDparam) {
       if (nullifier && BigInt(nullifier) !== 0n) {
         // verify nullifier information
-        const verifierIDParam = params?.verifierDid;
-        if (!verifierIDParam) {
+        const verifierDIDParam = params?.verifierDid;
+        if (!verifierDIDParam) {
           throw new Error('verifierDid is required');
         }
 
-        const id = DID.idFromDID(verifierIDParam as DID);
+        const id = DID.idFromDID(verifierDIDParam as DID);
 
         if (verifierID.bigInt() != id.bigInt()) {
           throw new Error('wrong verifier is used for nullification');
@@ -84,7 +85,7 @@ export class AtomicQueryV3PubSignalsVerifier
     }
 
     if (typeof query.groupId === 'undefined' && this.pubSignals.linkID !== 0n) {
-      throw new Error(`proof doesn't contain link id, but group id is provided`);
+      throw new Error(`proof contains link id, but group id is not provided`);
     }
   }
 
@@ -100,11 +101,6 @@ export class AtomicQueryV3PubSignalsVerifier
       return;
     }
 
-    // if IsRevocationChecked is set to 0. Skip validation revocation status of issuer.
-    if (this.pubSignals.isRevocationChecked === 0) {
-      return;
-    }
-
     const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
       this.pubSignals.issuerID,
@@ -114,13 +110,15 @@ export class AtomicQueryV3PubSignalsVerifier
     const acceptedStateTransitionDelay =
       opts?.acceptedStateTransitionDelay ?? defaultProofVerifyOpts;
 
-    if (!issuerNonRevStateResolved.latest) {
-      const timeDiff =
-        Date.now() -
-        getDateFromUnixTimestamp(Number(issuerNonRevStateResolved.transitionTimestamp)).getTime();
-      if (timeDiff > acceptedStateTransitionDelay) {
-        throw new Error('issuer state is outdated');
-      }
+    if (issuerNonRevStateResolved.latest) {
+      return;
+    }
+
+    const timeDiff =
+      Date.now() -
+      getDateFromUnixTimestamp(Number(issuerNonRevStateResolved.transitionTimestamp)).getTime();
+    if (timeDiff > acceptedStateTransitionDelay) {
+      throw new Error('issuer state is outdated');
     }
   }
 }
