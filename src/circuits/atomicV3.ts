@@ -54,7 +54,7 @@ export class AtomicQueryV3PubSignalsVerifier
     const isValidMTPType =
       query.proofType === ProofType.Iden3SparseMerkleTreeProof && proofType === 2;
 
-    if (!isValidSigType || !isValidMTPType) {
+    if (!isValidSigType && !isValidMTPType) {
       throw new Error('invalid proof type');
     }
     const nullifierSessionIDparam = params?.nullifierSessionId;
