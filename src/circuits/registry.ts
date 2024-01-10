@@ -45,6 +45,7 @@ const supportedCircuits: { [key: string]: unknown } = {
 
 export class Circuits {
   static getCircuitPubSignals(id: string): VerifierType {
+    id = id.split('-')[0];
     return supportedCircuits[id] as VerifierType;
   }
 }
