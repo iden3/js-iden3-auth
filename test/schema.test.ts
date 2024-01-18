@@ -19,7 +19,7 @@ describe('schema loader', () => {
     const loader = getDocumentLoader({
       ipfsNodeURL: connectionString
     });
-    const schemaResult = (await loader('ipfs://QmP8NrKqoBKjmKwMsC8pwBCBxXR2PhwSepwXx31gnJxAbP'))
+    const schemaResult = (await loader('ipfs://Qmb1Q5jLETkUkhswCVX52ntTCNQnRm3NyyGf1NZG98u5cv'))
       .document;
     expect(schemaResult).not.toBeNull();
     expect(schemaResult).toBeDefined();

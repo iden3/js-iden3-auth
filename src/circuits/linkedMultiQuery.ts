@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
+import { PubSignalsVerifier } from '@lib/circuits/registry';
 import { Query } from '@lib/circuits/query';
-import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader, Path } from '@iden3/js-jsonld-merklization';
 import {
   BaseConfig,
@@ -13,30 +12,25 @@ import {
   parseQueriesMetadata
 } from '@0xpolygonid/js-sdk';
 import { poseidon } from '@iden3/js-crypto';
+
 export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
-  pubSignals = new LinkedMultiQueryPubSignals();
+  readonly pubSignals = new LinkedMultiQueryPubSignals();
 
   constructor(pubSignals: string[]) {
     this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
       byteEncoder.encode(JSON.stringify(pubSignals)),
-      3
+      10
     );
   }
 
-  verifyIdOwnership(sender: string, challenge: bigint): Promise<void> {
+  verifyIdOwnership(): Promise<void> {
     return Promise.resolve();
   }
 
-  async verifyQuery(
-    query: Query,
-    schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON,
-    opts?: VerifyOpts
-  ): Promise<BaseConfig> {
+  async verifyQuery(query: Query, schemaLoader?: DocumentLoader): Promise<BaseConfig> {
     let schema: JSONObject;
     const ldOpts = { documentLoader: schemaLoader ?? cacheLoader() };
     try {
-      const loader = schemaLoader ?? cacheLoader();
       schema = (await ldOpts.documentLoader(query.context)).document as JSONObject;
     } catch (e) {
       throw new Error(`can't load schema for request query`);
@@ -64,8 +58,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
         BigInt(queryMeta.slotIndex),
         BigInt(queryMeta.operator),
         BigInt(queryMeta.claimPathKey),
-        // TODO: claimAPathNotExists
-        BigInt(0),
+        queryMeta.merklizedSchema ? 0n : 1n,
         valueHash
       ]);
     });
@@ -77,7 +70,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     return this.pubSignals as unknown as BaseConfig;
   }
 
-  async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
+  async verifyStates(): Promise<void> {
     return Promise.resolve();
   }
 }

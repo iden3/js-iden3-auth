@@ -22,7 +22,8 @@ import {
   IZKProver,
   FSCircuitStorage,
   ICircuitStorage,
-  cacheLoader
+  cacheLoader,
+  byteEncoder
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
@@ -292,9 +293,9 @@ export class Verifier {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
-      opts = opts?.verifierDID ? opts : { ...opts, verifierDID: DID.parse(request.from) };
+      const params = proofRequest.params ?? {};
 
-      opts = opts?.params ? opts : { ...opts, params: proofRequest.params };
+      params.verifierDid = DID.parse(request.from);
 
       // verify query
       const verifier = new CircuitVerifier(proofResp.pub_signals);
@@ -303,7 +304,8 @@ export class Verifier {
         proofRequest.query as unknown as Query,
         this.schemaLoader,
         proofResp.vp as JSON,
-        opts
+        opts,
+        params
       );
 
       // write linkId to the proof response
@@ -391,7 +393,7 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts
   ): Promise<AuthorizationResponseMessage> {
-    const msg = await this.packageManager.unpack(new TextEncoder().encode(tokenStr));
+    const msg = await this.packageManager.unpack(byteEncoder.encode(tokenStr));
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;

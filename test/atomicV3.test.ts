@@ -1,14 +1,18 @@
-import { Verifier, createAuthorizationRequestWithMessage } from '@lib/auth/auth';
+import { Verifier } from '@lib/auth/auth';
 import { testOpts, resolvers } from './mocks';
 import path from 'path';
 import {
   AuthorizationResponseMessage,
   PROTOCOL_CONSTANTS,
-  CircuitId,
-  ZeroKnowledgeProofRequest,
-  AuthorizationRequestMessage
+  AuthorizationRequestMessage,
+  cacheLoader,
+  CircuitId
 } from '@0xpolygonid/js-sdk';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
+const schemaLoader: DocumentLoader = cacheLoader({
+  ipfsNodeURL: process.env.IPFS_URL ?? 'https://ipfs.io'
+});
 describe('atomicV3', () => {
   it('TestVerifyV3MessageWithSigProof_NonMerklized', async () => {
     const request: AuthorizationRequestMessage = {
@@ -23,7 +27,7 @@ describe('atomicV3', () => {
         scope: [
           {
             id: 84239,
-            circuitId: 'credentialAtomicQueryV3',
+            circuitId: CircuitId.AtomicQueryV3,
             optional: true,
             query: {
               allowedIssuers: ['*'],
@@ -50,7 +54,7 @@ describe('atomicV3', () => {
         scope: [
           {
             id: 84239,
-            circuitId: 'credentialAtomicQueryV3',
+            circuitId: CircuitId.AtomicQueryV3,
             proof: {
               pi_a: [
                 '15208931239306667614189217356426367087296508213411046833716711442163868780112',
@@ -188,7 +192,7 @@ describe('atomicV3', () => {
         scope: [
           {
             id: 84239,
-            circuitId: 'credentialAtomicQueryV3',
+            circuitId: CircuitId.AtomicQueryV3,
             optional: true,
             query: {
               allowedIssuers: [
@@ -216,7 +220,7 @@ describe('atomicV3', () => {
         scope: [
           {
             id: 84239,
-            circuitId: 'credentialAtomicQueryV3',
+            circuitId: CircuitId.AtomicQueryV3,
             proof: {
               pi_a: [
                 '2191675399003747228361650328748147195525067334657244384911902711268678817802',
@@ -339,5 +343,73 @@ describe('atomicV3', () => {
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
+  });
+
+  it('auth with atomicV3 (nullifier, 2 req (merklized and non-merklized))', async () => {
+    const request: AuthorizationRequestMessage = {
+      id: '7d22275a-b518-45bb-8ee1-85e12abd8532',
+      typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+      type: 'https://iden3-communication.io/authorization/1.0/request',
+      thid: '7d22275a-b518-45bb-8ee1-85e12abd8532',
+      body: {
+        callbackUrl: 'http://localhost:8080/callback?id=1234442-123123-123123',
+        reason: 'reason',
+        message: 'mesage',
+        did_doc: {},
+        scope: [
+          {
+            id: 1,
+            circuitId: CircuitId.AtomicQueryV3,
+            optional: false,
+            query: {
+              groupId: 2,
+              allowedIssuers: ['*'],
+              type: 'KYCAgeCredential',
+              proofType: 'BJJSignature2021',
+              context:
+                'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld',
+              credentialSubject: {
+                documentType: {
+                  $eq: 99
+                }
+              }
+            }
+          },
+          {
+            id: 2,
+            circuitId: CircuitId.AtomicQueryV3,
+            optional: false,
+            params: {
+              nullifierSessionId: 12345
+            },
+            query: {
+              groupId: 1,
+              proofType: 'Iden3SparseMerkleTreeProof',
+              allowedIssuers: ['*'],
+              type: 'KYCEmployee',
+              context:
+                'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
+              credentialSubject: {
+                hireDate: {
+                  $eq: '2023-12-11'
+                }
+              }
+            }
+          }
+        ]
+      },
+      from: 'did:iden3:polygon:mumbai:wzokvZ6kMoocKJuSbftdZxTD6qvayGpJb3m4FVXth'
+    };
+
+    const verifier = await Verifier.newVerifier({
+      stateResolver: resolvers,
+      circuitsDir: path.join(__dirname, './testdata'),
+      documentLoader: schemaLoader
+    });
+
+    const token =
+      'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiYXBwbGljYXRpb24vaWRlbjMtemtwLWpzb24ifQ.eyJpZCI6IjAyMGZjZDdjLWM4MDgtNGE4Zi1iZWY1LTQyNmUzZjEzN2M1NCIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zLXprcC1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiIwYTkwNzViYi02Nzg2LTQzNTQtYTc0Ni0xNjc5Y2I1OWMzYWIiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNhZ2UiLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRJZCI6ImNyZWRlbnRpYWxBdG9taWNRdWVyeVYzLWJldGEuMCIsInByb29mIjp7InBpX2EiOlsiMzYzMzQyNDI1ODQwMTY4OTI3MTYzNzU5NDIyMTIxOTgxNTU4MTM1NjQ5MDAyMTQwNjMzMjY5NzEzNTk1Mjk2NDgxNTEyMTM1OTA3OCIsIjE2NjA4ODcwOTE3MTY3NTE0NTIyMzQ3OTU3MjIyMDQxNDAyOTM2OTU1NjkwODI5MDI2ODM2OTU2MjM5MzQ0NDg3MTUzNzQzNzM2MjQ1IiwiMSJdLCJwaV9iIjpbWyIxNDM3MjQ5NzE0MTk3MDUzMjE5NTM4MzU1NTI0Nzk1NTU5OTQzOTAyMDg2ODg2Mzg3MTEzNDE1MzU0MzM4NDc2MzIxNzYzOTU1ODE4NSIsIjE4MDU5OTU2MTkxNjUzOTc1Njc3OTAzNjQwMjEwMDkzMDAyMzM3MTQyNTEwMDA0ODgzODU2NjM2NzQxMzY0MjEyMDMwMDkxOTMxNzk0Il0sWyIxNzc3NzY2MzYyMTgyNDAyNDEwNDc3NzIxMjI1MzI1NTUzNTIyOTUzMjg2MTUzNTM1NzM3MDA0OTc2NTYyMDMxMjMyMDEzNTI5MzUyMyIsIjg4NzQ2NTI0MDk3NTUwMzQ3OTc0OTgyMDU5ODczNjU3NTUyOTg3MDU3MjYzOTQ3NzQ3MDY2NjE4NjM2MDA2NzAxNzQyMjczMDU1MjMiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjg1OTc5MzUwMDAxNzY0ODU3OTQ0NDEzNDM1ODAyNTYxODg3NDk5ODU2NzAwOTM3NjM4NTY0MDg1MzYzMjk3NDQzNTI3MTY5ODAzMDQiLCIxNjk1MzkzMTg2NTcyNjA5ODE5NDk5OTE5NTI0NDMxMjI1MjgwMjQ3NjgwNzc5MTI1OTQwNzgxMjIxNTI4MTM3MjQwNDMwNDE2NDM3MiIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2IiwiY3VydmUiOiJibjEyOCJ9LCJwdWJfc2lnbmFscyI6WyIwIiwiMjE1NjgyMjU0Njk4ODk0NTgzMDU5MTQ4NDE0OTAxNzUyODAwOTM1NTUwMTUwNzEzMjk3ODczNzU2NDE0MzEyNjI1MDkyMDgwNjUiLCI0NDg3Mzg2MzMyNDc5NDg5MTU4MDAzNTk3ODQ0OTkwNDg3OTg0OTI1NDcxODEzOTA3NDYyNDgzOTA3MDU0NDI1NzU5NTY0MTc1MzQxIiwiMjA2NDE5NDAzNDk5ODcyMjMzNDMzMjkzODEyMzM4MTIyNDA1MjIzMjQwNjYyNzEwMjc2OTA0MjIzNDY0MjUzNjcwMjczMzI3ODUzNjkiLCIwIiwiMCIsIjEiLCIxIiwiMjUxOTE2NDE2MzQ4NTM4NzUyMDcwMTgzODEyOTA0MDkzMTc4NjAxNTE1NTEzMzYxMzM1OTcyNjcwNjE3MTU2NDM2MDMwOTYwNjUiLCIxIiwiNDQ4NzM4NjMzMjQ3OTQ4OTE1ODAwMzU5Nzg0NDk5MDQ4Nzk4NDkyNTQ3MTgxMzkwNzQ2MjQ4MzkwNzA1NDQyNTc1OTU2NDE3NTM0MSIsIjE3MDQ4ODQ5ODUiLCIxOTgyODU3MjY1MTA2ODgyMDAzMzUyMDcyNzM4MzYxMjMzMzg2OTkiLCIxIiwiMCIsIjMiLCIxIiwiOTkiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCJdfSx7ImlkIjoyLCJjaXJjdWl0SWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlWMy1iZXRhLjAiLCJwcm9vZiI6eyJwaV9hIjpbIjE5MDkxNzMwNDgzOTUyNTIzMzIyMTc4ODAzMzIzMzM5MDQxNTE4MzU3MTEzNzMyMDM2MzczOTI3NjE2NjExOTA2MTA4OTQ4OTEzNzQ5IiwiMTAyODQwMjUwOTk5MTM5NzA3MjEyNjIwNjU5MzI3NDY3OTAwOTAxMTc1Mjg0MjI0NzI2Nzg0ODk1NzU3NDk5NjQxODYxOTAzOTQ0ODIiLCIxIl0sInBpX2IiOltbIjE4ODgzNjIyOTcwNTg3NzM5MTAwMjg5OTE2NDYzODE4Njg5MjExMjI5MTQwMTA1OTcxMDI1NjAwMDQ4MzI1NjM2MjU0OTE2NDExMDg2IiwiMjE3NzE5MDcyOTc1MjI3NTA0OTg0OTczNjA4NzIzMjc0MDg5NzAyOTI2NDE2ODM4MjE4MjM4MzQ5ODAyMTQ5NjUyOTU2MzgxNTM4ODYiXSxbIjEwNzIzODA0NjE1MTQ4NTMyMjQ4OTY0MDIzNDcxNjc4MzIzNjA5MzA0MzM5NzU2NTIzNDA3NzUwNTU3NTAwMTkzMzEzNDMwNzQxNTMxIiwiMTA1ODI0NTE2OTA5NTc1NjgxNzQyMjM3ODQ2NTA0NzMwNTY4MzAyODE2ODU1ODMzMDM0NzU5ODg4MDYzNjUyOTYwNzY4NDM4OTExMjIiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjc1MTk4NzQyODg4OTYyOTEwOTY5MDk5NzgzMTg3NDA4MDU1OTc2NDcyNzY1ODQ4Nzc0Mzc2ODE0NzYxMTk2Mjg3MTkzMTUzMDI2MyIsIjE5MjA5MTk1MDg1NTQ4NTM2Mzk2NTMwNDM5NDA2OTU0MzA4MDcxNzA2MTM3NzYxMjkwODc2Mjk4OTA1NDI5MzgzNjM5NDUxNjc3MzU2IiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYiLCJjdXJ2ZSI6ImJuMTI4In0sInB1Yl9zaWduYWxzIjpbIjEiLCIyMTU2ODIyNTQ2OTg4OTQ1ODMwNTkxNDg0MTQ5MDE3NTI4MDA5MzU1NTAxNTA3MTMyOTc4NzM3NTY0MTQzMTI2MjUwOTIwODA2NSIsIjM3NTAwNzExMDA4MzQzMjgwMzc0MjA1MDQwMDQ5MzYxNTUyNDE5Mzc2ODczODA1NTg5NTI1MDU0Mjg3Njg1MDY4OTkzOTQxMTc2MTEiLCIyMTU5NDY0NjkzNzA3Njc1MDgxMTk0MDI0MDAyMTA0NDEyOTY3NjM5OTYzMDgxNzA4MTQzMzk5MTIyNDg3OTc0OTE3MzcwMDIyMjkwNCIsIjAiLCIwIiwiMiIsIjIiLCIyNTE5MTY0MTYzNDg1Mzg3NTIwNzAxODM4MTI5MDQwOTMxNzg2MDE1MTU1MTMzNjEzMzU5NzI2NzA2MTcxNTY0MzYwMzA5NjA2NSIsIjEiLCI0NDg3Mzg2MzMyNDc5NDg5MTU4MDAzNTk3ODQ0OTkwNDg3OTg0OTI1NDcxODEzOTA3NDYyNDgzOTA3MDU0NDI1NzU5NTY0MTc1MzQxIiwiMTcwNDg4NDk4OCIsIjIxOTU3ODYxNzA2NDU0MDAxNjIzNDE2MTY0MDM3NTc1NTg2NTQxMiIsIjAiLCIxMjk2MzUxNzU4MjY5MDYxMTczMzE3MTA1MDQxOTY4MDY3MDc3NDUxOTE0Mzg2MDg2MjIyOTMxNTE2MTk5MTk0OTU5ODY5NDYzODgyIiwiMCIsIjEiLCIxNzAyMjUyODAwMDAwMDAwMDAwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjEyMzQ1Il19XX0sImZyb20iOiJkaWQ6aWRlbjM6cG9seWdvbjptdW1iYWk6d3V3NXR5ZFo3QUFkM2Vmd0VxUHBybnFqaU5IUjI0anFydVNQS21WMVYiLCJ0byI6ImRpZDppZGVuMzpwb2x5Z29uOm11bWJhaTp3em9rdlo2a01vb2NLSnVTYmZ0ZFp4VEQ2cXZheUdwSmIzbTRGVlh0aCJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjE4MDE1MDI2ODk5Nzk4OTk2NDYwMjI0NDA1NjQwMjU1MTc0NzgyMjcyNjQyODYxNTY2OTkwMjY2MDEyNzU1NDk4OTE1NzU0ODI5MzA3IiwiMTcxMTYyNTEwMTYwNTUyMTE3MDM4NjIzODUwOTgyMTEzNzIxNjA1Nzk4OTE5MDE4OTUyMjE4MDYxMDE3NTMyNzA4ODMwMjMzMDQyNTkiLCIxIl0sInBpX2IiOltbIjQxNzM4OTE2MTkzNDgzODE0NDM0NTIwMjcwNDQ3MjUzMTI2MDY5MDA2NzY4MDk2ODI0MjM0MTg1MTgwNTkzMzY3MDgyMDY0NDQ3MTAiLCI4NTkzOTMwODQ2MDgzNzc0OTQ0ODE5MjQ0MzE3ODg4MzU0MjQ0OTQ0NzM2OTgzMzI4NjUwNTkwMjY3NDQ1ODAxMzk0MDMxNTAyMzA1Il0sWyIxMTk4ODE3MDM3MTA1NzY3NTMxMzQyNzcyOTc3Mjg5ODAwOTEzMTgwNDQzMjY3MjQyNzYwMjY3MzQ3MDY0NjA4MDg4MjczNjI1NDA2MCIsIjQ2MTYxNDYyODU0NTY3NDYxODM4OTk0NDA3ODgyMDg3NjQ1MzY3MjY0NjQ2MzMzODMyMDA3NDkzNTgyNzg4OTg2MjEwNzIwODk1MDIiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjQwMjY1OTUwNjQ1MDQ5MTU3Mzg5MjM1MTIyNTQ5OTg1NjIwMDc0Nzk3ODY3ODMxNjkwMDY4MzQ3NzcyNDkxMjE2OTM2MzI4ODMwNjYiLCI4NjgyMjg1NjE5MjE2ODk2NjYwODg5OTczMTAwNDc0MzU0MzgwMzM0Njg5MDA0NTE5Njk2NDcwNDM2MDE2ODg3MTY4ODMyNDk0MTc5IiwiMSJdLCJwcm90b2NvbCI6Imdyb3RoMTYiLCJjdXJ2ZSI6ImJuMTI4In0sInB1Yl9zaWduYWxzIjpbIjIxNTY4MjI1NDY5ODg5NDU4MzA1OTE0ODQxNDkwMTc1MjgwMDkzNTU1MDE1MDcxMzI5Nzg3Mzc1NjQxNDMxMjYyNTA5MjA4MDY1IiwiMTY1ODE1NjAzNjk3MDY3MjQ0MDM1MDY0MDgzOTY4NzEwNzgxMTY2MzIxOTI4MjQ0NDA4MDYyNjE5ODIzNjc3MTgzOTI3OTc1MTY5MjciLCIwIl19';
+
+    await expect(verifier.fullVerify(token, request, testOpts)).resolves.not.toThrow();
   });
 });

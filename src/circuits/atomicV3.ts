@@ -5,7 +5,13 @@ import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQueryV3PubSignals, BaseConfig, byteEncoder, ProofType } from '@0xpolygonid/js-sdk';
+import {
+  AtomicQueryV3PubSignals,
+  BaseConfig,
+  byteEncoder,
+  JSONObject,
+  ProofType
+} from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -30,7 +36,8 @@ export class AtomicQueryV3PubSignalsVerifier
     query: Query,
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
-    opts?: VerifyOpts
+    opts?: VerifyOpts,
+    params?: JSONObject
   ): Promise<BaseConfig> {
     const outs: ClaimOutputs = {
       issuerId: this.pubSignals.issuerID,
@@ -47,46 +54,56 @@ export class AtomicQueryV3PubSignalsVerifier
     };
     await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
 
-    const { proofType, verifierID, nullifier, nullifierSessionID } = this.pubSignals;
+    const { proofType, verifierID, nullifier, nullifierSessionID, linkID } = this.pubSignals;
 
-    if (
-      !(query.proofType === ProofType.BJJSignature && proofType === 1) &&
-      !(query.proofType === ProofType.Iden3SparseMerkleTreeProof && proofType === 2)
-    ) {
-      throw new Error('invalid proof type');
+    switch (query.proofType) {
+      case ProofType.BJJSignature:
+        if (proofType !== 1) {
+          throw new Error('wrong proof type for BJJSignature');
+        }
+        break;
+      case ProofType.Iden3SparseMerkleTreeProof:
+        if (proofType !== 2) {
+          throw new Error('wrong proof type for Iden3SparseMerkleTreeProof');
+        }
+        break;
+      default:
+        throw new Error('invalid proof type');
     }
 
-    if (nullifier && BigInt(nullifier) !== 0n) {
-      // verify nullifier information
-      if (!opts?.verifierDID) {
-        throw new Error('verifierDID is required');
+    const nullifierSessionIDparam = params?.nullifierSessionId;
+
+    if (nullifierSessionIDparam) {
+      if (nullifier && BigInt(nullifier) !== 0n) {
+        // verify nullifier information
+        const verifierDIDParam = params?.verifierDid;
+        if (!verifierDIDParam) {
+          throw new Error('verifierDid is required');
+        }
+
+        const id = DID.idFromDID(verifierDIDParam as DID);
+
+        if (verifierID.bigInt() != id.bigInt()) {
+          throw new Error('wrong verifier is used for nullification');
+        }
+        const nSessionId = BigInt(nullifierSessionIDparam as string);
+
+        if (nullifierSessionID !== nSessionId) {
+          throw new Error(
+            `wrong verifier session id is used for nullification, expected ${nSessionId}, got ${nullifierSessionID}`
+          );
+        }
       }
-
-      const id = DID.idFromDID(opts.verifierDID);
-
-      if (verifierID.bigInt() != id.bigInt()) {
-        throw new Error('wrong verifier is used for nullification');
-      }
-
-      if (!opts.params?.nullifierSessionId) {
-        throw new Error('nullifierSessionId is required');
-      }
-
-      const nSessionId = BigInt(opts.params.nullifierSessionId.toString());
-
-      if (nullifierSessionID !== nSessionId) {
-        throw new Error(
-          `wrong verifier session id is used for nullification, expected ${nSessionId}, got ${nullifierSessionID}`
-        );
-      }
+    } else if (nullifierSessionID !== 0n) {
+      throw new Error(`Nullifier id is generated but wasn't requested`);
     }
 
-    if (typeof query.groupId !== 'undefined' && this.pubSignals.linkID === 0n) {
-      throw new Error('linkID is required');
+    if (!query.groupId && linkID !== 0n) {
+      throw new Error(`proof contains link id, but group id is not provided`);
     }
 
-    if (typeof query.groupId === 'undefined' && this.pubSignals.linkID !== 0n) {
-      throw new Error('Query should not have groupId');
+    if (query.groupId && linkID === 0n) {
+      throw new Error("proof doesn't contain link id, but group id is provided");
     }
 
     return this.pubSignals;
@@ -104,11 +121,6 @@ export class AtomicQueryV3PubSignalsVerifier
       return;
     }
 
-    // if IsRevocationChecked is set to 0. Skip validation revocation status of issuer.
-    if (this.pubSignals.isRevocationChecked === 0) {
-      return;
-    }
-
     const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
       this.pubSignals.issuerID,
@@ -118,13 +130,15 @@ export class AtomicQueryV3PubSignalsVerifier
     const acceptedStateTransitionDelay =
       opts?.acceptedStateTransitionDelay ?? defaultProofVerifyOpts;
 
-    if (!issuerNonRevStateResolved.latest) {
-      const timeDiff =
-        Date.now() -
-        getDateFromUnixTimestamp(Number(issuerNonRevStateResolved.transitionTimestamp)).getTime();
-      if (timeDiff > acceptedStateTransitionDelay) {
-        throw new Error('issuer state is outdated');
-      }
+    if (issuerNonRevStateResolved.latest) {
+      return;
+    }
+
+    const timeDiff =
+      Date.now() -
+      getDateFromUnixTimestamp(Number(issuerNonRevStateResolved.transitionTimestamp)).getTime();
+    if (timeDiff > acceptedStateTransitionDelay) {
+      throw new Error('issuer state is outdated');
     }
   }
 }
