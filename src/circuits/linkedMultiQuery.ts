@@ -13,6 +13,10 @@ import {
 } from '@0xpolygonid/js-sdk';
 import { poseidon } from '@iden3/js-crypto';
 
+/**
+ * Verifies the linked multi-query circuit.
+ * @beta
+ */
 export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
   readonly pubSignals = new LinkedMultiQueryPubSignals();
 
@@ -37,11 +41,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     }
     const ldContextJSON = JSON.stringify(schema);
     const credentialSubject = query.credentialSubject as JSONObject;
-    const schemaId: string = await Path.getTypeIDFromContext(
-      JSON.stringify(schema),
-      query.type,
-      ldOpts
-    );
+    const schemaId: string = await Path.getTypeIDFromContext(ldContextJSON, query.type, ldOpts);
     const schemaHash = createSchemaHash(byteEncoder.encode(schemaId));
 
     const queriesMetadata = await parseQueriesMetadata(

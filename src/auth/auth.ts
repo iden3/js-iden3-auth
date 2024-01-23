@@ -206,7 +206,7 @@ export class Verifier {
     return this.setPacker(jwsPacker);
   }
 
-  public async verifyAuthRequest(request: AuthorizationRequestMessage) {
+  public verifyAuthRequest(request: AuthorizationRequestMessage) {
     const groupIdValidationMap: { [k: string]: ZeroKnowledgeProofRequest[] } = {};
     const requestScope = request.body.scope;
     for (const proofRequest of requestScope) {
@@ -227,14 +227,16 @@ export class Verifier {
           const allowedIssuers = proofRequest.query.allowedIssuers as string[];
           const existingRequestAllowedIssuers = existingRequest.query.allowedIssuers as string[];
           if (
-            !allowedIssuers.includes('*') ||
-            allowedIssuers.some((issuer) => !existingRequestAllowedIssuers.includes(issuer))
+            !(
+              allowedIssuers.includes('*') ||
+              allowedIssuers.every((issuer) => existingRequestAllowedIssuers.includes(issuer))
+            )
           ) {
             throw new Error(`all requests in the group should have the same issuer`);
           }
         }
+        groupIdValidationMap[groupId] = [...(groupIdValidationMap[groupId] ?? []), proofRequest];
       }
-      groupIdValidationMap[groupId] = [...(groupIdValidationMap[groupId] ?? []), proofRequest];
     }
   }
 
