@@ -22,11 +22,14 @@ import {
   IZKProver,
   FSCircuitStorage,
   ICircuitStorage,
-  cacheLoader
+  cacheLoader,
+  byteEncoder
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
+import { DID } from '@iden3/js-iden3-core';
+import { ZeroKnowledgeProofRequest } from '@0xpolygonid/js-sdk';
 
 /**
  *  createAuthorizationRequest is a function to create protocol authorization request
@@ -203,11 +206,45 @@ export class Verifier {
     return this.setPacker(jwsPacker);
   }
 
+  public verifyAuthRequest(request: AuthorizationRequestMessage) {
+    const groupIdValidationMap: { [k: string]: ZeroKnowledgeProofRequest[] } = {};
+    const requestScope = request.body.scope;
+    for (const proofRequest of requestScope) {
+      const groupId = proofRequest.query.groupId as number;
+      if (groupId) {
+        const existingRequests = groupIdValidationMap[groupId] ?? [];
+
+        //validate that all requests in the group have the same schema, issuer and circuit
+        for (const existingRequest of existingRequests) {
+          if (existingRequest.query.type !== proofRequest.query.type) {
+            throw new Error(`all requests in the group should have the same type`);
+          }
+
+          if (existingRequest.query.context !== proofRequest.query.context) {
+            throw new Error(`all requests in the group should have the same context`);
+          }
+
+          const allowedIssuers = proofRequest.query.allowedIssuers as string[];
+          const existingRequestAllowedIssuers = existingRequest.query.allowedIssuers as string[];
+          if (
+            !(
+              allowedIssuers.includes('*') ||
+              allowedIssuers.every((issuer) => existingRequestAllowedIssuers.includes(issuer))
+            )
+          ) {
+            throw new Error(`all requests in the group should have the same issuer`);
+          }
+        }
+        groupIdValidationMap[groupId] = [...(groupIdValidationMap[groupId] ?? []), proofRequest];
+      }
+    }
+  }
+
   /**
    * verifies zero knowledge proof response according to the proof request
    * @public
    * @param {AuthorizationResponseMessage} response - auth protocol response
-   * @param {AuthorizationRequestMessage} request - auth protocol request
+   * @param {AuthorizationRequestMessage} proofRequest - auth protocol request
    * @param {VerifyOpts} opts - verification options
    *
    * @returns `Promise<void>`
@@ -221,17 +258,31 @@ export class Verifier {
       throw new Error('message for signing from request is not presented in response');
     }
 
-    for (const proofRequest of request.body.scope) {
-      const proofResp = response.body.scope.find((proofResp) => proofResp.id === proofRequest.id);
+    if (request.from !== response.to) {
+      throw new Error(
+        `sender of the request is not a target of response - expected ${request.from}, given ${response.to}`
+      );
+    }
+
+    this.verifyAuthRequest(request);
+    const requestScope = request.body.scope;
+
+    const groupIdToLinkIdMap = new Map<number, { linkID: number; requestId: number }[]>();
+    // group requests by query group id
+    for (const proofRequest of requestScope) {
+      const groupId = proofRequest.query.groupId as number;
+
+      const proofResp = response.body.scope.find((resp) => resp.id === proofRequest.id);
       if (!proofResp) {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
-      if (proofResp.circuitId !== proofRequest.circuitId) {
+
+      const circuitId = proofResp.circuitId;
+      if (circuitId !== proofRequest.circuitId) {
         throw new Error(
-          `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${proofResp.circuitId}`
+          `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${circuitId}`
         );
       }
-      const circuitId = proofResp.circuitId;
       const isValid = await this.prover.verify(proofResp, circuitId);
       if (!isValid) {
         throw new Error(
@@ -244,21 +295,53 @@ export class Verifier {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
+      const params = proofRequest.params ?? {};
+
+      params.verifierDid = DID.parse(request.from);
+
       // verify query
       const verifier = new CircuitVerifier(proofResp.pub_signals);
-      await verifier.verifyQuery(
+
+      const pubSignals = await verifier.verifyQuery(
         proofRequest.query as unknown as Query,
         this.schemaLoader,
         proofResp.vp as JSON,
-        opts
+        opts,
+        params
       );
 
+      // write linkId to the proof response
+      const pubSig = pubSignals as unknown as { linkID?: number };
+
+      if (pubSig.linkID && groupId) {
+        groupIdToLinkIdMap.set(groupId, [
+          ...(groupIdToLinkIdMap.get(groupId) ?? []),
+          { linkID: pubSig.linkID, requestId: proofResp.id }
+        ]);
+      }
       // verify states
 
       await verifier.verifyStates(this.stateResolver, opts);
 
+      if (!response.from) {
+        throw new Error(`proof response doesn't contain from field`);
+      }
+
       // verify id ownership
-      await verifier.verifyIdOwnership(response.from!, BigInt(proofResp.id));
+      await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));
+    }
+
+    // verify grouping links
+
+    for (const [groupId, metas] of groupIdToLinkIdMap.entries()) {
+      // check that all linkIds are the same
+      if (metas.some((meta) => meta.linkID !== metas[0].linkID)) {
+        throw new Error(
+          `Link id validation failed for group ${groupId}, request linkID to requestIds info: ${JSON.stringify(
+            metas
+          )}`
+        );
+      }
     }
   }
 
@@ -312,7 +395,7 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts
   ): Promise<AuthorizationResponseMessage> {
-    const msg = await this.packageManager.unpack(new TextEncoder().encode(tokenStr));
+    const msg = await this.packageManager.unpack(byteEncoder.encode(tokenStr));
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;

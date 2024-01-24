@@ -7,24 +7,11 @@ import {
   byteEncoder,
   createSchemaHash,
   QueryOperators,
-  Parser
+  Parser,
+  byteDecoder,
+  isValidOperation
 } from '@0xpolygonid/js-sdk';
 import { VerifyOpts } from './registry';
-import { XSDNS } from './common';
-
-const bytesDecoder = new TextDecoder();
-
-const allOperations = Object.values(QueryOperators);
-
-const availableTypesOperators: Map<string, Operators[]> = new Map([
-  [XSDNS.Boolean, [QueryOperators.$eq, QueryOperators.$ne]],
-  [XSDNS.Integer, allOperations],
-  [XSDNS.NonNegativeInteger, allOperations],
-  [XSDNS.PositiveInteger, allOperations],
-  [XSDNS.Double, [QueryOperators.$eq, QueryOperators.$ne, QueryOperators.$in, QueryOperators.$nin]],
-  [XSDNS.String, [QueryOperators.$eq, QueryOperators.$ne, QueryOperators.$in, QueryOperators.$nin]],
-  [XSDNS.DateTime, allOperations]
-]);
 
 const defaultProofGenerationDelayOpts = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -36,6 +23,8 @@ export interface Query {
   type: string;
   claimID?: string;
   skipClaimRevocationCheck?: boolean;
+  proofType?: string;
+  groupId?: number;
 }
 
 // ClaimOutputs fields that are used in proof generation
@@ -279,7 +268,7 @@ async function parseRequest(
     throw new Error(`multiple requests not supported`);
   }
 
-  const txtSchema = bytesDecoder.decode(schema);
+  const txtSchema = byteDecoder.decode(schema);
 
   let fieldName = '';
   let predicate: Map<string, unknown> = new Map();
@@ -341,21 +330,6 @@ async function getValuesAsArray(v: unknown, datatype: string): Promise<bigint[]>
   }
   values[0] = await Merklizer.hashValue(datatype, v);
   return values;
-}
-
-function isValidOperation(datatype: string, op: number): boolean {
-  if (op === Operators.NOOP) {
-    return true;
-  }
-
-  if (!availableTypesOperators.has(datatype)) {
-    return false;
-  }
-  const ops = availableTypesOperators.get(datatype);
-  if (!ops) {
-    return false;
-  }
-  return ops.includes(op);
 }
 
 async function parsePredicate(

@@ -5,7 +5,7 @@ import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQueryMTPV2PubSignals, byteEncoder } from '@0xpolygonid/js-sdk';
+import { AtomicQueryMTPV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -38,35 +38,32 @@ export class AtomicQueryMTPV2PubSignalsVerifier
     schemaLoader?: DocumentLoader,
     verifiablePresentation?: JSON,
     opts?: VerifyOpts
-  ): Promise<void> {
+  ): Promise<BaseConfig> {
     const outs: ClaimOutputs = {
-      // TODO: update when js-sdk is fixed for AtomicQueryMTPV2PubSignals
-      issuerId: this.pubSignals.issuerID!,
-      schemaHash: this.pubSignals.claimSchema!,
+      issuerId: this.pubSignals.issuerID,
+      schemaHash: this.pubSignals.claimSchema,
       slotIndex: this.pubSignals.slotIndex,
-      operator: this.pubSignals.operator!,
+      operator: this.pubSignals.operator,
       value: this.pubSignals.value,
-      timestamp: this.pubSignals.timestamp!,
-      merklized: this.pubSignals.merklized!,
+      timestamp: this.pubSignals.timestamp,
+      merklized: this.pubSignals.merklized,
       claimPathKey: this.pubSignals.claimPathKey,
       claimPathNotExists: this.pubSignals.claimPathNotExists,
       valueArraySize: valuesSize,
-      isRevocationChecked: this.pubSignals.isRevocationChecked!
+      isRevocationChecked: this.pubSignals.isRevocationChecked
     };
-    return await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+
+    return this.pubSignals;
   }
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
-    const resolver = getResolverByID(resolvers, this.pubSignals.issuerID!);
+    const resolver = getResolverByID(resolvers, this.pubSignals.issuerID);
     if (!resolver) {
-      throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID!.string()}`);
+      throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID.string()}`);
     }
 
-    await checkUserState(
-      resolver,
-      this.pubSignals.issuerID!,
-      this.pubSignals.issuerClaimIdenState!
-    );
+    await checkUserState(resolver, this.pubSignals.issuerID, this.pubSignals.issuerClaimIdenState);
 
     if (this.pubSignals.isRevocationChecked === 0) {
       return;
@@ -74,8 +71,8 @@ export class AtomicQueryMTPV2PubSignalsVerifier
 
     const issuerNonRevStateResolved = await checkIssuerNonRevState(
       resolver,
-      this.pubSignals.issuerID!,
-      this.pubSignals.issuerClaimNonRevState!
+      this.pubSignals.issuerID,
+      this.pubSignals.issuerClaimNonRevState
     );
 
     let acceptedStateTransitionDelay = defaultProofVerifyOpts;
