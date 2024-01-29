@@ -88,6 +88,6 @@ describe('Linked proofs verification', () => {
       documentLoader: schemaLoader
     });
 
-    verifier.fullVerify(tokenString, authRequest);
+    await verifier.fullVerify(tokenString, authRequest);
   });
 });
