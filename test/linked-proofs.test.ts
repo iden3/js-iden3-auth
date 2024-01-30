@@ -1,6 +1,6 @@
 import { AuthorizationRequestMessage, CircuitId } from '@0xpolygonid/js-sdk';
 import { Verifier } from '@lib/auth/auth';
-import { resolvers, schemaLoader } from './mocks';
+import { resolvers, schemaLoader, testOpts } from './mocks';
 import path from 'path';
 import { PROTOCOL_CONSTANTS } from '@0xpolygonid/js-sdk';
 
@@ -88,6 +88,6 @@ describe('Linked proofs verification', () => {
       documentLoader: schemaLoader
     });
 
-    verifier.fullVerify(tokenString, authRequest);
+    await verifier.fullVerify(tokenString, authRequest, testOpts);
   });
 });
