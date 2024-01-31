@@ -19,7 +19,7 @@ export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignal
   }
 
   verifyQuery(): Promise<BaseConfig> {
-    return Promise.resolve(new BaseConfig());
+    throw new Error(`authV2 circuit doesn't support queries`);
   }
 
   async verifyStates(resolvers: Resolvers, opts?: VerifyOpts): Promise<void> {
