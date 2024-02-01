@@ -51,7 +51,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
       ldOpts
     );
 
-    const queryHashes = queriesMetadata.map((queryMeta) => {
+    let queryHashes = queriesMetadata.map((queryMeta) => {
       const valueHash = poseidon.spongeHashX(queryMeta.values, 6);
       return poseidon.hash([
         schemaHash.bigInt(),
@@ -68,8 +68,8 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     const zeros: Array<bigint> = Array.from({
       length: this.pubSignals.circuitQueryHash.length - queryHashes.length
     }).fill(BigInt(0)) as Array<bigint>;
-    const fullQueryHashes: Array<bigint> = queryHashes.concat(zeros);
-    fullQueryHashes.sort(this.bigIntCompare);
+    queryHashes = queryHashes.concat(zeros);
+    queryHashes.sort(this.bigIntCompare);
 
     if (!queryHashes.every((queryHash, i) => queryHash === this.pubSignals.circuitQueryHash[i])) {
       throw new Error('query hashes do not match');
@@ -82,7 +82,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     return Promise.resolve();
   }
 
-  bigIntCompare = (a: bigint, b: bigint): number => {
+  private bigIntCompare = (a: bigint, b: bigint): number => {
     if (a < b) return -1;
     if (a > b) return 1;
     return 0;
