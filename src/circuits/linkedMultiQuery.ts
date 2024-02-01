@@ -63,6 +63,14 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
       ]);
     });
 
+    this.pubSignals.circuitQueryHash.sort(this.bigIntCompare);
+
+    const zeros: Array<bigint> = Array.from({
+      length: this.pubSignals.circuitQueryHash.length - queryHashes.length
+    }).fill(BigInt(0)) as Array<bigint>;
+    const fullQueryHashes: Array<bigint> = queryHashes.concat(zeros);
+    fullQueryHashes.sort(this.bigIntCompare);
+
     if (!queryHashes.every((queryHash, i) => queryHash === this.pubSignals.circuitQueryHash[i])) {
       throw new Error('query hashes do not match');
     }
@@ -73,4 +81,10 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
   async verifyStates(): Promise<void> {
     return Promise.resolve();
   }
+
+  bigIntCompare = (a: bigint, b: bigint): number => {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  };
 }
