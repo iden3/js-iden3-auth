@@ -40,6 +40,7 @@ export interface ClaimOutputs {
   claimPathNotExists?: number;
   valueArraySize: number;
   isRevocationChecked: number;
+  operatorOutput?: bigint;
 }
 
 export async function checkQueryRequest(
@@ -47,6 +48,7 @@ export async function checkQueryRequest(
   outputs: ClaimOutputs,
   schemaLoader?: DocumentLoader,
   verifiablePresentation?: JSON,
+  supportsSDOperator?: boolean,
   opts?: VerifyOpts
 ): Promise<void> {
   // validate issuer
@@ -93,7 +95,13 @@ export async function checkQueryRequest(
       if (!verifiablePresentation) {
         throw new Error(`no vp present in selective disclosure request`);
       }
-      await validateDisclosure(verifiablePresentation, cq, outputs, schemaLoader);
+      await validateDisclosure(
+        verifiablePresentation,
+        cq,
+        outputs,
+        schemaLoader,
+        supportsSDOperator
+      );
     } catch (e) {
       throw new Error(`failed to validate selective disclosure: ${(e as Error).message}`);
     }
@@ -188,20 +196,11 @@ async function validateDisclosure(
   verifiablePresentation: JSON,
   cq: CircuitQuery,
   outputs: ClaimOutputs,
-  ldLoader?: DocumentLoader
+  ldLoader?: DocumentLoader,
+  supportsSDOperator?: boolean
 ) {
   if (!verifiablePresentation) {
     throw new Error(`verifiablePresentation is required for selective disclosure request`);
-  }
-
-  if (outputs.operator !== Operators.EQ) {
-    throw new Error(`operator for selective disclosure must be $eq`);
-  }
-
-  for (let index = 1; index < outputs.value.length; index++) {
-    if (outputs.value[index] !== 0n) {
-      throw new Error(`selective disclosure not available for array of values`);
-    }
   }
 
   let mz: Merklizer;
@@ -240,10 +239,35 @@ async function validateDisclosure(
       `path [${merklizedPath.parts}] doesn't exist in verifiablePresentation document`
     );
   }
-
   const bi = await value.mtEntry();
-  if (bi !== outputs.value[0]) {
-    throw new Error(`value that was used is not equal to requested in query`);
+
+  if (supportsSDOperator) {
+    if (outputs.operator !== Operators.SD) {
+      throw new Error(`operator for selective disclosure must be $sd`);
+    }
+
+    if (!outputs.operatorOutput || bi !== outputs.operatorOutput) {
+      throw new Error(`operator output must be equal to disclosed value`);
+    }
+
+    for (let index = 0; index < outputs.value.length; index++) {
+      if (outputs.value[index] !== 0n) {
+        throw new Error(`in selective disclosure, comparing values must be zero for $sd operator`);
+      }
+    }
+  } else {
+    if (outputs.operator !== Operators.EQ) {
+      throw new Error(`operator for selective disclosure must be $eq`);
+    }
+
+    for (let index = 1; index < outputs.value.length; index++) {
+      if (outputs.value[index] !== 0n) {
+        throw new Error(`selective disclosure not available for array of values`);
+      }
+    }
+    if (bi !== outputs.value[0]) {
+      throw new Error(`value that was used is not equal to requested in query`);
+    }
   }
 
   return;

@@ -54,9 +54,10 @@ export class AtomicQueryV3PubSignalsVerifier
       claimPathKey: this.pubSignals.claimPathKey,
       claimPathNotExists: this.pubSignals.claimPathNotExists,
       valueArraySize: valuesSize,
-      isRevocationChecked: this.pubSignals.isRevocationChecked
+      isRevocationChecked: this.pubSignals.isRevocationChecked,
+      operatorOutput: this.pubSignals.operatorOutput
     };
-    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, true, opts);
 
     const { proofType, verifierID, nullifier, nullifierSessionID, linkID } = this.pubSignals;
 
