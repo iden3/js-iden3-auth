@@ -45,7 +45,7 @@ export class AtomicQuerySigV2PubSignalsVerifier
       valueArraySize: valuesSize,
       isRevocationChecked: this.pubSignals.isRevocationChecked
     };
-    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, opts);
+    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, false, opts);
 
     return this.pubSignals;
   }

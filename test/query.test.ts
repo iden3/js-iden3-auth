@@ -112,7 +112,7 @@ describe('Query', () => {
     await expect(checkQueryRequest(query, pubSig, defaultLoader)).resolves.not.toThrow();
   });
 
-  it('Selective disclosure', async () => {
+  it('Selective disclosure V2', async () => {
     const query: Query = {
       allowedIssuers: ['*'],
       credentialSubject: {
@@ -136,6 +136,33 @@ describe('Query', () => {
       timestamp: getUnixTimestamp(new Date())
     };
     await expect(checkQueryRequest(query, pubSig, defaultLoader, vp)).resolves.not.toThrow();
+  });
+
+  it('Selective disclosure V3', async () => {
+    const query: Query = {
+      allowedIssuers: ['*'],
+      credentialSubject: {
+        countryCode: {}
+      },
+      context:
+        'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld',
+      type: 'KYCCountryOfResidenceCredential'
+    };
+    const pubSig: ClaimOutputs = {
+      issuerId: issuerID,
+      schemaHash: KYCCountrySchema,
+      claimPathKey: BigInt(
+        '17002437119434618783545694633038537380726339994244684348913844923422470806844'
+      ),
+      operator: 16,
+      value: [],
+      merklized: 1,
+      isRevocationChecked: 1,
+      valueArraySize: 64,
+      timestamp: getUnixTimestamp(new Date()),
+      operatorOutput: BigInt(800)
+    };
+    await expect(checkQueryRequest(query, pubSig, defaultLoader, vp, true)).resolves.not.toThrow();
   });
 
   it('Query with boolean type', async () => {
