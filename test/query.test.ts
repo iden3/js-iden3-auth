@@ -60,7 +60,7 @@ const KYCAgeNonMerklizedSchema = createSchemaHash(
     'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld#KYCAgeCredential'
   )
 );
-describe.only('Query', () => {
+describe('Query', () => {
   it('Check merklized query', async () => {
     const query: Query = {
       allowedIssuers: ['*'],
