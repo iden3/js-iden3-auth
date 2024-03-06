@@ -1,35 +1,38 @@
-import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
-import { Query } from '@lib/circuits/query';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Resolvers } from '@lib/state/resolver';
-import { Circuits, VerifyOpts } from '@lib/circuits/registry';
-import { proving, Token } from '@iden3/js-jwz';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
-  CircuitId,
   IPacker,
   JWSPacker,
   KMS,
   PackageManager,
-  ProvingParams,
   PROTOCOL_CONSTANTS,
-  VerificationHandlerFunc,
-  VerificationParams,
-  ZKPPacker,
   NativeProver,
   IZKProver,
   FSCircuitStorage,
   ICircuitStorage,
   cacheLoader,
-  byteEncoder
+  byteEncoder,
+  ZeroKnowledgeProofRequest,
+  VerifyContext,
+  PubSignalsVerifier,
+  IStateStorage,
+  ProofQuery,
+  VerifyOpts,
+  CircuitId,
+  ProvingParams,
+  VerificationHandlerFunc,
+  VerificationParams,
+  ZKPPacker,
+  ZeroKnowledgeProofResponse
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 import { DID } from '@iden3/js-iden3-core';
-import { ZeroKnowledgeProofRequest } from '@0xpolygonid/js-sdk';
+import { proving } from '@iden3/js-jwz';
 
 /**
  *  createAuthorizationRequest is a function to create protocol authorization request
@@ -82,6 +85,8 @@ export function createAuthorizationRequestWithMessage(
 export type VerifierParams = Options & {
   /* resolvers for state of the identities */
   stateResolver: Resolvers;
+  /* state storage for state of the identities */
+  stateStorage: IStateStorage;
   /* didDocumentResolver to init default jws packer */
   didDocumentResolver?: Resolvable;
   /* circuitsDir - directory where circuits files are stored (default - 'circuits') */
@@ -113,6 +118,9 @@ export class Verifier {
   private packageManager: PackageManager;
   private prover: IZKProver;
   private circuitStorage: ICircuitStorage;
+  private readonly _pubSignalsVerifier: PubSignalsVerifier;
+
+  // private readonly _authHandler: AuthHandler;
 
   /**
    * Creates an instance of the Verifier.
@@ -120,12 +128,18 @@ export class Verifier {
    * @param {Resolvers} resolvers - state resolvers instances
    * @param {VerifierSuiteParams} params - suite for verification
    */
-  private constructor(stateResolver: Resolvers, params: VerifierSuiteParams) {
+  private constructor(
+    stateResolver: Resolvers,
+    stateStorage: IStateStorage,
+    params: VerifierSuiteParams
+  ) {
     this.schemaLoader = params.documentLoader;
     this.stateResolver = stateResolver;
     this.packageManager = params.packageManager;
     this.circuitStorage = params.circuitStorage;
     this.prover = params.prover;
+
+    this._pubSignalsVerifier = new PubSignalsVerifier(this.schemaLoader, stateStorage);
   }
 
   /**
@@ -145,11 +159,11 @@ export class Verifier {
         prover: new NativeProver(circuitStorage),
         packageManager: new PackageManager()
       };
-      const verifier = new Verifier(params.stateResolver, params.suite);
+      const verifier = new Verifier(params.stateResolver, params.stateStorage, params.suite);
       await verifier.initPackers(params.didDocumentResolver);
       return verifier;
     }
-    return new Verifier(params.stateResolver, params.suite);
+    return new Verifier(params.stateResolver, params.stateStorage, params.suite);
   }
 
   // setPackageManager sets the package manager for the Verifier.
@@ -182,9 +196,10 @@ export class Verifier {
       if (circuitId !== CircuitId.AuthV2) {
         throw new Error(`CircuitId is not supported ${circuitId}`);
       }
+      // const verifier = new AuthPubSignalsV2(pubSignals);
+      // await verifier.verifyStates(this.stateResolver);
 
-      const verifier = new AuthPubSignalsV2(pubSignals);
-      await verifier.verifyStates(this.stateResolver);
+      // await this._pubSignalsVerifier.verify(circuitId, { pubSignals, query: {}, sender: '', challenge: 0n });
       return true;
     };
 
@@ -267,12 +282,18 @@ export class Verifier {
     this.verifyAuthRequest(request);
     const requestScope = request.body.scope;
 
+    if (!response.from) {
+      throw new Error(`proof response doesn't contain from field`);
+    }
+
     const groupIdToLinkIdMap = new Map<number, { linkID: number; requestId: number }[]>();
     // group requests by query group id
     for (const proofRequest of requestScope) {
       const groupId = proofRequest.query.groupId as number;
 
-      const proofResp = response.body.scope.find((resp) => resp.id === proofRequest.id);
+      const proofResp = response.body.scope.find(
+        (resp: ZeroKnowledgeProofResponse) => resp.id === proofRequest.id
+      );
       if (!proofResp) {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
@@ -283,56 +304,37 @@ export class Verifier {
           `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${circuitId}`
         );
       }
-      const isValid = await this.prover.verify(proofResp, circuitId);
-      if (!isValid) {
-        throw new Error(
-          `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
+
+      const proofValid = await this.prover.verify(proofResp, proofResp.circuitId);
+      if (!proofValid) {
+        throw Error(
+          `Proof with circuit id ${proofResp.circuitId} and request id ${proofResp.id} is not valid`
         );
       }
 
-      const CircuitVerifier = Circuits.getCircuitPubSignals(circuitId);
-      if (!CircuitVerifier) {
-        throw new Error(`circuit ${circuitId} is not supported by the library`);
-      }
-
       const params = proofRequest.params ?? {};
-
       params.verifierDid = DID.parse(request.from);
+      const verifyContext: VerifyContext = {
+        pubSignals: proofResp.pub_signals,
+        query: proofRequest.query as unknown as ProofQuery,
+        verifiablePresentation: proofResp.vp as JSON,
+        sender: response.from,
+        challenge: BigInt(proofResp.id),
+        opts: opts,
+        params: params
+      };
+      const pubSignals = await this._pubSignalsVerifier.verify(proofResp.circuitId, verifyContext);
+      const linkID = (pubSignals as unknown as { linkID?: number }).linkID;
 
-      // verify query
-      const verifier = new CircuitVerifier(proofResp.pub_signals);
-
-      const pubSignals = await verifier.verifyQuery(
-        proofRequest.query as unknown as Query,
-        this.schemaLoader,
-        proofResp.vp as JSON,
-        opts,
-        params
-      );
-
-      // write linkId to the proof response
-      const pubSig = pubSignals as unknown as { linkID?: number };
-
-      if (pubSig.linkID && groupId) {
+      if (linkID && groupId) {
         groupIdToLinkIdMap.set(groupId, [
           ...(groupIdToLinkIdMap.get(groupId) ?? []),
-          { linkID: pubSig.linkID, requestId: proofResp.id }
+          { linkID: linkID as unknown as number, requestId: proofResp.id }
         ]);
       }
-      // verify states
-
-      await verifier.verifyStates(this.stateResolver, opts);
-
-      if (!response.from) {
-        throw new Error(`proof response doesn't contain from field`);
-      }
-
-      // verify id ownership
-      await verifier.verifyIdOwnership(response.from, BigInt(proofResp.id));
     }
 
     // verify grouping links
-
     for (const [groupId, metas] of groupIdToLinkIdMap.entries()) {
       // check that all linkIds are the same
       if (metas.some((meta) => meta.linkID !== metas[0].linkID)) {
@@ -345,41 +347,41 @@ export class Verifier {
     }
   }
 
-  /**
-   * verifies jwz token
-   * @public
-   * @param {string} tokenStr - token string
-   * @param {VerifyOpts} opts - verification options
-   *
-   * @returns `Promise<Token>`
-   */
-  public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
-    const token = await Token.parse(tokenStr);
-    const key = (await this.circuitStorage.loadCircuitData(token.circuitId as CircuitId))
-      .verificationKey;
-    if (!key) {
-      throw new Error(`verification key is not found for circuit ${token.circuitId}`);
-    }
+  // /**
+  //  * verifies jwz token
+  //  * @public
+  //  * @param {string} tokenStr - token string
+  //  * @param {VerifyOpts} opts - verification options
+  //  *
+  //  * @returns `Promise<Token>`
+  //  */
+  // public async verifyJWZ(tokenStr: string, opts?: VerifyOpts): Promise<Token> {
+  //   const token = await Token.parse(tokenStr);
+  //   const key = (await this.circuitStorage.loadCircuitData(token.circuitId as CircuitId))
+  //     .verificationKey;
+  //   if (!key) {
+  //     throw new Error(`verification key is not found for circuit ${token.circuitId}`);
+  //   }
 
-    const isValid = await token.verify(key);
-    if (!isValid) {
-      throw new Error(`zero-knowledge proof of jwz token is not valid`);
-    }
+  //   const isValid = await token.verify(key);
+  //   if (!isValid) {
+  //     throw new Error(`zero-knowledge proof of jwz token is not valid`);
+  //   }
 
-    const CircuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
+  //   const CircuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
 
-    if (!CircuitVerifier) {
-      throw new Error(`circuit ${token.circuitId} is not supported by the library`);
-    }
+  //   if (!CircuitVerifier) {
+  //     throw new Error(`circuit ${token.circuitId} is not supported by the library`);
+  //   }
 
-    // outputs unmarshaller
-    const verifier = new CircuitVerifier(token.zkProof.pub_signals);
+  //   // outputs unmarshaller
+  //   const verifier = new CircuitVerifier(token.zkProof.pub_signals);
 
-    // state verification
-    await verifier.verifyStates(this.stateResolver, opts);
+  //   // state verification
+  //   await verifier.verifyStates(this.stateResolver, opts);
 
-    return token;
-  }
+  //   return token;
+  // }
 
   /**
    * perform both verification of jwz / jws token and authorization request message

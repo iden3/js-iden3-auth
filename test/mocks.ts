@@ -1,6 +1,12 @@
-import { cacheLoader } from '@0xpolygonid/js-sdk';
+import {
+  cacheLoader,
+  IStateStorage,
+  VerifiableConstants,
+  RootInfo,
+  StateProof,
+  VerifyOpts
+} from '@0xpolygonid/js-sdk';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { VerifyOpts } from '@lib/circuits';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { DIDResolutionResult } from 'did-resolver';
 
@@ -63,3 +69,48 @@ export const resolveDIDDocument = {
 export const schemaLoader: DocumentLoader = cacheLoader({
   ipfsNodeURL: process.env.IPFS_URL ?? 'https://ipfs.io'
 });
+
+export const MOCK_STATE_STORAGE: IStateStorage = {
+  getLatestStateById: async () => {
+    throw new Error(VerifiableConstants.ERRORS.IDENTITY_DOES_NOT_EXIST);
+  },
+  getStateInfoByIdAndState: async (id: bigint, state: bigint) => {
+    const validTestIds = [
+      '19898531390599208021876718705689344940605246460654065917270282371355906561',
+      '26675680708205250151451142983868154544835349648265874601395279235340702210',
+      '27752766823371471408248225708681313764866231655187366071881070918984471042',
+      '21803003425107230045260507608510138502859759480520560654156359021447614978',
+      '25191641634853875207018381290409317860151551336133597267061715643603096065',
+      '22942594156266665426613462771725327314382647426959044863446866613003751938'
+    ];
+    if (validTestIds.includes(id.toString())) {
+      return { id, state };
+    }
+    throw new Error(VerifiableConstants.ERRORS.IDENTITY_DOES_NOT_EXIST);
+  },
+  publishState: async () => {
+    return '0xc837f95c984892dbcc3ac41812ecb145fedc26d7003202c50e1b87e226a9b33c';
+  },
+  getGISTProof: (): Promise<StateProof> => {
+    return Promise.resolve({
+      root: 0n,
+      existence: false,
+      siblings: [],
+      index: 0n,
+      value: 0n,
+      auxExistence: false,
+      auxIndex: 0n,
+      auxValue: 0n
+    });
+  },
+  getGISTRootInfo: (): Promise<RootInfo> => {
+    return Promise.resolve({
+      root: 0n,
+      replacedByRoot: 0n,
+      createdAtTimestamp: 0n,
+      replacedAtTimestamp: 0n,
+      createdAtBlock: 0n,
+      replacedAtBlock: 0n
+    });
+  }
+};

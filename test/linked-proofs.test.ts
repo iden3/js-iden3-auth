@@ -1,8 +1,7 @@
-import { AuthorizationRequestMessage, CircuitId } from '@0xpolygonid/js-sdk';
+import { AuthorizationRequestMessage, CircuitId, PROTOCOL_CONSTANTS } from '@0xpolygonid/js-sdk';
 import { Verifier } from '@lib/auth/auth';
-import { resolvers, schemaLoader, testOpts } from './mocks';
+import { MOCK_STATE_STORAGE, resolvers, schemaLoader, testOpts } from './mocks';
 import path from 'path';
-import { PROTOCOL_CONSTANTS } from '@0xpolygonid/js-sdk';
 
 describe('Linked proofs verification', () => {
   it('should verification pass', async () => {
@@ -84,6 +83,7 @@ describe('Linked proofs verification', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
+      stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
