@@ -52,7 +52,6 @@ export class AtomicQueryV3PubSignalsVerifier
       timestamp: this.pubSignals.timestamp,
       merklized: this.pubSignals.merklized,
       claimPathKey: this.pubSignals.claimPathKey,
-      claimPathNotExists: this.pubSignals.claimPathNotExists,
       valueArraySize: valuesSize,
       isRevocationChecked: this.pubSignals.isRevocationChecked,
       operatorOutput: this.pubSignals.operatorOutput

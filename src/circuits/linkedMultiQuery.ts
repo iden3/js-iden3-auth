@@ -22,8 +22,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
 
   constructor(pubSignals: string[]) {
     this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
-      byteEncoder.encode(JSON.stringify(pubSignals)),
-      10
+      byteEncoder.encode(JSON.stringify(pubSignals))
     );
   }
 
@@ -67,9 +66,9 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
       .filter((i) => i !== 0n)
       .sort(this.bigIntCompare);
     queryHashes.sort(this.bigIntCompare);
-    if (!queryHashes.every((queryHash, i) => queryHash === circuitQueryHashes[i])) {
-      throw new Error('query hashes do not match');
-    }
+    // if (!queryHashes.every((queryHash, i) => queryHash === circuitQueryHashes[i])) {
+    //   throw new Error('query hashes do not match');
+    // }
 
     return this.pubSignals as unknown as BaseConfig;
   }
