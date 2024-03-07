@@ -1,19 +1,64 @@
 import { Verifier } from '@lib/auth/auth';
-import { testOpts, resolvers, MOCK_STATE_STORAGE } from './mocks';
+import {
+  testOpts,
+  resolvers,
+  MOCK_STATE_STORAGE,
+  getPackageMgr,
+  registerBJJIntoInMemoryKMS,
+  getInMemoryDataStorage,
+  schemaLoader
+} from './mocks';
 import path from 'path';
 import {
   AuthorizationResponseMessage,
   PROTOCOL_CONSTANTS,
   AuthorizationRequestMessage,
-  cacheLoader,
-  CircuitId
+  IPackageManager,
+  CircuitId,
+  IDataStorage,
+  IdentityWallet,
+  CredentialWallet,
+  ProofService,
+  CredentialStatusResolverRegistry,
+  CredentialStatusType,
+  RHSResolver,
+  FSCircuitStorage
 } from '@0xpolygonid/js-sdk';
-import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
-const schemaLoader: DocumentLoader = cacheLoader({
-  ipfsNodeURL: process.env.IPFS_URL ?? 'https://ipfs.io'
-});
 describe('atomicV3', () => {
+  let packageMgr: IPackageManager;
+  let dataStorage: IDataStorage;
+  let idWallet: IdentityWallet;
+  let credWallet: CredentialWallet;
+  let proofService: ProofService;
+
+  beforeEach(async () => {
+    const kms = registerBJJIntoInMemoryKMS();
+    dataStorage = getInMemoryDataStorage(MOCK_STATE_STORAGE);
+    const circuitStorage = new FSCircuitStorage({
+      dirname: path.join(__dirname, './testdata')
+    });
+
+    const resolvers = new CredentialStatusResolverRegistry();
+    resolvers.register(
+      CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+      new RHSResolver(dataStorage.states)
+    );
+
+    credWallet = new CredentialWallet(dataStorage, resolvers);
+    idWallet = new IdentityWallet(kms, dataStorage, credWallet);
+
+    proofService = new ProofService(idWallet, credWallet, circuitStorage, MOCK_STATE_STORAGE, {
+      documentLoader: schemaLoader
+    });
+
+    packageMgr = await getPackageMgr(
+      await circuitStorage.loadCircuitData(CircuitId.AuthV2),
+      proofService.generateAuthV2Inputs.bind(proofService),
+      () => Promise.resolve(true)
+    );
+  });
+
   it('TestVerifyV3MessageWithSigProof_NonMerklized', async () => {
     const request: AuthorizationRequestMessage = {
       id: '28b15cd4-3aa1-4ddc-88a3-c05a0f788065',
@@ -172,7 +217,7 @@ describe('atomicV3', () => {
     };
 
     const authInstance = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata')
     });
@@ -214,7 +259,7 @@ describe('atomicV3', () => {
     );
 
     const authInstance = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata')
     });
@@ -279,7 +324,7 @@ describe('atomicV3', () => {
     };
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader

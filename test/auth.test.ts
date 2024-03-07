@@ -7,9 +7,17 @@ import {
   KMS,
   NativeProver,
   PROTOCOL_CONSTANTS,
-  PackageManager,
   ZeroKnowledgeProofRequest,
-  ZeroKnowledgeProofResponse
+  ZeroKnowledgeProofResponse,
+  IPackageManager,
+  CircuitId,
+  IDataStorage,
+  IdentityWallet,
+  CredentialWallet,
+  ProofService,
+  CredentialStatusResolverRegistry,
+  CredentialStatusType,
+  RHSResolver
 } from '@0xpolygonid/js-sdk';
 import {
   createAuthorizationRequest,
@@ -17,9 +25,50 @@ import {
   Verifier
 } from '@lib/auth/auth';
 import path from 'path';
-import { MOCK_STATE_STORAGE, resolveDIDDocument, resolvers, schemaLoader, testOpts } from './mocks';
+import {
+  getInMemoryDataStorage,
+  getPackageMgr,
+  MOCK_STATE_STORAGE,
+  registerBJJIntoInMemoryKMS,
+  resolveDIDDocument,
+  resolvers,
+  schemaLoader,
+  testOpts
+} from './mocks';
 
 describe('auth tests', () => {
+  let packageMgr: IPackageManager;
+  let dataStorage: IDataStorage;
+  let idWallet: IdentityWallet;
+  let credWallet: CredentialWallet;
+  let proofService: ProofService;
+
+  beforeEach(async () => {
+    const kms = registerBJJIntoInMemoryKMS();
+    dataStorage = getInMemoryDataStorage(MOCK_STATE_STORAGE);
+    const circuitStorage = new FSCircuitStorage({
+      dirname: path.join(__dirname, './testdata')
+    });
+
+    const resolvers = new CredentialStatusResolverRegistry();
+    resolvers.register(
+      CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+      new RHSResolver(dataStorage.states)
+    );
+
+    credWallet = new CredentialWallet(dataStorage, resolvers);
+    idWallet = new IdentityWallet(kms, dataStorage, credWallet);
+
+    proofService = new ProofService(idWallet, credWallet, circuitStorage, MOCK_STATE_STORAGE, {
+      documentLoader: schemaLoader
+    });
+
+    packageMgr = await getPackageMgr(
+      await circuitStorage.loadCircuitData(CircuitId.AuthV2),
+      proofService.generateAuthV2Inputs.bind(proofService),
+      () => Promise.resolve(true)
+    );
+  });
   it('createAuthorizationRequest', () => {
     const sender = '1125GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLNZ';
     const callback = 'https://test.com/callback';
@@ -78,12 +127,11 @@ describe('auth tests', () => {
     };
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
       stateStorage: MOCK_STATE_STORAGE,
+      packageManager: packageMgr,
       suite: {
         prover: new NativeProver(new FSCircuitStorage({ dirname: '' })),
         circuitStorage: new FSCircuitStorage({ dirname: '../' }),
-        packageManager: new PackageManager(),
         documentLoader: schemaLoader
       }
     });
@@ -251,8 +299,8 @@ describe('auth tests', () => {
     };
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
       stateStorage: MOCK_STATE_STORAGE,
+      packageManager: packageMgr,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
     });
@@ -419,7 +467,7 @@ describe('auth tests', () => {
     };
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
@@ -476,7 +524,7 @@ describe('auth tests', () => {
     expect(request.body.scope.length).toEqual(1);
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata')
     });
@@ -528,7 +576,7 @@ describe('auth tests', () => {
     request.body.scope.push(proofRequest);
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       documentLoader: schemaLoader,
       circuitsDir: path.join(__dirname, './testdata'),
@@ -694,7 +742,7 @@ describe('auth tests', () => {
     };
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader
@@ -807,7 +855,7 @@ describe('auth tests', () => {
     expect(request.body.scope.length).toEqual(1);
 
     const verifier = await Verifier.newVerifier({
-      stateResolver: resolvers,
+      packageManager: packageMgr,
       stateStorage: MOCK_STATE_STORAGE,
       circuitsDir: path.join(__dirname, './testdata'),
       documentLoader: schemaLoader

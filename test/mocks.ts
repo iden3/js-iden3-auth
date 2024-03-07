@@ -4,9 +4,32 @@ import {
   VerifiableConstants,
   RootInfo,
   StateProof,
-  VerifyOpts
+  VerifyOpts,
+  CircuitData,
+  AuthDataPrepareFunc,
+  StateVerificationFunc,
+  IPackageManager,
+  DataPrepareHandlerFunc,
+  VerificationHandlerFunc,
+  VerificationParams,
+  ProvingParams,
+  ZKPPacker,
+  PackageManager,
+  PlainPacker,
+  InMemoryPrivateKeyStore,
+  BjjProvider,
+  KmsKeyType,
+  KMS,
+  CredentialStorage,
+  InMemoryDataSource,
+  W3CCredential,
+  IdentityStorage,
+  Identity,
+  Profile,
+  InMemoryMerkleTreeStorage
 } from '@0xpolygonid/js-sdk';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { proving } from '@iden3/js-jwz';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { DIDResolutionResult } from 'did-resolver';
 
@@ -113,4 +136,68 @@ export const MOCK_STATE_STORAGE: IStateStorage = {
       replacedAtBlock: 0n
     });
   }
+};
+
+export const getPackageMgr = async (
+  circuitData: CircuitData,
+  prepareFn: AuthDataPrepareFunc,
+  stateVerificationFn: StateVerificationFunc
+): Promise<IPackageManager> => {
+  const authInputsHandler = new DataPrepareHandlerFunc(prepareFn);
+
+  const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
+  const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
+
+  if (!circuitData.verificationKey) {
+    throw new Error(`verification key doesn't exist for ${circuitData.circuitId}`);
+  }
+  const verificationParamMap: Map<string, VerificationParams> = new Map([
+    [
+      mapKey,
+      {
+        key: circuitData.verificationKey,
+        verificationFn
+      }
+    ]
+  ]);
+
+  if (!circuitData.provingKey) {
+    throw new Error(`proving doesn't exist for ${circuitData.circuitId}`);
+  }
+  if (!circuitData.wasm) {
+    throw new Error(`wasm file doesn't exist for ${circuitData.circuitId}`);
+  }
+  const provingParamMap: Map<string, ProvingParams> = new Map();
+  provingParamMap.set(mapKey, {
+    dataPreparer: authInputsHandler,
+    provingKey: circuitData.provingKey,
+    wasm: circuitData.wasm
+  });
+
+  const mgr: IPackageManager = new PackageManager();
+  const packer = new ZKPPacker(provingParamMap, verificationParamMap);
+  const plainPacker = new PlainPacker();
+  mgr.registerPackers([packer, plainPacker]);
+
+  return mgr;
+};
+
+export const registerBJJIntoInMemoryKMS = (): KMS => {
+  const memoryKeyStore = new InMemoryPrivateKeyStore();
+  const bjjProvider = new BjjProvider(KmsKeyType.BabyJubJub, memoryKeyStore);
+  const kms = new KMS();
+  kms.registerKeyProvider(KmsKeyType.BabyJubJub, bjjProvider);
+  return kms;
+};
+
+export const getInMemoryDataStorage = (states: IStateStorage) => {
+  return {
+    credential: new CredentialStorage(new InMemoryDataSource<W3CCredential>()),
+    identity: new IdentityStorage(
+      new InMemoryDataSource<Identity>(),
+      new InMemoryDataSource<Profile>()
+    ),
+    mt: new InMemoryMerkleTreeStorage(40),
+    states
+  };
 };
