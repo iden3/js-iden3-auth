@@ -5,7 +5,6 @@ import {
   AuthorizationResponseMessage,
   FSCircuitStorage,
   KMS,
-  NativeProver,
   PROTOCOL_CONSTANTS,
   ZeroKnowledgeProofRequest,
   ZeroKnowledgeProofResponse,
@@ -31,7 +30,6 @@ import {
   MOCK_STATE_STORAGE,
   registerBJJIntoInMemoryKMS,
   resolveDIDDocument,
-  resolvers,
   schemaLoader,
   testOpts
 } from './mocks';

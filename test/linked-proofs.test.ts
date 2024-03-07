@@ -18,7 +18,6 @@ import {
   getPackageMgr,
   MOCK_STATE_STORAGE,
   registerBJJIntoInMemoryKMS,
-  resolvers,
   schemaLoader,
   testOpts
 } from './mocks';

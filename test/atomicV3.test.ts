@@ -1,7 +1,6 @@
 import { Verifier } from '@lib/auth/auth';
 import {
   testOpts,
-  resolvers,
   MOCK_STATE_STORAGE,
   getPackageMgr,
   registerBJJIntoInMemoryKMS,

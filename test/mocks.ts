@@ -30,29 +30,7 @@ import {
 } from '@0xpolygonid/js-sdk';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import { proving } from '@iden3/js-jwz';
-import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { DIDResolutionResult } from 'did-resolver';
-
-class MockResolver implements IStateResolver {
-  resolve(): Promise<ResolvedState> {
-    const t: ResolvedState = {
-      latest: true,
-      state: null,
-      genesis: false,
-      transitionTimestamp: 0
-    };
-    return Promise.resolve(t);
-  }
-  rootResolve(): Promise<ResolvedState> {
-    const t: ResolvedState = {
-      latest: true,
-      state: null,
-      genesis: false,
-      transitionTimestamp: 0
-    };
-    return Promise.resolve(t);
-  }
-}
 
 export const exampleDidDoc = {
   '@context': [
@@ -81,10 +59,6 @@ export const testOpts: VerifyOpts = {
   acceptedProofGenerationDelay: 10 * 365 * 24 * 60 * 60 * 1000 // 10 years
 };
 
-const mockStateResolver: MockResolver = new MockResolver();
-export const resolvers: Resolvers = {
-  'polygon:mumbai': mockStateResolver
-};
 export const resolveDIDDocument = {
   resolve: () => Promise.resolve({ didDocument: exampleDidDoc } as DIDResolutionResult)
 };

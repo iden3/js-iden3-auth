@@ -8,22 +8,16 @@ import {
   KMS,
   PackageManager,
   PROTOCOL_CONSTANTS,
-  NativeProver,
   IZKProver,
-  FSCircuitStorage,
   ICircuitStorage,
-  cacheLoader,
   byteEncoder,
-  PubSignalsVerifier,
-  IStateStorage,
   VerifyOpts,
   IPackageManager,
   IProofService,
   AuthHandler
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
-import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
-import path from 'path';
+import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
 /**
  *  createAuthorizationRequest is a function to create protocol authorization request
@@ -69,22 +63,6 @@ export function createAuthorizationRequestWithMessage(
   };
   return request;
 }
-/**
- *  VerifierParams are params to pass init verifier that contain jsonld document loader options and
- *  options to verify the query
- */
-export type VerifierParams = Options & {
-  /* state storage for state of the identities */
-  stateStorage: IStateStorage;
-  /* package manager */
-  packageManager: IPackageManager;
-  /* proof service */
-  proofService: IProofService;
-  /* circuitsDir - directory where circuits files are stored (default - 'circuits') */
-  circuitsDir?: string;
-  /* suite - optional suite with prover, circuit storage, package manager and document loader */
-  suite?: VerifierSuiteParams;
-};
 
 /**
  *  VerifierSuiteParams are custom defined prover, circuit storage, package manager and document loader
@@ -109,9 +87,9 @@ export class Verifier {
    * @param {Resolvers} resolvers - state resolvers instances
    * @param {VerifierSuiteParams} params - suite for verification
    */
- constructor(
+  constructor(
     private _packageManager: IPackageManager,
-    private readonly _proofService: IProofService,
+    private readonly _proofService: IProofService
   ) {
     this._authHandler = new AuthHandler(_packageManager, _proofService);
   }
