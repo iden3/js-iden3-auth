@@ -126,16 +126,7 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier({
-      stateStorage: MOCK_STATE_STORAGE,
-      packageManager: packageMgr,
-      suite: {
-        prover: new NativeProver(new FSCircuitStorage({ dirname: '' })),
-        circuitStorage: new FSCircuitStorage({ dirname: '../' }),
-        documentLoader: schemaLoader
-      }
-    });
-
+    const verifier = new Verifier(packageMgr, proofService);
     await expect(verifier.verifyAuthResponse(response, request)).resolves.not.toThrow();
   });
 
@@ -298,12 +289,7 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier({
-      stateStorage: MOCK_STATE_STORAGE,
-      packageManager: packageMgr,
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
-    });
+    const verifier = new Verifier(packageMgr, proofService);
     await expect(verifier.verifyAuthResponse(response, request, testOpts)).resolves.not.toThrow();
   });
 
@@ -466,12 +452,7 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier({
-      packageManager: packageMgr,
-      stateStorage: MOCK_STATE_STORAGE,
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
-    });
+    const verifier = new Verifier(packageMgr, proofService);
     await expect(verifier.verifyAuthResponse(response, request, testOpts)).resolves.not.toThrow();
   });
 
@@ -523,11 +504,7 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier({
-      packageManager: packageMgr,
-      stateStorage: MOCK_STATE_STORAGE,
-      circuitsDir: path.join(__dirname, './testdata')
-    });
+    const verifier = new Verifier(packageMgr, proofService);
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '7f38a193-0918-4a48-9fac-36adfdb8b542'; // because it's used in the response
 
@@ -575,13 +552,7 @@ describe('auth tests', () => {
     };
     request.body.scope.push(proofRequest);
 
-    const verifier = await Verifier.newVerifier({
-      packageManager: packageMgr,
-      stateStorage: MOCK_STATE_STORAGE,
-      documentLoader: schemaLoader,
-      circuitsDir: path.join(__dirname, './testdata'),
-      didDocumentResolver: resolveDIDDocument
-    });
+    const verifier = new Verifier(packageMgr, proofService);
     verifier.setupJWSPacker(new KMS(), resolveDIDDocument);
 
     await verifier.fullVerify(token, request, testOpts);
@@ -741,12 +712,7 @@ describe('auth tests', () => {
       }
     };
 
-    const verifier = await Verifier.newVerifier({
-      packageManager: packageMgr,
-      stateStorage: MOCK_STATE_STORAGE,
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
-    });
+    const verifier = new Verifier(packageMgr, proofService);
 
     try {
       expect(await verifier.verifyAuthResponse(response, request)).toThrowError();
@@ -854,12 +820,7 @@ describe('auth tests', () => {
 
     expect(request.body.scope.length).toEqual(1);
 
-    const verifier = await Verifier.newVerifier({
-      packageManager: packageMgr,
-      stateStorage: MOCK_STATE_STORAGE,
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
-    });
+    const verifier = new Verifier(packageMgr, proofService);
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = 'ee92ab12-2671-457e-aa5e-8158c205a985'; // because it's used in the response
 
