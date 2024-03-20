@@ -52,7 +52,6 @@ export class AtomicQueryV3PubSignalsVerifier
       timestamp: this.pubSignals.timestamp,
       merklized: this.pubSignals.merklized,
       claimPathKey: this.pubSignals.claimPathKey,
-      claimPathNotExists: this.pubSignals.claimPathNotExists,
       valueArraySize: valuesSize,
       isRevocationChecked: this.pubSignals.isRevocationChecked,
       operatorOutput: this.pubSignals.operatorOutput
@@ -77,7 +76,6 @@ export class AtomicQueryV3PubSignalsVerifier
     }
 
     const nSessionId = BigInt((params?.nullifierSessionId as string) ?? 0);
-
     if (nSessionId !== 0n) {
       if (BigInt(nullifier ?? 0) === 0n) {
         throw new Error('nullifier should be provided for nullification and should not be 0');
