@@ -118,25 +118,7 @@ The blockchain verification algorithm is used
   Init Verifier:
 
   ``` javascript
-  const ethStateResolver = new resolver.EthStateResolver(
-    ethUrl,
-    contractAddress,
-  );
-
-  const resolvers: resolver.Resolvers = {
-    ['polygon:mumbai']: ethStateResolver,
-  };
-
-  const schemaLoader = getDocumentLoader({
-    ipfsNodeURL: 'ipfs.io'
-  });
-  const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
-  const verifier = await auth.Verifier.newVerifier({
-      stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
-      documentLoader: schemaLoader
-    }
-  );
+  const authInstance = new Verifier(packageManager, proofService);
   ```
 
   FullVerify
