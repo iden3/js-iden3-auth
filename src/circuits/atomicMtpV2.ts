@@ -1,11 +1,16 @@
 import { getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { Resolvers } from '@lib/state/resolver';
-import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
+import { checkQueryV2Circuits, ClaimOutputs, Query } from '@lib/circuits/query';
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
-import { AtomicQueryMTPV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
+import {
+  AtomicQueryMTPV2PubSignals,
+  BaseConfig,
+  byteEncoder,
+  CircuitId
+} from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -52,7 +57,14 @@ export class AtomicQueryMTPV2PubSignalsVerifier
       valueArraySize: valuesSize,
       isRevocationChecked: this.pubSignals.isRevocationChecked
     };
-    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, false, opts);
+    await checkQueryV2Circuits(
+      CircuitId.AtomicQueryMTPV2,
+      query,
+      outs,
+      schemaLoader,
+      opts,
+      verifiablePresentation
+    );
 
     return this.pubSignals;
   }
@@ -79,7 +91,6 @@ export class AtomicQueryMTPV2PubSignalsVerifier
     if (opts?.acceptedStateTransitionDelay) {
       acceptedStateTransitionDelay = opts.acceptedStateTransitionDelay;
     }
-
     if (!issuerNonRevStateResolved.latest) {
       const timeDiff =
         Date.now() -

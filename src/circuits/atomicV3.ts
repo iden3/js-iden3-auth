@@ -1,17 +1,26 @@
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
-import { checkQueryRequest, ClaimOutputs, Query } from '@lib/circuits/query';
+import { ClaimOutputs, Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
-import { DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import {
   AtomicQueryV3PubSignals,
   BaseConfig,
   byteEncoder,
+  checkQueryRequest,
+  CircuitId,
   JSONObject,
-  ProofType
+  Operators,
+  parseQueriesMetadata,
+  ProofType,
+  validateDisclosureNativeSDSupport,
+  validateEmptyCredentialSubjectNoopNativeSupport,
+  validateOperators,
+  verifyFieldValueInclusionNativeExistsSupport
 } from '@0xpolygonid/js-sdk';
+import { JsonLd } from 'jsonld/jsonld-spec';
 
 const valuesSize = 64;
 const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
@@ -56,7 +65,71 @@ export class AtomicQueryV3PubSignalsVerifier
       isRevocationChecked: this.pubSignals.isRevocationChecked,
       operatorOutput: this.pubSignals.operatorOutput
     };
-    await checkQueryRequest(query, outs, schemaLoader, verifiablePresentation, true, opts);
+
+    if (!query.type) {
+      throw new Error(`proof query type is undefined`);
+    }
+
+    const loader = schemaLoader ?? getDocumentLoader();
+
+    // validate schema
+    let context: JsonLd;
+    try {
+      context = (await loader(query.context ?? '')).document;
+    } catch (e) {
+      throw new Error(`can't load schema for request query`);
+    }
+
+    const queriesMetadata = await parseQueriesMetadata(
+      query.type,
+      JSON.stringify(context),
+      query.credentialSubject as JSONObject,
+      {
+        documentLoader: loader
+      }
+    );
+
+    await checkQueryRequest(
+      query,
+      queriesMetadata,
+      context,
+      outs,
+      CircuitId.AtomicQueryV3,
+      loader,
+      opts
+    );
+
+    const queryMetadata = queriesMetadata[0]; // only one query is supported
+
+    // validate selective disclosure
+    if (queryMetadata.operator === Operators.SD) {
+      try {
+        await validateDisclosureNativeSDSupport(
+          queryMetadata,
+          outs,
+          verifiablePresentation,
+          loader
+        );
+      } catch (e) {
+        throw new Error(`failed to validate selective disclosure: ${(e as Error).message}`);
+      }
+    } else if (!queryMetadata.fieldName && queryMetadata.operator == Operators.NOOP) {
+      try {
+        await validateEmptyCredentialSubjectNoopNativeSupport(outs);
+      } catch (e: unknown) {
+        throw new Error(`failed to validate operators: ${(e as Error).message}`);
+      }
+    } else {
+      try {
+        await validateOperators(queryMetadata, outs);
+      } catch (e) {
+        throw new Error(`failed to validate operators: ${(e as Error).message}`);
+      }
+    }
+
+    // verify field inclusion / non-inclusion
+
+    verifyFieldValueInclusionNativeExistsSupport(outs, queryMetadata);
 
     const { proofType, verifierID, nullifier, nullifierSessionID, linkID } = this.pubSignals;
 
