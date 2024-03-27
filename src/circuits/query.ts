@@ -11,7 +11,8 @@ import {
   validateDisclosureV2Circuit,
   validateEmptyCredentialSubjectV2Circuit,
   verifyFieldValueInclusionV2,
-  validateOperators
+  validateOperators,
+  checkCircuitOperator
 } from '@0xpolygonid/js-sdk';
 import { VerifyOpts } from './registry';
 import { JsonLd } from 'jsonld/jsonld-spec';
@@ -80,6 +81,8 @@ export async function checkQueryV2Circuits(
   await checkQueryRequest(query, queriesMetadata, context, outs, circuitId, loader, opts);
 
   const queryMetadata = queriesMetadata[0]; // only one query is supported
+
+  checkCircuitOperator(circuitId, outs.operator);
 
   // validate selective disclosure
   if (queryMetadata.operator === Operators.SD) {

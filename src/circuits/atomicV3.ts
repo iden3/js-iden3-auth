@@ -9,6 +9,7 @@ import {
   AtomicQueryV3PubSignals,
   BaseConfig,
   byteEncoder,
+  checkCircuitOperator,
   checkQueryRequest,
   CircuitId,
   JSONObject,
@@ -89,6 +90,7 @@ export class AtomicQueryV3PubSignalsVerifier
       }
     );
 
+    const circuitId = CircuitId.AtomicQueryV3;
     await checkQueryRequest(
       query,
       queriesMetadata,
@@ -101,6 +103,7 @@ export class AtomicQueryV3PubSignalsVerifier
 
     const queryMetadata = queriesMetadata[0]; // only one query is supported
 
+    checkCircuitOperator(circuitId, outs.operator);
     // validate selective disclosure
     if (queryMetadata.operator === Operators.SD) {
       try {
