@@ -17,7 +17,7 @@ describe('schema loader', () => {
       connectionString = 'https://ipfs.io';
     }
     const loader = getDocumentLoader({
-      ipfsNodeURL: connectionString
+      ipfsGatewayURL: connectionString
     });
     const schemaResult = (await loader('ipfs://Qmb1Q5jLETkUkhswCVX52ntTCNQnRm3NyyGf1NZG98u5cv'))
       .document;

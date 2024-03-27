@@ -6,7 +6,8 @@ import {
   PROTOCOL_CONSTANTS,
   AuthorizationRequestMessage,
   cacheLoader,
-  CircuitId
+  CircuitId,
+  ProofType
 } from '@0xpolygonid/js-sdk';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 
@@ -30,17 +31,19 @@ describe('atomicV3', () => {
             circuitId: CircuitId.AtomicQueryV3,
             optional: true,
             query: {
-              allowedIssuers: ['*'],
+              allowedIssuers: [
+                'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
+              ],
               context:
                 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld',
               credentialSubject: { documentType: { $eq: 99 } },
-              proofType: 'BJJSignature2021',
+              proofType: ProofType.BJJSignature,
               type: 'KYCAgeCredential'
             }
           }
         ]
       },
-      from: 'did:polygonid:polygon:mumbai:2qEevY9VnKdNsVDdXRv3qSLHRqoMGMRRdE5Gmc6iA7'
+      from: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
     };
 
     // response
@@ -57,43 +60,42 @@ describe('atomicV3', () => {
             circuitId: CircuitId.AtomicQueryV3,
             proof: {
               pi_a: [
-                '15208931239306667614189217356426367087296508213411046833716711442163868780112',
-                '20490648944065703271613941501811057996992005137106581261392868037192830801319',
+                '16259159015885704203972860572159615143955018856040187471443250070675076694830',
+                '9936261134972021495913066861635092844201384322741097016561225846815554727861',
                 '1'
               ],
               pi_b: [
                 [
-                  '9658837325736932089175519161219586340790605854199431170964132439402760343882',
-                  '2229712957417570067219766417050901639838551011053815708957384652110672096636'
+                  '13274307415608622554787983733075359594805362696573187221363487029527021649751',
+                  '6770083709194565352752538013885988394082029538687547975296275830191977093579'
                 ],
                 [
-                  '8001092431519117455354797520811940294780537362771012429305941024017334317686',
-                  '14862879727984936294040948959940841120433831193863247939940900720892674782281'
+                  '9858564313568500515580682604962916226991978376542020052463904057033098942989',
+                  '13481074478476721746530420758311031367861669381777251718356676850384797753756'
                 ],
                 ['1', '0']
               ],
               pi_c: [
-                '10979201893913563932568403855542624651100292054247823659266571152101750130209',
-                '21286864035525845180147694216456377751365547090829007463506610939813242720910',
+                '8149221637512194456411857416264300795155888057920064325736883074311578592724',
+                '16109585571689383482058996181597945116005469364555566560159598173964374245998',
                 '1'
               ],
               protocol: 'groth16'
             },
             pub_signals: [
               '0',
-              '22466018227912887497595444357663749526852544754809814096731120723497783810',
-              '7232286365358812826682228661780467195854751779823604018938921042558237169817',
+              '21575127216236248869702276246037557119007466180301957762196593786733007362',
+              '4487386332479489158003597844990487984925471813907462483907054425759564175341',
               '0',
               '0',
               '0',
               '1',
               '84239',
-              '26675680708205250151451142983868154544835349648265874601395279235340702210',
+              '25198543381200665770805816046271594885604002445105767653616878167826895362',
               '1',
-              '7232286365358812826682228661780467195854751779823604018938921042558237169817',
-              '1702457100',
+              '4487386332479489158003597844990487984925471813907462483907054425759564175341',
+              '1710949149',
               '198285726510688200335207273836123338699',
-              '1',
               '0',
               '3',
               '1',
@@ -161,14 +163,15 @@ describe('atomicV3', () => {
               '0',
               '0',
               '0',
-              '22728440853100433399211827098349696449620101147489499428101651758549307906',
+              '1',
+              '25198543381200665770805816046271594885604002445105767653616878167826895362',
               '0'
             ]
           }
         ]
       },
-      from: 'did:polygonid:polygon:mumbai:2qFXWZVHKTaYX1vmTGtStgRq1s8vUWhQ7HLjtqb2fV',
-      to: 'did:polygonid:polygon:mumbai:2qEevY9VnKdNsVDdXRv3qSLHRqoMGMRRdE5Gmc6iA7'
+      from: 'did:polygonid:polygon:mumbai:2qD58KvD3mPB1H1dZKhDPRhEd3aE1Fdx3iGd5VjcHq',
+      to: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
     };
 
     const authInstance = await Verifier.newVerifier({
@@ -196,22 +199,22 @@ describe('atomicV3', () => {
             optional: true,
             query: {
               allowedIssuers: [
-                'did:polygonid:polygon:mumbai:2qKKc4jxAhabrdFrAF3iC7boycfdQmWXq2qTBU4sPc'
+                'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
               ],
               context:
                 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld',
               credentialSubject: { ZKPexperiance: { $eq: true } },
-              proofType: 'Iden3SparseMerkleTreeProof',
+              proofType: ProofType.Iden3SparseMerkleTreeProof,
               type: 'KYCEmployee'
             }
           }
         ]
       },
-      from: 'did:polygonid:polygon:mumbai:2qEevY9VnKdNsVDdXRv3qSLHRqoMGMRRdE5Gmc6iA7'
+      from: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
     };
 
     const message: AuthorizationResponseMessage = {
-      id: 'a8ceddf8-24c8-4797-bb94-234a17c6b551',
+      id: 'ac381820-21af-499a-8c5d-8f01fca9783c',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
       type: 'https://iden3-communication.io/authorization/1.0/response',
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
@@ -223,43 +226,42 @@ describe('atomicV3', () => {
             circuitId: CircuitId.AtomicQueryV3,
             proof: {
               pi_a: [
-                '2191675399003747228361650328748147195525067334657244384911902711268678817802',
-                '19948479904115663964234685946314006853666845209972027887002197866333362304394',
+                '3861193683666781975306242203140068346756283860682260416444665826971771307548',
+                '21810894358036153056319810051635175931407878645189526517430393009315784695000',
                 '1'
               ],
               pi_b: [
                 [
-                  '422189606437031219571968003421368368386938453003241975855652752251201163758',
-                  '9263822572774254449054388930060153687464515712228765747368750307969672340141'
+                  '18298965671920870484411439834774874943637171740999661387337056943427101377004',
+                  '3258146086436440871190787989125169755873616628531313710472823132022824092498'
                 ],
                 [
-                  '19293339395101879017873172109004141351276884864694548105955158013357482683356',
-                  '2779213239514041287265984937924693652347623320831272361142245115033321578990'
+                  '8827991569608995396514322600532414912786284032230818679651315512397940335503',
+                  '16062431852624907726401854149167559679027469110872523439460150345436579952148'
                 ],
                 ['1', '0']
               ],
               pi_c: [
-                '3805936274754036854895936107504061566835912493410231954955974762213052034636',
-                '11817318886045212940702535466395270095280111730105021796772613798925818134104',
+                '10876640267586617362267882068785812826867213950790000254336613394780553351750',
+                '17775411727021189595749368764576250038182277003123950451468780261229798413075',
                 '1'
               ],
               protocol: 'groth16'
             },
             pub_signals: [
               '1',
-              '22466018227912887497595444357663749526852544754809814096731120723497783810',
-              '16501727979801979045409842472064689783782600072880560178348889772807800718289',
+              '21575127216236248869702276246037557119007466180301957762196593786733007362',
+              '10316494485353306028292038000082940935171221819379372920844877797885116437287',
               '0',
               '0',
               '0',
               '2',
               '84239',
-              '26675680708205250151451142983868154544835349648265874601395279235340702210',
+              '25198543381200665770805816046271594885604002445105767653616878167826895362',
               '1',
-              '16501727979801979045409842472064689783782600072880560178348889772807800718289',
-              '1702457550',
+              '4487386332479489158003597844990487984925471813907462483907054425759564175341',
+              '1710948584',
               '219578617064540016234161640375755865412',
-              '0',
               '1944808975288007371356450257872165609440470546066507760733183342797918372827',
               '0',
               '1',
@@ -327,14 +329,15 @@ describe('atomicV3', () => {
               '0',
               '0',
               '0',
-              '22728440853100433399211827098349696449620101147489499428101651758549307906',
+              '1',
+              '25198543381200665770805816046271594885604002445105767653616878167826895362',
               '0'
             ]
           }
         ]
       },
-      from: 'did:polygonid:polygon:mumbai:2qFXWZVHKTaYX1vmTGtStgRq1s8vUWhQ7HLjtqb2fV',
-      to: 'did:polygonid:polygon:mumbai:2qEevY9VnKdNsVDdXRv3qSLHRqoMGMRRdE5Gmc6iA7'
+      from: 'did:polygonid:polygon:mumbai:2qD58KvD3mPB1H1dZKhDPRhEd3aE1Fdx3iGd5VjcHq',
+      to: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
     };
 
     const authInstance = await Verifier.newVerifier({
@@ -365,7 +368,7 @@ describe('atomicV3', () => {
               groupId: 2,
               allowedIssuers: ['*'],
               type: 'KYCAgeCredential',
-              proofType: 'BJJSignature2021',
+              proofType: ProofType.BJJSignature,
               context:
                 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-nonmerklized.jsonld',
               credentialSubject: {
@@ -384,7 +387,7 @@ describe('atomicV3', () => {
             },
             query: {
               groupId: 1,
-              proofType: 'Iden3SparseMerkleTreeProof',
+              proofType: ProofType.Iden3SparseMerkleTreeProof,
               allowedIssuers: ['*'],
               type: 'KYCEmployee',
               context:
@@ -398,7 +401,7 @@ describe('atomicV3', () => {
           }
         ]
       },
-      from: 'did:iden3:polygon:mumbai:wzokvZ6kMoocKJuSbftdZxTD6qvayGpJb3m4FVXth'
+      from: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
     };
 
     const verifier = await Verifier.newVerifier({
@@ -408,8 +411,329 @@ describe('atomicV3', () => {
     });
 
     const token =
-      'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiYXBwbGljYXRpb24vaWRlbjMtemtwLWpzb24ifQ.eyJpZCI6IjIyNDIxNjFmLTEzNmUtNDVlYS04MzUyLTU4MmFiMDZiZDY3OSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zLXprcC1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiI3ZDIyMjc1YS1iNTE4LTQ1YmItOGVlMS04NWUxMmFiZDg1MzIiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNhZ2UiLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRJZCI6ImNyZWRlbnRpYWxBdG9taWNRdWVyeVYzLWJldGEuMCIsInByb29mIjp7InBpX2EiOlsiNDE2MTE2NTEwOTYwMjkxMDQ2MjU2OTI5MjcwODk4NzE2MTkzOTA3NDQzMjcyNzIxNjU4ODg0NzEwNjMyNzQ0NzI0MTQ4ODA2NTMxNSIsIjE5MzczNDA5NTQ2MzM4NDAwNzQxMzk1MTYyNjMyNDcyMDg1OTgyNjA5ODE1OTgyNTUyMDYwMDgwMjY3NDE0OTYyMzkwNjA2OTMxMTIyIiwiMSJdLCJwaV9iIjpbWyIxMjI2MDUwMjE3MTQ0NzM0NjQwNzA0Nzc0Nzc1NjYzMzA5MjUwMzU5OTAzMDcxNDcxMzM3NDEwMzc0Mzc1MTYwNTM2NDMwMzg3NjAzMCIsIjEzMTg4OTc4NDExNzU1MzExODkxNDQxODA0ODQ4MTA5NDA3MzgwODkzNjU2MTc5MzMzNTA3ODUyNTA5NjM5NjQzMzk0OTc4NjgyNTk2Il0sWyIxMDc5MDc1MTc0MzU4NzU0OTgwMzczMzU0NzIzNDQxNzk0NzY3Mzc2MDU4OTM3OTQ4MDQ3NDE0NTk0NTYzODk3Njk2MDU0NTg4NDg1NSIsIjQ2Njk0NTc1NzA1ODI0MTg2NTgyMzcyNzM0NDgxNDQwMjI0MzcwMjI1NzQzODkxNzkwNzEwMjgyOTIxNDgzMDIyMDA1NTg4OTQ0NTciXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE2MDcwOTUyMzI4MzA1ODM0Mjk0MzQ2MDY5MTgzMTExOTg4NDI5MzEyNzk4OTE2ODQ2NTM3MDM5ODIyMTQwOTIxNDIwODg1NzQ4Nzg0IiwiNDQzNjg5MTQ4NDMwODcyNTA5MDkxMjE1OTA5NjMxNTg2Mjk4MTQxNzM5NTQ3NDgxMjIzNzI4OTM5NTA1MzA1MTQxOTg2NTE5ODI0MiIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2IiwiY3VydmUiOiJibjEyOCJ9LCJwdWJfc2lnbmFscyI6WyIwIiwiMjE1NjgyMjU0Njk4ODk0NTgzMDU5MTQ4NDE0OTAxNzUyODAwOTM1NTUwMTUwNzEzMjk3ODczNzU2NDE0MzEyNjI1MDkyMDgwNjUiLCI0NDg3Mzg2MzMyNDc5NDg5MTU4MDAzNTk3ODQ0OTkwNDg3OTg0OTI1NDcxODEzOTA3NDYyNDgzOTA3MDU0NDI1NzU5NTY0MTc1MzQxIiwiMTg0OTgzODY0NDE2MzY0Mjk2NzAyODMwODAyODYxODU5ODc5Mjc1NjI1MDI5ODUxODI5NDUzMjc0NzIxNjE3NjMyODA5Mjc0MTE0MiIsIjAiLCIwIiwiMSIsIjEiLCIyNTE5MTY0MTYzNDg1Mzg3NTIwNzAxODM4MTI5MDQwOTMxNzg2MDE1MTU1MTMzNjEzMzU5NzI2NzA2MTcxNTY0MzYwMzA5NjA2NSIsIjEiLCI0NDg3Mzg2MzMyNDc5NDg5MTU4MDAzNTk3ODQ0OTkwNDg3OTg0OTI1NDcxODEzOTA3NDYyNDgzOTA3MDU0NDI1NzU5NTY0MTc1MzQxIiwiMTcwNjAwODAxNCIsIjE5ODI4NTcyNjUxMDY4ODIwMDMzNTIwNzI3MzgzNjEyMzMzODY5OSIsIjEiLCIwIiwiMyIsIjEiLCI5OSIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjI1MTkxNjQxNjM0ODUzODc1MjA3MDE4MzgxMjkwNDA5MzE3ODYwMTUxNTUxMzM2MTMzNTk3MjY3MDYxNzE1NjQzNjAzMDk2MDY1IiwiMCJdfSx7ImlkIjoyLCJjaXJjdWl0SWQiOiJjcmVkZW50aWFsQXRvbWljUXVlcnlWMy1iZXRhLjAiLCJwcm9vZiI6eyJwaV9hIjpbIjE2MDA1NjY4NjMyNjQ3ODIyMTYxNzQwMDczNDA4NzcwMjU1MjAxMTUyODI3NjY3MTgwNDg1NDQ0MDU1ODM1MjU5NzA4NjQ1Mjc4MjUiLCIxMTM1MDQwOTE4MTIxMjM2OTEzMTAzMTg0NTM2ODgwOTU0NzgxODkwMjA2MzYzMjkzNTA3Njg0MzIxNTIyNzM0MjU3NjY5NjcwNTU5IiwiMSJdLCJwaV9iIjpbWyIxMjQ5MjM0MDIxNDMyNDQ3MzI4NDI0ODc4ODQ5NDc4NjkxMDAzMTQ4MjI0NDI5MjE2NjY0MzM2ODEwNTUxNTg4MjUwMDMwOTQ2NzA3NSIsIjE4NTY2OTM2MzM4MDM1ODk1MTQ4OTY0NzMzMDc3MjEwMzg2MjEzNTc2ODY5NjgwNzI3NTg1MTI2OTQ1Njg5NjE3NjQzMzQ5OTcxMTU4Il0sWyIxNTc1NzEyNjA3MTU4MTE4OTk4Mzc0MDY3OTI1NDczNDg1OTA2NjM0MTMzNjQ2MDUxMDE4OTgxNTkxNjY0OTE0MzM3Nzk5NDU0MjczOSIsIjE0NzMxMzY2NzE0NDc1OTQwMjgxNTMxODIzNjI2ODcxMDIyNzE1OTYxMTE4NzY2MDY5Njc1NjU1ODE0MDY0NzI3NjYzMjkzMTUyNjMwIl0sWyIxIiwiMCJdXSwicGlfYyI6WyI5MjkyOTcwMDkzNDA0MTYyNzc1Mjg2ODIxOTQ1NzA5MDQzNjYyODE5OTc5MTU2NTkwNTQ4NTExNDEzMDE4NDcwNzU5Mzk5OTEzMzY2IiwiMjM3NTAxNjYyNTAyNTg5MTkzMTc2MDY1MTY3NzI0MDA3NDQ3MDc1NjkzMzUxNjEwNDY4NDc1NzY1MTQ5OTA3ODY3MzQwNDA3MTA0NyIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2IiwiY3VydmUiOiJibjEyOCJ9LCJwdWJfc2lnbmFscyI6WyIxIiwiMjE1NjgyMjU0Njk4ODk0NTgzMDU5MTQ4NDE0OTAxNzUyODAwOTM1NTUwMTUwNzEzMjk3ODczNzU2NDE0MzEyNjI1MDkyMDgwNjUiLCI2NDc3NzYyMzAyMzI0NDkxNjIzMjI4MTkwMTMyNTY5NTEyMjEyODE1ODQ0MzQzMTE0OTM2MjIxMDEwMTQxMzQ0MzM5MDkzMjM2NTUxIiwiMTIyNTMzNTk4MTAyMjk0MzAxODMxNjE1OTk2OTgyNTA4MTA4MTc3NDI5Njc1MzE2OTAxNzI1NDczMzY5NTkxNjg3MzU1NDM5MzI1MDgiLCIyMTA1MTgxNjQzNzcxMTk5ODAxNzI0OTA1MDQ0NDI0NDcyNzgwNjg2MTAyNTcwNzgwNDg5NzgxMzk1MTg0MjI4NjY5MDM4MjQ3MjkyNyIsIjAiLCIyIiwiMiIsIjI1MTkxNjQxNjM0ODUzODc1MjA3MDE4MzgxMjkwNDA5MzE3ODYwMTUxNTUxMzM2MTMzNTk3MjY3MDYxNzE1NjQzNjAzMDk2MDY1IiwiMSIsIjQ0ODczODYzMzI0Nzk0ODkxNTgwMDM1OTc4NDQ5OTA0ODc5ODQ5MjU0NzE4MTM5MDc0NjI0ODM5MDcwNTQ0MjU3NTk1NjQxNzUzNDEiLCIxNzA2MDA4MDE5IiwiMjE5NTc4NjE3MDY0NTQwMDE2MjM0MTYxNjQwMzc1NzU1ODY1NDEyIiwiMCIsIjEyOTYzNTE3NTgyNjkwNjExNzMzMTcxMDUwNDE5NjgwNjcwNzc0NTE5MTQzODYwODYyMjI5MzE1MTYxOTkxOTQ5NTk4Njk0NjM4ODIiLCIwIiwiMSIsIjE3MDIyNTI4MDAwMDAwMDAwMDAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIyNTE5MTY0MTYzNDg1Mzg3NTIwNzAxODM4MTI5MDQwOTMxNzg2MDE1MTU1MTMzNjEzMzU5NzI2NzA2MTcxNTY0MzYwMzA5NjA2NSIsIjEyMzQ1Il19XX0sImZyb20iOiJkaWQ6aWRlbjM6cG9seWdvbjptdW1iYWk6d3V3NXR5ZFo3QUFkM2Vmd0VxUHBybnFqaU5IUjI0anFydVNQS21WMVYiLCJ0byI6ImRpZDppZGVuMzpwb2x5Z29uOm11bWJhaTp3em9rdlo2a01vb2NLSnVTYmZ0ZFp4VEQ2cXZheUdwSmIzbTRGVlh0aCJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjEzOTM3OTI3MDY0MjMwMjI0NTAyNjkzMzU0NDUwMzM2NTc1NDMwNzQ3MDAwODg4ODAwNTA3MzIzMzgwMzU4MDQ2NjgzMTQ0MjU5ODg4IiwiMTc0MDY0NDU5MzgyODQwNDU0NTg4Njc0NzUzMjEzMzcyNDc5MjE4NTg5NTAwNDk1OTI1MzIyNzk3MDczODE1MjY2ODkyMDY1NjcyMDYiLCIxIl0sInBpX2IiOltbIjE4NDcyNzMwNTU2OTU1Mzk0OTQxOTIzMzk1NTA2ODM3MTMwNjMzNDAyNTQwMTQyNTUzODQ1NzU3NjY4ODE3NjYyNTAxMjkxNDkyMzM5IiwiMTI0ODEzNDMzNDg5Njg2MTk1NDA0MjUyODY5MjExODY0NDk5MTM2OTgyMTIxNTU2MTQ3MDIzNDIwNzkyOTMyOTk0NTc3NDk0NjEzMDUiXSxbIjQ4ODUwNjkyNDkxMjc5ODU5Mzk5OTM2OTU2NzcyNDQ5ODgxNTY0MDA1MDU2MzcwMDUxMjcyNTU2OTcyMzM3NDI1NTY0Njc1NTkxMDMiLCIxMDA5MTkxNTM5MTQ1MjY5MzQyMjM3NzA4MDA5MDY5NDQxMDIzMzE5ODM1NjcxOTk3NzI1NTcwMDkwNzc4Mjg2ODQ2NjA2MzYyNjM5OCJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTAxMDE2NTc0Njc4NTExMjM2Nzg0MDgxNzM1MjMzMjQyMjk0NjkyMjIzNTYzNjA0OTgwMjYyMTE3NzY3MjU4Njk3NzM1MjUxMTYzMjQiLCIxNDczMjQ0Njk5NDUwOTYzNDQ4OTE2NzI1NzQzNTU0MTEwMjA4NzU3OTk3MjIwMjY2NDI1NzM3MTg3ODE1MDAyNTYwMTcwOTcyODgxOCIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2IiwiY3VydmUiOiJibjEyOCJ9LCJwdWJfc2lnbmFscyI6WyIyMTU2ODIyNTQ2OTg4OTQ1ODMwNTkxNDg0MTQ5MDE3NTI4MDA5MzU1NTAxNTA3MTMyOTc4NzM3NTY0MTQzMTI2MjUwOTIwODA2NSIsIjE0NDAxNzkxNzYwODkxNjQzMzQyMTkwMDY1NDUyMTY5NjAxNjAxNTQ1MDYwMzQxODg4NjMxODk5OTYzNzAxOTk1MDcwNDcyMjMwNDE4IiwiMCJdfQ';
+      'eyJhbGciOiJncm90aDE2IiwiY2lyY3VpdElkIjoiYXV0aFYyIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiYXBwbGljYXRpb24vaWRlbjMtemtwLWpzb24ifQ.eyJpZCI6ImYxZDc5N2NiLTZlMWItNGRhMS1hMDkwLTU5MmNkNDg4OTk0YyIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zLXprcC1qc29uIiwidHlwZSI6Imh0dHBzOi8vaWRlbjMtY29tbXVuaWNhdGlvbi5pby9hdXRob3JpemF0aW9uLzEuMC9yZXNwb25zZSIsInRoaWQiOiI3ZTViNTg0Ny1iNDc5LTQ0OTktOTBlZS01ZmU0ODI2YTViZGQiLCJib2R5Ijp7Im1lc3NhZ2UiOiJtZXNhZ2UiLCJzY29wZSI6W3siaWQiOjEsImNpcmN1aXRJZCI6ImNyZWRlbnRpYWxBdG9taWNRdWVyeVYzLWJldGEuMSIsInByb29mIjp7InBpX2EiOlsiMTEwMzA1MTc3MzAyMTU4NTk4NTc2OTI1MTM3ODk1MTc5MTUyMzQwNjYxODczNTY3MTM1NTk3NzMzMTE0Nzk3NTYzNzkxNTM3MTM3NTMiLCIyMDIwMjQwNDc4MjU2MTExODkwODE2ODI2NjI5NzUzNDUzMzczMzc0OTA3NTk1ODQ5NDQ5ODk5ODAwMzM0OTMyNTg4NzE2MTMzODI0NyIsIjEiXSwicGlfYiI6W1siMTA4NDkzOTMzNjY2NTQwMzEyNzM4MzU1MDMwODU0NzEwNjI3ODIxNzE4NjM2NjY4MDQxMTEyMTMzMDAxNzA1MDA4NDg3OTcyOTY1MTEiLCI1NDQzMDAyMTA1ODM1NTkzODc5OTU0Nzg5MTY3MDU3MzAwMTcxMDA5MDk4NDk4MTEyMjA3NDQ5MzA3OTA5NTIyNzQ4OTM1MDc1MzUiXSxbIjgyNjE2MzA1Mzc2MDIzMzk0OTkxOTg3NDc3NzQwNTcxNTE3NTAzMzc2Njc3NTM0NjI0MjY0NDQ3OTEwMTkyNjA0NjUzNDMyOTYzMDAiLCIxNDE5MTczMzU2ODE0NDk1NTg4MzY5ODgwMTAyODk3NzkyODQ4MDIxMTQ2MzM3MTM5NTkxOTExNjg0NjI4NjA0OTQyMDY5MzYzMDkyNiJdLFsiMSIsIjAiXV0sInBpX2MiOlsiNDAzMDIwMDE1MDYyMjEwMzcxNjY2ODQ4MDAyNjQ0MTQwODIzNTcxMzA0MDU4NTgzNzYxNzk4OTY2NzY3MjgxMzg5MjM4MjcwNTg0MyIsIjY2NjQzNDQxNzI5NzM2MDA4MjgxMjU3MDc0NTIzNDY0MDQzNzI3MjUyNDQ4MjIzMzUzMzY1MjYyMTMyMzY5Njg3NTA2NTAzMDUyNzMiLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiIsImN1cnZlIjoiYm4xMjgifSwicHViX3NpZ25hbHMiOlsiMCIsIjIxNTc1MTI3MjE2MjM2MjQ4ODY5NzAyMjc2MjQ2MDM3NTU3MTE5MDA3NDY2MTgwMzAxOTU3NzYyMTk2NTkzNzg2NzMzMDA3MzYyIiwiNDQ4NzM4NjMzMjQ3OTQ4OTE1ODAwMzU5Nzg0NDk5MDQ4Nzk4NDkyNTQ3MTgxMzkwNzQ2MjQ4MzkwNzA1NDQyNTc1OTU2NDE3NTM0MSIsIjUxOTkwMjE2MDUxODIxNDQ2MTk3OTkyMTk2Mzg1NjY4NDA0MzU0NTA1Njg2OTIzMjE1NzkxMTk2OTkxOTIxNTE4Nzc1NDI2ODY3NzgiLCIwIiwiMCIsIjEiLCIxIiwiMjUxOTg1NDMzODEyMDA2NjU3NzA4MDU4MTYwNDYyNzE1OTQ4ODU2MDQwMDI0NDUxMDU3Njc2NTM2MTY4NzgxNjc4MjY4OTUzNjIiLCIxIiwiNDQ4NzM4NjMzMjQ3OTQ4OTE1ODAwMzU5Nzg0NDk5MDQ4Nzk4NDkyNTQ3MTgxMzkwNzQ2MjQ4MzkwNzA1NDQyNTc1OTU2NDE3NTM0MSIsIjE3MTA5NTE1ODUiLCIxOTgyODU3MjY1MTA2ODgyMDAzMzUyMDcyNzM4MzYxMjMzMzg2OTkiLCIwIiwiMyIsIjEiLCI5OSIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjEiLCIyNTE5ODU0MzM4MTIwMDY2NTc3MDgwNTgxNjA0NjI3MTU5NDg4NTYwNDAwMjQ0NTEwNTc2NzY1MzYxNjg3ODE2NzgyNjg5NTM2MiIsIjAiXX0seyJpZCI6MiwiY2lyY3VpdElkIjoiY3JlZGVudGlhbEF0b21pY1F1ZXJ5VjMtYmV0YS4xIiwicHJvb2YiOnsicGlfYSI6WyIyMDkzNzA5ODY5NzQyNTM1NDEwOTUwMTIzNTQ4NzAzNzA5Mjg4MDMxMDY4MTgwNTM0MDkwNDA2OTc0MDE5NjQ2NzE0NTg5ODAwNDk5NCIsIjg4NDcyMjUxNjcxNzE1NjMzMTIxMzUwNDM1MDg2NDE1MzExMDIzMzQ0ODY1MDI2Nzg0ODE0NzUzNjg2NzkxMTQ5MzQwNDQ1MTc5OTMiLCIxIl0sInBpX2IiOltbIjIwODEwNDA4Njg2MzMxNTcxNzgzNzk5MDQ2NzA5NTQ4ODY5OTcwMDYyNDczNjUyNzI5ODczMjcwOTMwNDYwNzI4NjkwOTMwMjAyMjk2IiwiMTU0NzMzMjQ3NjgzMDYwMDEzOTIwNTc0ODQwNDUxMjI5NDQ5MjAzMDA0NDEyMjU2NTM3ODQ1MzEzNzE3Mzc4OTE2Mzc4MjI4NTM2MjYiXSxbIjExMjEwMjc4MzM2NTkzMzk5NTg4NTgyMDg1MzMxMTI0MzY0NTAyMzAzOTk5NzkzMzE3NDczNjM3NTE4ODY1NjMwMTg4ODY5MjE3MzY3IiwiNDMxNjA1OTY2OTU0MjI2NDAxNDcwMDcyMTc4NjI5MDU5NTYzNTQxODg1NDc1NTkwNzA2MTAyODMwODY2NDk4NzU4NTQxODU3MzM4NyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiOTA5ODIyMzAzMDg5NDQ1NDEzNTczNDcxMzAzMjczMDk2Njk1MjUxNzE0MzkyMjg5OTEzMjI2MDA4MDMyODYwMDY4MTAwOTA1MzA3MSIsIjY4NTg0ODUzMTI2MTM5MDY0NjYxMzQwNjU4MTk5ODgyMDU5MjM3OTI1NTM0NDgyODYzOTcxODU0NjY1MDA0ODk0MjY0NzAwMjY3OTkiLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiIsImN1cnZlIjoiYm4xMjgifSwicHViX3NpZ25hbHMiOlsiMSIsIjIxNTc1MTI3MjE2MjM2MjQ4ODY5NzAyMjc2MjQ2MDM3NTU3MTE5MDA3NDY2MTgwMzAxOTU3NzYyMTk2NTkzNzg2NzMzMDA3MzYyIiwiMjAzNjE4NDYwMjk0NzgyNjcyOTI5MTU5MDI3Mjg4OTA1NjQyMTIwMzU1MjIzMjY5NzcyNzA5Mzg0Njc5NTQ3MDMxMDkxNjY2NzE1ODYiLCI0OTcxMTE0NTE5NDIzMTMwNDUzMjk3MTk1NTU3NjIyNDQ4MzYxOTUzNzc2ODYxNTU0OTM5MzAzMTg1NDAwMzM3OTk1NjM3MDM3NTciLCI4Mjg1NzA4ODgxNzM3MDE3MTM3MDM4MzYxNzc4NzY2ODQ2NTk0ODkyODI1NjQ3MTcwMzI1MjMwMDUwNzQ1ODg2NzE0NTMwNDM3ODA3IiwiMCIsIjIiLCIyIiwiMjUxOTg1NDMzODEyMDA2NjU3NzA4MDU4MTYwNDYyNzE1OTQ4ODU2MDQwMDI0NDUxMDU3Njc2NTM2MTY4NzgxNjc4MjY4OTUzNjIiLCIxIiwiNDQ4NzM4NjMzMjQ3OTQ4OTE1ODAwMzU5Nzg0NDk5MDQ4Nzk4NDkyNTQ3MTgxMzkwNzQ2MjQ4MzkwNzA1NDQyNTc1OTU2NDE3NTM0MSIsIjE3MTA5NTE1ODkiLCIyMTk1Nzg2MTcwNjQ1NDAwMTYyMzQxNjE2NDAzNzU3NTU4NjU0MTIiLCIxMjk2MzUxNzU4MjY5MDYxMTczMzE3MTA1MDQxOTY4MDY3MDc3NDUxOTE0Mzg2MDg2MjIyOTMxNTE2MTk5MTk0OTU5ODY5NDYzODgyIiwiMCIsIjEiLCIxNzAyMjUyODAwMDAwMDAwMDAwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMSIsIjI1MTk4NTQzMzgxMjAwNjY1NzcwODA1ODE2MDQ2MjcxNTk0ODg1NjA0MDAyNDQ1MTA1NzY3NjUzNjE2ODc4MTY3ODI2ODk1MzYyIiwiMTIzNDUiXX1dfSwiZnJvbSI6ImRpZDpwb2x5Z29uaWQ6cG9seWdvbjptdW1iYWk6MnFENThLdkQzbVBCMUgxZFpLaERQUmhFZDNhRTFGZHgzaUdkNVZqY0hxIiwidG8iOiJkaWQ6cG9seWdvbmlkOnBvbHlnb246bXVtYmFpOjJxSHdvTVZnRjIyb3pZZnM0Z1hpQzhycjZTM3NCQ3IyV1NRd2tSVGZCMyJ9.eyJwcm9vZiI6eyJwaV9hIjpbIjczNDY1NzI2NDg1NDQ5NTk1NzM5NTQzMTE1NTYyNzcxNDMyMjk5NTMwMTY2MDY4MzgwNjQ5MDY2ODEzMzUyMDc3MTcxNTE2MTkyMzAiLCI4Mzk4ODc3NDExNTMxNTkxNDA4NTA2OTE1NTY1OTAyODU1OTU0ODMwNDE0NTAwNjA5MjA3Nzg2NDk0ODg2NzIzODExODIyMzAxNDk1IiwiMSJdLCJwaV9iIjpbWyIxMDYyODY4ODQ3ODQyMjUwNDI3MjA5MDMzNDg1NDg3NTgxMjIwMzgyMDM2NTUyNzkzNzc0ODg2OTIwMzE5Mzc3Mjg0ODk2NDU5MzkwNiIsIjE3MDYwNzMxNzkwMzQ2MjM1OTU3NDgzNzQyODA2NTQyNzQwNDY2OTc2MDEzNTYxNzcwMDg4Mjg3NzM1NjQ5NjE1MjUyODUwNzYyNzYwIl0sWyI3NjA2ODc3ODg2NzUxMDI5MDQ1MTU3NTc1OTg2MjIwNTc2NTg3MTg0MDAyNTU3Nzc4NDc4OTgyNjQ0ODg4NTk2NTE1Njk4MTgwMzUzIiwiMTc4MDU3MDAwNzc2NTg1OTU1MDM4MDQwMTc0NzQ2MDI1NTE0NTQ4Nzc4NzgwNDcyODYwNTEwNTQ4NzU3ODkyMzk2NDMyNTc4MjM0NTkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjI1MTQzNjUwMDgzNjU1OTcyMjI5OTMwMzQ3NzMxMTY0MjM5NDc3NDk3NDUyMTI4ODEyMTMwNzMwNDUxNTM3ODE3MjYwMjAzMTc4NDAiLCIxNDAyNTIwNjM1ODQ3MTUwMjA2NTg1MjE2NDUwMzE1NDAwNjEwMTgzMzUzMTA5MDE5MjcxMDUzMTM5Nzc3Mzc2NzExNjkxMDMxNTYxMCIsIjEiXSwicHJvdG9jb2wiOiJncm90aDE2IiwiY3VydmUiOiJibjEyOCJ9LCJwdWJfc2lnbmFscyI6WyIyMTU3NTEyNzIxNjIzNjI0ODg2OTcwMjI3NjI0NjAzNzU1NzExOTAwNzQ2NjE4MDMwMTk1Nzc2MjE5NjU5Mzc4NjczMzAwNzM2MiIsIjE5Mzg0MTc4MzExNDAyNzMyNzk1NDY1NTMwMjM5Mjk0ODI0MjE2NjcwNjYzOTg4MzYxOTI4MDIyNTU1NzE1OTc4MzgwNjY3Njc3MTk0IiwiMCJdfQ';
 
     await expect(verifier.fullVerify(token, request, testOpts)).resolves.not.toThrow();
+  });
+
+  it('TestVerifyV3MessageWithMtpProof_Merklized_exists', async () => {
+    const request = {
+      id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
+      typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+      type: 'https://iden3-communication.io/authorization/1.0/request',
+      thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
+      body: {
+        callbackUrl: 'https://test.com/callback',
+        reason: 'test',
+        scope: [
+          {
+            id: 1711522489,
+            circuitId: CircuitId.AtomicQueryV3,
+
+            query: {
+              context:
+                'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v4.jsonld',
+              credentialSubject: { birthday: { $exists: true } },
+              proofType: ProofType.BJJSignature,
+              type: 'KYCAgeCredential'
+            }
+          }
+        ]
+      },
+      from: 'did:polygonid:polygon:mumbai:2qH7TstpRRJHXNN4o49Fu9H2Qismku8hQeUxDVrjqT'
+    };
+
+    const message: AuthorizationResponseMessage = {
+      id: 'ac381820-21af-499a-8c5d-8f01fca9783c',
+      typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+      type: 'https://iden3-communication.io/authorization/1.0/response',
+      thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
+      body: {
+        scope: [
+          {
+            id: 1711522489,
+            circuitId: CircuitId.AtomicQueryV3,
+            proof: {
+              pi_a: [
+                '21800211430949703449644722551376257237362982820810967048456391134029879678806',
+                '21613713430915613066339120095996323766151016451049155252578200709882864737789',
+                '1'
+              ],
+              pi_b: [
+                [
+                  '661072511254964853872611502929686343046899584048079678556280335611662815845',
+                  '2273089975406654115307642615483414515773518585010287695430027009913825128768'
+                ],
+                [
+                  '17444892701184321994625361553850698475151625663824663639633423947771970343321',
+                  '15630676073412856608625380437792507729110631716538445053251013755584497527789'
+                ],
+                ['1', '0']
+              ],
+              pi_c: [
+                '21296780288267664754328313860061774394253634460478952036284913832000895592194',
+                '6946412759922081597032874175095790261523599890928317338700002333834382713410',
+                '1'
+              ],
+              protocol: 'groth16'
+            },
+            pub_signals: [
+              '1',
+              '29164643842236980629969889601908506056905540530259492186963618550155186690',
+              '13483594486393726782589954979757194488582220051583949915340451442108840786819',
+              '0',
+              '0',
+              '0',
+              '1',
+              '1711522489',
+              '20140537885605785819118769494650292165307016100986347572517912906305442306',
+              '1',
+              '14623770256788200718910247650869365371230778783613615087356654172486552332511',
+              '1711522550',
+              '267831521922558027206082390043321796944',
+              '20376033832371109177683048456014525905119173674985843915445634726167450989630',
+              '0',
+              '11',
+              '1',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '1',
+              '19077537563018779797836314438360413772747104486842143844867680645228663298',
+              '0'
+            ]
+          }
+        ]
+      },
+      from: 'did:polygonid:polygon:mumbai:2qE45yJ5i6g1dYPP45KMw38Xbvh8aebPzfXLfxtrhu',
+      to: 'did:polygonid:polygon:mumbai:2qH7TstpRRJHXNN4o49Fu9H2Qismku8hQeUxDVrjqT'
+    };
+
+    const authInstance = await Verifier.newVerifier({
+      stateResolver: resolvers,
+      circuitsDir: path.join(__dirname, './testdata')
+    });
+
+    await authInstance.verifyAuthResponse(message, request, testOpts);
+  });
+
+  it('TestVerifyV3MessageWithMtpProof_Merklized_noop', async () => {
+    const request = {
+      id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
+      typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+      type: 'https://iden3-communication.io/authorization/1.0/request',
+      thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
+      body: {
+        callbackUrl: 'https://test.com/callback',
+        reason: 'test',
+        scope: [
+          {
+            id: 1711377832,
+            circuitId: CircuitId.AtomicQueryV3,
+
+            query: {
+              context:
+                'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v4.jsonld',
+              proofType: ProofType.BJJSignature,
+              type: 'KYCAgeCredential'
+            }
+          }
+        ]
+      },
+      from: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
+    };
+
+    const message: AuthorizationResponseMessage = {
+      id: 'ac381820-21af-499a-8c5d-8f01fca9783c',
+      typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
+      type: 'https://iden3-communication.io/authorization/1.0/response',
+      thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
+      body: {
+        scope: [
+          {
+            id: 1711377832,
+            circuitId: CircuitId.AtomicQueryV3,
+            proof: {
+              pi_a: [
+                '7555135671567273543704218764274850015720432713673229342215169366176898598929',
+                '5118059757222184178232295484120895788454978441731084933033870844411500481244',
+                '1'
+              ],
+              pi_b: [
+                [
+                  '14212250237160868782979223012368501182246698067654154738920528940031235088380',
+                  '18217717461197738936131417405953772342169705587070066489162095180660073064671'
+                ],
+                [
+                  '16772018071565641000678496564873785294025025924126602838983639773623869064801',
+                  '4936938093592837071503468878843020708039523542423061890804250451547565506589'
+                ],
+                ['1', '0']
+              ],
+              pi_c: [
+                '4721635046811376766778210935918363175751512711098010569765488285431776823966',
+                '20588271981362351104785915980589379197992461314597051622104515944586759543278',
+                '1'
+              ],
+              protocol: 'groth16'
+            },
+            pub_signals: [
+              '1',
+              '20156969113212549915290105481651790678263685077956855660838446742358921730',
+              '13483594486393726782589954979757194488582220051583949915340451442108840786819',
+              '0',
+              '0',
+              '0',
+              '1',
+              '1711377832',
+              '20140537885605785819118769494650292165307016100986347572517912906305442306',
+              '1',
+              '20054680232313097776046407964659487432368209966036937175997819086186177614781',
+              '1711377852',
+              '267831521922558027206082390043321796944',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '0',
+              '19077537563018779797836314438360413772747104486842143844867680645228663298',
+              '0'
+            ]
+          }
+        ]
+      },
+      from: 'did:polygonid:polygon:mumbai:2qK9EukpMd6GQy9hfXfX31LUk89rmqX21hYe62LEnW',
+      to: 'did:polygonid:polygon:mumbai:2qHwoMVgF22ozYfs4gXiC8rr6S3sBCr2WSQwkRTfB3'
+    };
+
+    const authInstance = await Verifier.newVerifier({
+      stateResolver: resolvers,
+      circuitsDir: path.join(__dirname, './testdata')
+    });
+
+    await authInstance.verifyAuthResponse(message, request, testOpts);
   });
 });
