@@ -54,6 +54,7 @@ export const testOpts: VerifyOpts = {
 
 const mockStateResolver: MockResolver = new MockResolver();
 export const resolvers: Resolvers = {
+  'polygon:amoy': mockStateResolver,
   'polygon:mumbai': mockStateResolver
 };
 export const resolveDIDDocument = {

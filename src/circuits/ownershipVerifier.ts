@@ -7,7 +7,7 @@ export abstract class IDOwnershipPubSignals {
     const senderId = DID.idFromDID(DID.parse(sender));
     if (senderId.string() !== this.userId.string()) {
       throw new Error(
-        `sender id is not used for proof creation, expected ${sender}, user from public signals: ${this.userId.string()}`
+        `sender id is not used for proof creation, expected ${senderId}, user from public signals: ${this.userId.string()}`
       );
     }
     if (challenge !== this.challenge) {
