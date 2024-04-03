@@ -21,7 +21,7 @@ import { Circuits } from '@lib/circuits/registry';
 import path from 'path';
 import { resolveDIDDocument, resolvers, schemaLoader, testOpts } from './mocks';
 
-describe.skip('auth tests', () => {
+describe('auth tests', () => {
   const connectionString = process.env.IPFS_URL ?? 'https://ipfs.io';
   it('createAuthorizationRequest', () => {
     const sender = 'did:iden3:polygon:amoy:xCRp75DgAdS63W65fmXHz6p9DwdonuRU9e46DifhX';
