@@ -74,7 +74,12 @@ export class EthStateResolver implements IStateResolver {
       };
     }
 
-    return { latest: true, genesis: isGenesis, state, transitionTimestamp: 0 };
+    return {
+      latest: contractState.replacedAtTimestamp.isZero(),
+      genesis: isGenesis,
+      state,
+      transitionTimestamp: contractState.replacedAtTimestamp.toNumber()
+    };
   }
 
   public async rootResolve(state: bigint): Promise<ResolvedState> {
