@@ -12,7 +12,7 @@ describe('Common', () => {
   it('checkUserState fails', async () => {
     await expect(
       checkUserState(mockResolverWithNoStateInContract, issuerID, hash)
-    ).rejects.toThrow('user state is not valid');
+    ).rejects.toThrow('State is not genesis and not registered in the smart contract');
   });
   it('checkUserState', async () => {
     await checkUserState(mockResolverWithNotLatesState, issuerID, hash);
