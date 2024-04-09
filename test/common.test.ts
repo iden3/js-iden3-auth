@@ -12,7 +12,7 @@ describe('Common', () => {
   it('checkUserState fails', async () => {
     await expect(
       checkUserState(mockResolverWithNoStateInContract, issuerID, hash)
-    ).rejects.toThrow('issuer state is not valid');
+    ).rejects.toThrow('user state is not valid');
   });
   it('checkUserState', async () => {
     await checkUserState(mockResolverWithNotLatesState, issuerID, hash);
