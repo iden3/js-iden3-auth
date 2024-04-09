@@ -5,13 +5,13 @@ import { Hash } from '@iden3/js-merkletree';
 export const issuerStateError = new Error(`issuer state is not valid`);
 export const gistStateError = new Error(`gist state is not valid`);
 
-export async function checkIssuerState(
+export async function checkUserState(
   resolver: IStateResolver,
   userId: Id,
   userState: Hash
-): Promise<void> {
+): Promise<ResolvedState> {
   try {
-    await resolver.resolve(userId.bigInt(), userState.bigInt());
+    return await resolver.resolve(userId.bigInt(), userState.bigInt());
   } catch {
     throw issuerStateError;
   }

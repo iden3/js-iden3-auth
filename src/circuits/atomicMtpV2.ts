@@ -3,7 +3,7 @@ import { Resolvers } from '@lib/state/resolver';
 import { checkQueryV2Circuits, ClaimOutputs, Query } from '@lib/circuits/query';
 import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkIssuerNonRevState, checkIssuerState, getResolverByID } from '@lib/circuits/common';
+import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import {
   AtomicQueryMTPV2PubSignals,
@@ -75,7 +75,7 @@ export class AtomicQueryMTPV2PubSignalsVerifier
       throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID.string()}`);
     }
 
-    await checkIssuerState(
+    await checkUserState(
       resolver,
       this.pubSignals.issuerID,
       this.pubSignals.issuerClaimIdenState

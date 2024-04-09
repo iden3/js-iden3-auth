@@ -2,7 +2,7 @@ import { PubSignalsVerifier, VerifyOpts } from '@lib/circuits/registry';
 import { ClaimOutputs, Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
-import { checkIssuerNonRevState, checkIssuerState, getResolverByID } from '@lib/circuits/common';
+import { checkIssuerNonRevState, checkUserState, getResolverByID } from '@lib/circuits/common';
 import { DID, getDateFromUnixTimestamp } from '@iden3/js-iden3-core';
 import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization';
 import {
@@ -194,7 +194,7 @@ export class AtomicQueryV3PubSignalsVerifier
       throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID.string()}`);
     }
 
-    await checkIssuerState(resolver, this.pubSignals.issuerID, this.pubSignals.issuerState);
+    await checkUserState(resolver, this.pubSignals.issuerID, this.pubSignals.issuerState);
 
     if (this.pubSignals.isRevocationChecked === 0) {
       return;
