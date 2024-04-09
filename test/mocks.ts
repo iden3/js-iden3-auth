@@ -25,6 +25,36 @@ class MockResolver implements IStateResolver {
   }
 }
 
+class MockResolverWithNoStateInContract implements IStateResolver {
+  resolve(): Promise<ResolvedState> {
+    throw new Error('State is not genesis and not registered in the smart contract');
+  }
+  rootResolve(): Promise<ResolvedState> {
+    throw new Error('GIST root does not exist in the smart contract');
+  }
+}
+
+class MockResolverWithNotLatesState implements IStateResolver {
+  resolve(): Promise<ResolvedState> {
+    const t: ResolvedState = {
+      latest: false,
+      state: null,
+      genesis: false,
+      transitionTimestamp: 1712653265
+    };
+    return Promise.resolve(t);
+  }
+  rootResolve(): Promise<ResolvedState> {
+    const t: ResolvedState = {
+      latest: false,
+      state: null,
+      genesis: false,
+      transitionTimestamp: 1712653265
+    };
+    return Promise.resolve(t);
+  }
+}
+
 export const exampleDidDoc = {
   '@context': [
     'https://www.w3.org/ns/did/v1',
@@ -53,6 +83,9 @@ export const testOpts: VerifyOpts = {
 };
 
 const mockStateResolver: MockResolver = new MockResolver();
+export const mockResolverWithNoStateInContract: MockResolver =
+  new MockResolverWithNoStateInContract();
+export const mockResolverWithNotLatesState: MockResolver = new MockResolverWithNotLatesState();
 export const resolvers: Resolvers = {
   'polygon:amoy': mockStateResolver,
   'polygon:mumbai': mockStateResolver

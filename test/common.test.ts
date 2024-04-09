@@ -1,0 +1,20 @@
+import { DID } from '@iden3/js-iden3-core';
+import { checkIssuerState } from '@lib/circuits/common';
+import { mockResolverWithNoStateInContract, mockResolverWithNotLatesState } from './mocks';
+import { Hash } from '@iden3/js-merkletree';
+
+describe('Common', () => {
+  const issuerDID = DID.parse('did:iden3:polygon:mumbai:x6suHR8HkEYczV9yVeAKKiXCZAd25P8WS6QvNhszk');
+  const issuerID = DID.idFromDID(issuerDID);
+  const hash = Hash.fromBigInt(
+    BigInt('13483594486393726782589954979757194488582220051583949915340451442108840786819')
+  );
+  it('checkIssuerState fails', async () => {
+    await expect(
+      checkIssuerState(mockResolverWithNoStateInContract, issuerID, hash)
+    ).rejects.toThrow('issuer state is not valid');
+  });
+  it('checkIssuerState', async () => {
+    await checkIssuerState(mockResolverWithNotLatesState, issuerID, hash);
+  });
+});
