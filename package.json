@@ -26,7 +26,7 @@
     "iden3"
   ],
   "author": "iden3",
-  "license": "AGPL-3.0",
+  "license": "MIT or Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/iden3/js-iden3-auth"

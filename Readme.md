@@ -171,3 +171,13 @@ We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for gener
 ```bash
 typechain --target ethers-v5 /path/to/state_contract.sol
 ```
+## License
+
+js-iden3-auth is part of the iden3 project copyright 2024 0kims association
+
+This project is licensed under either of
+
+- [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) ([`LICENSE-APACHE`](LICENSE-APACHE))
+- [MIT license](https://opensource.org/licenses/MIT) ([`LICENSE-MIT`](LICENSE-MIT))
+
+at your option.
