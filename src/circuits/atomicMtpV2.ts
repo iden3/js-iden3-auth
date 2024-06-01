@@ -75,11 +75,7 @@ export class AtomicQueryMTPV2PubSignalsVerifier
       throw new Error(`resolver not found for issuerID ${this.pubSignals.issuerID.string()}`);
     }
 
-    await checkUserState(
-      resolver,
-      this.pubSignals.issuerID,
-      this.pubSignals.issuerClaimIdenState
-    );
+    await checkUserState(resolver, this.pubSignals.issuerID, this.pubSignals.issuerClaimIdenState);
 
     if (this.pubSignals.isRevocationChecked === 0) {
       return;

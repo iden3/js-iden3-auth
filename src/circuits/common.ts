@@ -9,7 +9,7 @@ export async function checkUserState(
   userId: Id,
   userState: Hash
 ): Promise<ResolvedState> {
-    return await resolver.resolve(userId.bigInt(), userState.bigInt());
+  return await resolver.resolve(userId.bigInt(), userState.bigInt());
 }
 
 export async function checkGlobalState(
@@ -24,10 +24,7 @@ export async function checkIssuerNonRevState(
   issuerId: Id,
   issuerClaimNonRevState: Hash
 ): Promise<ResolvedState> {
-  return await resolver.resolve(
-    issuerId.bigInt(),
-    issuerClaimNonRevState.bigInt()
-  );
+  return await resolver.resolve(issuerId.bigInt(), issuerClaimNonRevState.bigInt());
 }
 
 export function getResolverByID(resolvers: Resolvers, id: Id): IStateResolver {

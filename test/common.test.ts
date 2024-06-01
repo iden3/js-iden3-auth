@@ -10,9 +10,9 @@ describe('Common', () => {
     BigInt('13483594486393726782589954979757194488582220051583949915340451442108840786819')
   );
   it('checkUserState fails', async () => {
-    await expect(
-      checkUserState(mockResolverWithNoStateInContract, issuerID, hash)
-    ).rejects.toThrow('State is not genesis and not registered in the smart contract');
+    await expect(checkUserState(mockResolverWithNoStateInContract, issuerID, hash)).rejects.toThrow(
+      'State is not genesis and not registered in the smart contract'
+    );
   });
   it('checkUserState', async () => {
     await checkUserState(mockResolverWithNotLatesState, issuerID, hash);

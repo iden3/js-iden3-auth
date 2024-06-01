@@ -148,7 +148,7 @@ export class AtomicQueryV3PubSignalsVerifier
         }
         break;
       default:
-        throw new Error('invalid proof type');
+      // if proof type is not specified in query any proof type in signals is OK.
     }
 
     const nSessionId = BigInt((params?.nullifierSessionId as string) ?? 0);
