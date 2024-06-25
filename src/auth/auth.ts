@@ -23,7 +23,8 @@ import {
   FSCircuitStorage,
   ICircuitStorage,
   cacheLoader,
-  byteEncoder
+  byteEncoder,
+  JSONObject
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
@@ -295,8 +296,7 @@ export class Verifier {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
-      const params = proofRequest.params ?? {};
-
+      const params: JSONObject = proofRequest.params ?? {};
       params.verifierDid = DID.parse(request.from);
 
       // verify query
