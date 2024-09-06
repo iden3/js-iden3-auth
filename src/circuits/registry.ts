@@ -5,7 +5,7 @@ import { Query } from '@lib/circuits/query';
 import { Resolvers } from '@lib/state/resolver';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import { AtomicQueryV3PubSignalsVerifier } from '@lib/circuits/atomicV3';
-import { BaseConfig } from '@0xpolygonid/js-sdk';
+import { BaseConfig, VerifiablePresentation } from '@0xpolygonid/js-sdk';
 import { LinkedMultiQueryVerifier } from '@lib/circuits/linkedMultiQuery';
 
 export type VerifyOpts = {
@@ -19,7 +19,7 @@ export interface PubSignalsVerifier {
   verifyQuery(
     query: Query,
     schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON,
+    verifiablePresentation?: VerifiablePresentation,
     opts?: VerifyOpts,
     circuitParams?: { [key: string]: unknown }
   ): Promise<BaseConfig>;

@@ -305,7 +305,7 @@ export class Verifier {
       const pubSignals = await verifier.verifyQuery(
         proofRequest.query as unknown as Query,
         this.schemaLoader,
-        proofResp.vp as JSON,
+        proofResp.vp,
         opts,
         params
       );

@@ -19,7 +19,7 @@ describe('atomicV3', () => {
     const request: AuthorizationRequestMessage = {
       id: '28b15cd4-3aa1-4ddc-88a3-c05a0f788065',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/request',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
       thid: '28b15cd4-3aa1-4ddc-88a3-c05a0f788065',
       body: {
         callbackUrl: 'https://test.com/callback',
@@ -50,7 +50,7 @@ describe('atomicV3', () => {
     const message: AuthorizationResponseMessage = {
       id: '59fbefd2-39ce-4346-94f1-49ec86141ba9',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/response',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
       thid: '28b15cd4-3aa1-4ddc-88a3-c05a0f788065',
       body: {
         message: 'message to sign',
@@ -183,10 +183,10 @@ describe('atomicV3', () => {
   });
 
   it('TestVerifyV3MessageWithMtpProof_Merklized', async () => {
-    const request = {
+    const request: AuthorizationRequestMessage = {
       id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/request',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       body: {
         callbackUrl: 'https://test.com/callback',
@@ -216,7 +216,7 @@ describe('atomicV3', () => {
     const message: AuthorizationResponseMessage = {
       id: 'ac381820-21af-499a-8c5d-8f01fca9783c',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/response',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       body: {
         message: 'message to sign',
@@ -352,7 +352,7 @@ describe('atomicV3', () => {
     const request: AuthorizationRequestMessage = {
       id: '7d22275a-b518-45bb-8ee1-85e12abd8532',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/request',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
       thid: '7d22275a-b518-45bb-8ee1-85e12abd8532',
       body: {
         callbackUrl: 'http://localhost:8080/callback?id=1234442-123123-123123',
@@ -420,7 +420,7 @@ describe('atomicV3', () => {
     const request = {
       id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/request',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       body: {
         callbackUrl: 'https://test.com/callback',
@@ -446,7 +446,7 @@ describe('atomicV3', () => {
     const message: AuthorizationResponseMessage = {
       id: 'ac381820-21af-499a-8c5d-8f01fca9783c',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/response',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       body: {
         scope: [
@@ -581,7 +581,7 @@ describe('atomicV3', () => {
     const request = {
       id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/request',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       body: {
         callbackUrl: 'https://test.com/callback',
@@ -606,7 +606,7 @@ describe('atomicV3', () => {
     const message: AuthorizationResponseMessage = {
       id: 'ac381820-21af-499a-8c5d-8f01fca9783c',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/response',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
       thid: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       body: {
         scope: [

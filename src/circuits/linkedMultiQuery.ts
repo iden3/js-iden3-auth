@@ -14,9 +14,9 @@ import {
   QueryMetadata,
   LinkedMultiQueryInputs,
   Operators,
-  fieldValueFromVerifiablePresentation
+  fieldValueFromVerifiablePresentation,
+  VerifiablePresentation
 } from '@0xpolygonid/js-sdk';
-import { poseidon } from '@iden3/js-crypto';
 
 /**
  * Verifies the linked multi-query circuit.
@@ -38,7 +38,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
   async verifyQuery(
     query: Query,
     schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON
+    verifiablePresentation?: VerifiablePresentation
   ): Promise<BaseConfig> {
     let schema: JSONObject;
     const ldOpts = { documentLoader: schemaLoader ?? cacheLoader() };
@@ -48,7 +48,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
       throw new Error(`can't load schema for request query`);
     }
     const ldContextJSON = JSON.stringify(schema);
-    const credentialSubject = query.credentialSubject as JSONObject;
+    const credentialSubject = query.credentialSubject;
     const schemaId: string = await Path.getTypeIDFromContext(ldContextJSON, query.type, ldOpts);
     const schemaHash = calculateCoreSchemaHash(byteEncoder.encode(schemaId));
 

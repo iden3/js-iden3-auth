@@ -132,7 +132,7 @@ describe('auth tests', () => {
     const response: AuthorizationResponseMessage = {
       id: 'd61ca0e1-0fb4-42e1-9baf-10926d76588a',
       typ: PROTOCOL_CONSTANTS.MediaType.ZKPMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/response',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
       thid: '3bfc628a-6d16-4af7-8358-59656ca30600',
       body: {
         message: 'message to sign',
@@ -297,7 +297,7 @@ describe('auth tests', () => {
     const response: AuthorizationResponseMessage = {
       id: 'fe05a780-3a91-4a12-84bd-a23223004543',
       typ: PROTOCOL_CONSTANTS.MediaType.ZKPMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/response',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_RESPONSE_MESSAGE_TYPE,
       thid: 'cbeb7e95-49a6-4107-ad5d-33de4620a2c7',
       body: {
         message: 'message to sign',
