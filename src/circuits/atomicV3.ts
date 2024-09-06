@@ -19,6 +19,7 @@ import {
   validateDisclosureNativeSDSupport,
   validateEmptyCredentialSubjectNoopNativeSupport,
   validateOperators,
+  VerifiablePresentation,
   verifyFieldValueInclusionNativeExistsSupport
 } from '@0xpolygonid/js-sdk';
 import { JsonLd } from 'jsonld/jsonld-spec';
@@ -30,10 +31,7 @@ const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
  * Verifies the public signals for the AtomicQueryV3 circuit.
  * @beta
  */
-export class AtomicQueryV3PubSignalsVerifier
-  extends IDOwnershipPubSignals
-  implements PubSignalsVerifier
-{
+export class AtomicQueryV3PubSignalsVerifier extends IDOwnershipPubSignals implements PubSignalsVerifier {
   pubSignals = new AtomicQueryV3PubSignals();
 
   constructor(pubSignals: string[]) {
@@ -49,7 +47,7 @@ export class AtomicQueryV3PubSignalsVerifier
   async verifyQuery(
     query: Query,
     schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON,
+    verifiablePresentation?: VerifiablePresentation,
     opts?: VerifyOpts,
     params?: JSONObject
   ): Promise<BaseConfig> {
@@ -84,7 +82,7 @@ export class AtomicQueryV3PubSignalsVerifier
     const queriesMetadata = await parseQueriesMetadata(
       query.type,
       JSON.stringify(context),
-      query.credentialSubject as JSONObject,
+      query.credentialSubject,
       {
         documentLoader: loader
       }

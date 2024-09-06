@@ -6,13 +6,14 @@ import {
   CircuitId,
   ProofQuery,
   parseQueriesMetadata,
-  JSONObject,
   checkQueryRequest,
   validateDisclosureV2Circuit,
   validateEmptyCredentialSubjectV2Circuit,
   verifyFieldValueInclusionV2,
   validateOperators,
-  checkCircuitOperator
+  checkCircuitOperator,
+  JsonDocumentObject,
+  VerifiablePresentation
 } from '@0xpolygonid/js-sdk';
 import { VerifyOpts } from './registry';
 import { JsonLd } from 'jsonld/jsonld-spec';
@@ -22,7 +23,7 @@ export const userStateError = new Error(`user state is not valid`);
 // Query is a query to circuit
 export interface Query {
   allowedIssuers: string[];
-  credentialSubject: { [key: string]: unknown };
+  credentialSubject: JsonDocumentObject;
   context: string;
   type: string;
   claimID?: string;
@@ -53,7 +54,7 @@ export async function checkQueryV2Circuits(
   outs: ClaimOutputs,
   schemaLoader: DocumentLoader | undefined,
   opts: VerifyOpts | undefined,
-  verifiablePresentation: JSON | undefined
+  verifiablePresentation: VerifiablePresentation | undefined
 ) {
   if (!query.type) {
     throw new Error(`proof query type is undefined`);
@@ -72,7 +73,7 @@ export async function checkQueryV2Circuits(
   const queriesMetadata = await parseQueriesMetadata(
     query.type,
     JSON.stringify(context),
-    query.credentialSubject as JSONObject,
+    query.credentialSubject as JsonDocumentObject,
     {
       documentLoader: loader
     }

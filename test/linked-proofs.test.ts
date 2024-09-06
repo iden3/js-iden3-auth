@@ -9,7 +9,7 @@ describe('Linked proofs verification', () => {
     const authRequest: AuthorizationRequestMessage = {
       id: 'f5bcdfc9-3819-4052-ad97-c059119e563c',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
-      type: 'https://iden3-communication.io/authorization/1.0/request',
+      type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
       thid: 'f5bcdfc9-3819-4052-ad97-c059119e563c',
       body: {
         callbackUrl: 'http://localhost:8080/callback?id=1234442-123123-123123',

@@ -9,7 +9,8 @@ import {
   AtomicQueryMTPV2PubSignals,
   BaseConfig,
   byteEncoder,
-  CircuitId
+  CircuitId,
+  VerifiablePresentation
 } from '@0xpolygonid/js-sdk';
 
 const valuesSize = 64;
@@ -41,7 +42,7 @@ export class AtomicQueryMTPV2PubSignalsVerifier
   async verifyQuery(
     query: Query,
     schemaLoader?: DocumentLoader,
-    verifiablePresentation?: JSON,
+    verifiablePresentation?: VerifiablePresentation,
     opts?: VerifyOpts
   ): Promise<BaseConfig> {
     const outs: ClaimOutputs = {
