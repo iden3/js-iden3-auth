@@ -34,7 +34,7 @@ class MockResolverWithNoStateInContract implements IStateResolver {
   }
 }
 
-class MockResolverWithNotLatesState implements IStateResolver {
+class MockResolverWithNotLatestState implements IStateResolver {
   resolve(): Promise<ResolvedState> {
     const t: ResolvedState = {
       latest: false,
@@ -85,7 +85,7 @@ export const testOpts: VerifyOpts = {
 const mockStateResolver: MockResolver = new MockResolver();
 export const mockResolverWithNoStateInContract: MockResolver =
   new MockResolverWithNoStateInContract();
-export const mockResolverWithNotLatesState: MockResolver = new MockResolverWithNotLatesState();
+export const mockResolverWithNotLatestState: MockResolver = new MockResolverWithNotLatestState();
 export const resolvers: Resolvers = {
   'polygon:amoy': mockStateResolver,
   'polygon:mumbai': mockStateResolver

@@ -14,8 +14,8 @@
     "test:watch": "jest --watch",
     "build:types": "tsc -p tsconfig.build.json && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint": "eslint src test --ext .ts",
-    "lint:fix": "eslint src test --ext .ts --fix",
+    "lint:fix": "eslint src test --ext .ts src/** test/*.ts",
+    "lint:check": "eslint --ext .ts src/** test/*.ts",
     "build": "npm run clean && tsc --module commonjs -p tsconfig.build.json && tsc-alias",
     "clean": "rimraf ./dist"
   },
@@ -44,7 +44,8 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@iden3/eslint-config": "https://github.com/iden3/eslint-config",
+    "@cspell/eslint-plugin": "^8.14.2",
+    "@iden3/eslint-config": "github:iden3/eslint-config",
     "@typechain/ethers-v5": "^10.2.0",
     "@types/jest": "^29.5.2",
     "@types/jsonld": "^1.5.13",
