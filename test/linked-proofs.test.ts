@@ -14,7 +14,7 @@ describe('Linked proofs verification', () => {
       body: {
         callbackUrl: 'http://localhost:8080/callback?id=1234442-123123-123123',
         reason: 'reason',
-        message: 'message',
+        message: 'mesage',
         did_doc: {},
         scope: [
           {
