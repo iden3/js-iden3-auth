@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@cspell/eslint-plugin": "^8.14.2",
-    "@iden3/eslint-config": "github:iden3/eslint-config",
+    "@iden3/eslint-config": "https://github.com/iden3/eslint-config",
     "@typechain/ethers-v5": "^10.2.0",
     "@types/jest": "^29.5.2",
     "@types/jsonld": "^1.5.13",
