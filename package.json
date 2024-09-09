@@ -14,7 +14,7 @@
     "test:watch": "jest --watch",
     "build:types": "tsc -p tsconfig.build.json && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint:fix": "eslint src test --ext .ts src/** test/*.ts",
+    "lint": "eslint src test --ext .ts src/** test/*.ts",
     "lint:check": "eslint --ext .ts src/** test/*.ts",
     "build": "npm run clean && tsc --module commonjs -p tsconfig.build.json && tsc-alias",
     "clean": "rimraf ./dist"
