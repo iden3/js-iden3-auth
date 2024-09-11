@@ -1,6 +1,6 @@
 import { DID } from '@iden3/js-iden3-core';
 import { checkUserState } from '@lib/circuits/common';
-import { mockResolverWithNoStateInContract, mockResolverWithNotLatesState } from './mocks';
+import { mockResolverWithNoStateInContract, mockResolverWithNotLatestState } from './mocks';
 import { Hash } from '@iden3/js-merkletree';
 
 describe('Common', () => {
@@ -15,6 +15,6 @@ describe('Common', () => {
     );
   });
   it('checkUserState', async () => {
-    await checkUserState(mockResolverWithNotLatesState, issuerID, hash);
+    await checkUserState(mockResolverWithNotLatestState, issuerID, hash);
   });
 });
