@@ -208,6 +208,9 @@ export class Verifier {
   }
 
   public verifyAuthRequest(request: AuthorizationRequestMessage) {
+    if (request?.expires_time && request.expires_time < Math.floor(Date.now() / 1000)) {
+      throw new Error('Message expired');
+    }
     const groupIdValidationMap: { [k: string]: ZeroKnowledgeProofRequest[] } = {};
     const requestScope = request.body.scope;
     for (const proofRequest of requestScope) {
@@ -255,6 +258,9 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts
   ) {
+    if (response?.expires_time && response.expires_time < Math.floor(Date.now() / 1000)) {
+      throw new Error('Message expired');
+    }
     if ((request.body.message ?? '') !== (response.body.message ?? '')) {
       throw new Error('message for signing from request is not presented in response');
     }
