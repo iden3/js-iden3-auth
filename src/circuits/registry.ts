@@ -13,6 +13,8 @@ export type VerifyOpts = {
   acceptedStateTransitionDelay?: number;
   // acceptedProofGenerationDelay is the period of time in milliseconds that a generated proof remains valid.
   acceptedProofGenerationDelay?: number;
+  // allowExpiredMessages is a flag that allows the verification of expired messages.
+  allowExpiredMessages?: boolean;
 };
 
 export interface PubSignalsVerifier {

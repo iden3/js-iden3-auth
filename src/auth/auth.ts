@@ -24,13 +24,29 @@ import {
   ICircuitStorage,
   cacheLoader,
   byteEncoder,
-  JSONObject
+  JSONObject,
+  verifyExpiresTime,
+  parseAcceptProfile
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
-import { DID } from '@iden3/js-iden3-core';
+import { DID, getUnixTimestamp } from '@iden3/js-iden3-core';
 import { ZeroKnowledgeProofRequest } from '@0xpolygonid/js-sdk';
+import {
+  MediaType,
+  ProtocolVersion
+} from '@0xpolygonid/js-sdk/dist/types/iden3comm/constants';
+
+/**
+ * Options to pass to createAuthorizationRequest function
+ * @public
+ */
+export type AuthorizationRequestCreateOptions = {
+  accept?: string[];
+  scope?: ZeroKnowledgeProofRequest[];
+  expires_time?: Date;
+};
 
 /**
  *  createAuthorizationRequest is a function to create protocol authorization request
@@ -42,9 +58,10 @@ import { ZeroKnowledgeProofRequest } from '@0xpolygonid/js-sdk';
 export function createAuthorizationRequest(
   reason: string,
   sender: string,
-  callbackUrl: string
+  callbackUrl: string,
+  opts?: AuthorizationRequestCreateOptions
 ): AuthorizationRequestMessage {
-  return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl);
+  return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl, opts);
 }
 /**
  *  createAuthorizationRequestWithMessage is a function to create protocol authorization request with explicit message to sign
@@ -58,7 +75,8 @@ export function createAuthorizationRequestWithMessage(
   reason: string,
   message: string,
   sender: string,
-  callbackUrl: string
+  callbackUrl: string,
+  opts?: AuthorizationRequestCreateOptions
 ): AuthorizationRequestMessage {
   const uuid = uuidv4();
   const request: AuthorizationRequestMessage = {
@@ -71,8 +89,10 @@ export function createAuthorizationRequestWithMessage(
       reason: reason,
       message: message,
       callbackUrl: callbackUrl,
-      scope: []
-    }
+      scope: opts?.scope || []
+    },
+    created_time: getUnixTimestamp(new Date()),
+    expires_time: opts?.expires_time ? getUnixTimestamp(opts.expires_time) : undefined
   };
   return request;
 }
@@ -207,10 +227,11 @@ export class Verifier {
     return this.setPacker(jwsPacker);
   }
 
-  public verifyAuthRequest(request: AuthorizationRequestMessage) {
-    if (request?.expires_time && request.expires_time < Math.floor(Date.now() / 1000)) {
-      throw new Error('Message expired');
+  public verifyAuthRequest(request: AuthorizationRequestMessage, opts?: VerifyOpts) {
+    if (!opts?.allowExpiredMessages) {
+      verifyExpiresTime(request);
     }
+    this.verifyProfile(request.type, request.body.accept);
     const groupIdValidationMap: { [k: string]: ZeroKnowledgeProofRequest[] } = {};
     const requestScope = request.body.scope;
     for (const proofRequest of requestScope) {
@@ -258,8 +279,8 @@ export class Verifier {
     request: AuthorizationRequestMessage,
     opts?: VerifyOpts
   ) {
-    if (response?.expires_time && response.expires_time < Math.floor(Date.now() / 1000)) {
-      throw new Error('Message expired');
+    if (!opts?.allowExpiredMessages) {
+      verifyExpiresTime(request);
     }
     if ((request.body.message ?? '') !== (response.body.message ?? '')) {
       throw new Error('message for signing from request is not presented in response');
@@ -412,6 +433,33 @@ export class Verifier {
     // set default jws packer if packageManager is not present in options but did document resolver is.
     if (didResolver) {
       this.setupJWSPacker(new KMS(), didResolver);
+    }
+  }
+
+  private verifyProfile(messageType: string, profile?: string[] | undefined) {
+    if (!profile?.length) {
+      return;
+    }
+    const supportedMediaTypes: MediaType[] = [];
+    for (const acceptProfile of profile) {
+      // 1. check protocol version
+      const { protocolVersion, env } = parseAcceptProfile(acceptProfile);
+      const messageTypeVersion = Number(messageType.split('/').at(-2));
+      if (
+        protocolVersion !== ProtocolVersion.V1 ||
+        (protocolVersion === ProtocolVersion.V1 &&
+          (messageTypeVersion < 1 || messageTypeVersion >= 2))
+      ) {
+        continue;
+      }
+      // 2. check packer support
+      if (this.packageManager.isProfileSupported(env, acceptProfile)) {
+        supportedMediaTypes.push(env);
+      }
+    }
+
+    if (!supportedMediaTypes.length) {
+      throw new Error('no packer with profile which meets `accept` header requirements');
     }
   }
 }
