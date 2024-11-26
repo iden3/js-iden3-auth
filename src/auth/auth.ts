@@ -33,10 +33,6 @@ import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 import { DID, getUnixTimestamp } from '@iden3/js-iden3-core';
 import { ZeroKnowledgeProofRequest } from '@0xpolygonid/js-sdk';
-import {
-  MediaType,
-  ProtocolVersion
-} from '@0xpolygonid/js-sdk/dist/types/iden3comm/constants';
 
 /**
  * Options to pass to createAuthorizationRequest function
@@ -440,14 +436,14 @@ export class Verifier {
     if (!profile?.length) {
       return;
     }
-    const supportedMediaTypes: MediaType[] = [];
+    const supportedMediaTypes: PROTOCOL_CONSTANTS.MediaType[] = [];
     for (const acceptProfile of profile) {
       // 1. check protocol version
       const { protocolVersion, env } = parseAcceptProfile(acceptProfile);
       const messageTypeVersion = Number(messageType.split('/').at(-2));
       if (
-        protocolVersion !== ProtocolVersion.V1 ||
-        (protocolVersion === ProtocolVersion.V1 &&
+        protocolVersion !== PROTOCOL_CONSTANTS.ProtocolVersion.V1 ||
+        (protocolVersion === PROTOCOL_CONSTANTS.ProtocolVersion.V1 &&
           (messageTypeVersion < 1 || messageTypeVersion >= 2))
       ) {
         continue;

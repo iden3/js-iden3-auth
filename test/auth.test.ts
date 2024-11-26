@@ -22,19 +22,14 @@ import { Circuits } from '@lib/circuits/registry';
 import path from 'path';
 import { resolveDIDDocument, resolvers, schemaLoader, testOpts } from './mocks';
 import { getDateFromUnixTimestamp, getUnixTimestamp } from '@iden3/js-iden3-core';
-import {
-  AcceptAuthCircuits,
-  MediaType,
-  ProtocolVersion
-} from '@0xpolygonid/js-sdk/dist/types/iden3comm/constants';
 
 describe('auth tests', () => {
   const connectionString = process.env.IPFS_URL ?? 'https://ipfs.io';
   const acceptProfile = buildAccept([
     {
-      protocolVersion: ProtocolVersion.V1,
-      env: MediaType.ZKPMessage,
-      circuits: [AcceptAuthCircuits.AuthV2]
+      protocolVersion: PROTOCOL_CONSTANTS.ProtocolVersion.V1,
+      env: PROTOCOL_CONSTANTS.MediaType.ZKPMessage,
+      circuits: [PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV2]
     }
   ]);
   const expiresTime = getDateFromUnixTimestamp(getUnixTimestamp(new Date()) + 5 * 60);
