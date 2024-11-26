@@ -2,20 +2,20 @@ name: RUN ES LINT ANS TESTS
 on: push
 jobs:
   build:
-    strategy:
-      matrix:
-        version: [18.14.0]
     timeout-minutes: 7
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+  
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.version }}
+          node-version: 'lts/*'
 
       - name: Cache node modules
         id: cache-npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-node-modules
         with:

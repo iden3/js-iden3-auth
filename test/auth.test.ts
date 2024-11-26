@@ -3,12 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
+  CircuitId,
   FSCircuitStorage,
   KMS,
   NativeProver,
   PROTOCOL_CONSTANTS,
   PackageManager,
-  ZeroKnowledgeProofRequest
+  ZeroKnowledgeProofRequest,
+  buildAccept
 } from '@0xpolygonid/js-sdk';
 import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
 import {
@@ -19,9 +21,18 @@ import {
 import { Circuits } from '@lib/circuits/registry';
 import path from 'path';
 import { resolveDIDDocument, resolvers, schemaLoader, testOpts } from './mocks';
+import { getDateFromUnixTimestamp, getUnixTimestamp } from '@iden3/js-iden3-core';
 
 describe('auth tests', () => {
   const connectionString = process.env.IPFS_URL ?? 'https://ipfs.io';
+  const acceptProfile = buildAccept([
+    {
+      protocolVersion: PROTOCOL_CONSTANTS.ProtocolVersion.V1,
+      env: PROTOCOL_CONSTANTS.MediaType.ZKPMessage,
+      circuits: [PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV2]
+    }
+  ]);
+  const expiresTime = getDateFromUnixTimestamp(getUnixTimestamp(new Date()) + 5 * 60);
   it('createAuthorizationRequest', () => {
     const sender = 'did:iden3:polygon:amoy:xCRp75DgAdS63W65fmXHz6p9DwdonuRU9e46DifhX';
     const callback = 'https://test.com/callback';
@@ -37,7 +48,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQueryMTPV2',
+      circuitId: CircuitId.AtomicQueryMTPV2,
       query: {
         allowedIssuers: ['1195GJqgw6YEsKFwj63GY87MMxPL9kwDKxPUiwMLN9'],
         type: 'KYCAgeCredential',
@@ -63,7 +74,11 @@ describe('auth tests', () => {
       'kyc verification',
       msg,
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
 
     const response: AuthorizationResponseMessage = {
@@ -101,7 +116,11 @@ describe('auth tests', () => {
       reason,
       message,
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
@@ -112,7 +131,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQueryMTPV2',
+      circuitId: CircuitId.AtomicQueryMTPV2,
       query: {
         allowedIssuers: ['*'],
         context:
@@ -266,7 +285,11 @@ describe('auth tests', () => {
       reason,
       message,
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
@@ -277,7 +300,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQuerySigV2',
+      circuitId: CircuitId.AtomicQuerySigV2,
       query: {
         allowedIssuers: ['*'],
         context:
@@ -444,7 +467,11 @@ describe('auth tests', () => {
       reason,
       'message to sign',
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
@@ -453,7 +480,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQuerySigV2',
+      circuitId: CircuitId.AtomicQuerySigV2,
       query: {
         allowedIssuers: ['*'],
         context:
@@ -492,7 +519,11 @@ describe('auth tests', () => {
     const request: AuthorizationRequestMessage = createAuthorizationRequest(
       reason,
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
@@ -506,7 +537,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQuerySigV2',
+      circuitId: CircuitId.AtomicQuerySigV2,
       query: {
         allowedIssuers: ['*'],
         context:
@@ -561,7 +592,11 @@ describe('auth tests', () => {
       reason,
       'message to sign',
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
@@ -570,7 +605,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQuerySigV2',
+      circuitId: CircuitId.AtomicQuerySigV2,
       query: {
         allowedIssuers: ['*'],
         context:
@@ -607,7 +642,11 @@ describe('auth tests', () => {
       reason,
       'message to sign',
       sender,
-      callback
+      callback,
+      {
+        accept: acceptProfile,
+        expires_time: expiresTime
+      }
     );
     expect(request.body.scope.length).toEqual(0);
     expect(request.body.callbackUrl).toEqual(callback);
@@ -616,7 +655,7 @@ describe('auth tests', () => {
 
     const proofRequest: ZeroKnowledgeProofRequest = {
       id: 1,
-      circuitId: 'credentialAtomicQuerySigV2',
+      circuitId: CircuitId.AtomicQuerySigV2,
       query: {
         allowedIssuers: ['*'],
         context:

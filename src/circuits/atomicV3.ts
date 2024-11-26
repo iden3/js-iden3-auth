@@ -31,7 +31,10 @@ const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
  * Verifies the public signals for the AtomicQueryV3 circuit.
  * @beta
  */
-export class AtomicQueryV3PubSignalsVerifier extends IDOwnershipPubSignals implements PubSignalsVerifier {
+export class AtomicQueryV3PubSignalsVerifier
+  extends IDOwnershipPubSignals
+  implements PubSignalsVerifier
+{
   pubSignals = new AtomicQueryV3PubSignals();
 
   constructor(pubSignals: string[]) {

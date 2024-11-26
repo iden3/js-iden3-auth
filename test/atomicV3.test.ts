@@ -358,7 +358,6 @@ describe('atomicV3', () => {
         callbackUrl: 'http://localhost:8080/callback?id=1234442-123123-123123',
         reason: 'reason',
         message: 'message',
-        did_doc: {},
         scope: [
           {
             id: 1,
@@ -417,7 +416,7 @@ describe('atomicV3', () => {
   });
 
   it('TestVerifyV3MessageWithMtpProof_Merklized_exists', async () => {
-    const request = {
+    const request: AuthorizationRequestMessage = {
       id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
       type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
@@ -431,11 +430,12 @@ describe('atomicV3', () => {
             circuitId: CircuitId.AtomicQueryV3,
 
             query: {
+              allowedIssuers: ['*'],
               context:
                 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v4.jsonld',
               credentialSubject: { birthday: { $exists: true } },
               proofType: ProofType.BJJSignature,
-              type: 'KYCAgeCredential'
+              type: 'KYCAgeCredential',
             }
           }
         ]
@@ -578,7 +578,7 @@ describe('atomicV3', () => {
   });
 
   it('TestVerifyV3MessageWithMtpProof_Merklized_noop', async () => {
-    const request = {
+    const request: AuthorizationRequestMessage = {
       id: '7e5b5847-b479-4499-90ee-5fe4826a5bdd',
       typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
       type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
@@ -592,6 +592,7 @@ describe('atomicV3', () => {
             circuitId: CircuitId.AtomicQueryV3,
 
             query: {
+              allowedIssuers: ['*'],
               context:
                 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v4.jsonld',
               proofType: ProofType.BJJSignature,
