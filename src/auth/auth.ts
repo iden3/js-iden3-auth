@@ -420,8 +420,11 @@ export class Verifier {
   ): Promise<AuthorizationResponseMessage> {
     const msg = await this.packageManager.unpack(byteEncoder.encode(tokenStr));
 
-    if (request.body.accept?.length && !request.body.accept.includes(msg.unpackedMediaType)) {
-      throw new Error('response media type is not accepted by request');
+    if (request.body.accept?.length) {
+      const acceptedMediaTypes = request.body.accept.map(accept => parseAcceptProfile(accept).env);
+      if (!acceptedMediaTypes.includes(msg.unpackedMediaType)) {
+        throw new Error('response media type is not accepted by request');
+      }
     }
 
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
