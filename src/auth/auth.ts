@@ -423,7 +423,7 @@ export class Verifier {
     if (request.body.accept?.length) {
       const acceptedMediaTypes = request.body.accept.map(accept => parseAcceptProfile(accept).env);
       if (!acceptedMediaTypes.includes(msg.unpackedMediaType)) {
-        throw new Error('response media type is not accepted by request');
+        throw new Error('response type is not in accept profiles of the request');
       }
     }
 
