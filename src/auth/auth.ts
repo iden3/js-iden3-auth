@@ -82,6 +82,7 @@ export function createAuthorizationRequestWithMessage(
     typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
     type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     body: {
+      accept: opts?.accept,
       reason: reason,
       message: message,
       callbackUrl: callbackUrl,
@@ -421,7 +422,9 @@ export class Verifier {
     const msg = await this.packageManager.unpack(byteEncoder.encode(tokenStr));
 
     if (request.body.accept?.length) {
-      const acceptedMediaTypes = request.body.accept.map(accept => parseAcceptProfile(accept).env);
+      const acceptedMediaTypes = request.body.accept.map(
+        (accept) => parseAcceptProfile(accept).env
+      );
       if (!acceptedMediaTypes.includes(msg.unpackedMediaType)) {
         throw new Error('response type is not in accept profiles of the request');
       }
