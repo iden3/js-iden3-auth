@@ -82,6 +82,7 @@ export function createAuthorizationRequestWithMessage(
     typ: PROTOCOL_CONSTANTS.MediaType.PlainMessage,
     type: PROTOCOL_CONSTANTS.PROTOCOL_MESSAGE_TYPE.AUTHORIZATION_REQUEST_MESSAGE_TYPE,
     body: {
+      accept: opts?.accept,
       reason: reason,
       message: message,
       callbackUrl: callbackUrl,
@@ -419,6 +420,16 @@ export class Verifier {
     opts?: VerifyOpts
   ): Promise<AuthorizationResponseMessage> {
     const msg = await this.packageManager.unpack(byteEncoder.encode(tokenStr));
+
+    if (request.body.accept?.length) {
+      const acceptedMediaTypes = request.body.accept.map(
+        (accept) => parseAcceptProfile(accept).env
+      );
+      if (!acceptedMediaTypes.includes(msg.unpackedMediaType)) {
+        throw new Error('response type is not in accept profiles of the request');
+      }
+    }
+
     const response = msg.unpackedMessage as AuthorizationResponseMessage;
     await this.verifyAuthResponse(response, request, opts);
     return response;
@@ -438,17 +449,7 @@ export class Verifier {
     }
     const supportedMediaTypes: PROTOCOL_CONSTANTS.MediaType[] = [];
     for (const acceptProfile of profile) {
-      // 1. check protocol version
-      const { protocolVersion, env } = parseAcceptProfile(acceptProfile);
-      const messageTypeVersion = Number(messageType.split('/').at(-2));
-      if (
-        protocolVersion !== PROTOCOL_CONSTANTS.ProtocolVersion.V1 ||
-        (protocolVersion === PROTOCOL_CONSTANTS.ProtocolVersion.V1 &&
-          (messageTypeVersion < 1 || messageTypeVersion >= 2))
-      ) {
-        continue;
-      }
-      // 2. check packer support
+      const { env } = parseAcceptProfile(acceptProfile);
       if (this.packageManager.isProfileSupported(env, acceptProfile)) {
         supportedMediaTypes.push(env);
       }
