@@ -435,7 +435,7 @@ describe('atomicV3', () => {
                 'https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v4.jsonld',
               credentialSubject: { birthday: { $exists: true } },
               proofType: ProofType.BJJSignature,
-              type: 'KYCAgeCredential',
+              type: 'KYCAgeCredential'
             }
           }
         ]
