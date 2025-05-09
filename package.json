@@ -2,7 +2,8 @@
   "name": "@iden3/js-iden3-auth",
   "version": "1.8.0",
   "description": "iden3-auth implementation in JavaScript",
-  "main": "dist/cjs/index.js",
+  "main": "dist/node/cjs/index.js",
+  "module": "dist/node/esm/index.js",
   "source": "./src/index.ts",
   "typings": "dist/types/index.d.ts",
   "files": [
@@ -12,11 +13,13 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build:types": "tsc -p tsconfig.build.json && tsc-alias",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types",
+    "build:esm": "tsc --outDir dist/node/esm && tsc-alias -p tsconfig.json --outDir dist/node/esm -f --resolve-full-extension .js",
+    "build:cjs": "tsc --module commonjs --outDir dist/node/cjs && tsc-alias -p tsconfig.json --outDir dist/node/cjs",
+    "build:types": "tsc -p tsconfig.json --declaration --emitDeclarationOnly --declarationDir dist/types && tsc-alias -p tsconfig.json --outDir dist/types",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src test --ext .ts src/** test/*.ts",
     "lint:check": "eslint --ext .ts src/** test/*.ts",
-    "build": "npm run clean && tsc --module commonjs -p tsconfig.build.json && tsc-alias",
     "clean": "rimraf ./dist"
   },
   "directories": {
@@ -32,7 +35,7 @@
     "url": "https://github.com/iden3/js-iden3-auth"
   },
   "dependencies": {
-    "@0xpolygonid/js-sdk": "1.28.0",
+    "@0xpolygonid/js-sdk": "^1.28.0",
     "@iden3/js-crypto": "1.2.0",
     "@iden3/js-iden3-core": "1.6.0",
     "@iden3/js-jsonld-merklization": "1.5.0",
@@ -67,6 +70,6 @@
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^3.14.2",
     "typechain": "^8.1.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.8.4"
   }
 }
