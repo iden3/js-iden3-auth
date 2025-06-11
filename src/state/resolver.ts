@@ -61,7 +61,6 @@ export class EthStateResolver implements IStateResolver {
     // Check cache first
     const cachedResult = await this._stateResolveCache?.get(cacheKey);
     if (cachedResult) {
-      console.log('stateResolveCache hit', cacheKey);
       return cachedResult;
     }
 
