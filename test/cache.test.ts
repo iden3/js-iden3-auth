@@ -474,16 +474,13 @@ describe('Cache', () => {
     it('should handle multiple start/stop cleanup cycles', async () => {
       const cache = IN_MEMORY_CACHE<string>({ ttlMs: 60 });
 
-      // First cycle
       await cache.set('batch1_key1', 'value1');
       await cache.startCleanup(40);
 
       await new Promise((resolve) => setTimeout(resolve, 100));
       expect(await cache.size()).toBe(0);
-      console.log('first cycle');
       await cache.stopCleanup();
 
-      // Second cycle
       await cache.set('batch2_key1', 'value2');
       await cache.set('batch2_key2', 'value3');
 
@@ -491,7 +488,6 @@ describe('Cache', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(await cache.size()).toBe(0);
-      console.log('second cycle');
       await cache.stopCleanup();
     });
 
