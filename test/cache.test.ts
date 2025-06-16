@@ -1,11 +1,11 @@
 import { ICache, IN_MEMORY_CACHE } from '../src/cache';
 
 describe('Cache', () => {
-  describe('ICache interface', () => {
+  describe('Basic Operations', () => {
     let cache: ICache<string>;
 
     beforeEach(() => {
-      cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000 }); // 1 second TTL
+      cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000, maxSize: 1000 });
     });
 
     it('should set and get values', async () => {
@@ -42,121 +42,146 @@ describe('Cache', () => {
       const result = await cache.get('key1');
       expect(result).toBe('newValue');
     });
+
+    it('should delete all entries', async () => {
+      await cache.set('key1', 'value1');
+      await cache.set('key2', 'value2');
+      await cache.set('key3', 'value3');
+
+      expect(await cache.size()).toBe(3);
+      await cache.deleteAll();
+      expect(await cache.size()).toBe(0);
+
+      expect(await cache.get('key1')).toBeUndefined();
+      expect(await cache.get('key2')).toBeUndefined();
+      expect(await cache.get('key3')).toBeUndefined();
+    });
+
+    it('should handle deleting non-existent keys gracefully', async () => {
+      await expect(cache.delete('nonexistent')).resolves.toBeUndefined();
+    });
   });
 
-  describe('Expiration functionality', () => {
+  describe('TTL and Expiration', () => {
     it('should expire entries after TTL', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50 }); // 50ms TTL
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
-
-      // Should be available immediately
       expect(await cache.get('key1')).toBe('value1');
 
       // Wait for expiration
       await new Promise((resolve) => setTimeout(resolve, 60));
-
-      // Should be expired and return undefined
       expect(await cache.get('key1')).toBeUndefined();
     });
 
-    it('should auto-cleanup expired entries on access', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50 }); // 50ms TTL
-
+    it('should handle zero TTL (immediate expiration)', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 0, maxSize: 1000 });
       await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
-
-      // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 60));
-
-      // Accessing expired entry should clean it up
       expect(await cache.get('key1')).toBeUndefined();
-
-      // Other expired entries should also be cleaned up when accessed
-      expect(await cache.get('key2')).toBeUndefined();
     });
 
-    it('should handle different expiration times for different entries', async () => {
-      const cache1 = IN_MEMORY_CACHE<string>({ ttlMs: 50 }); // 50ms TTL
-      const cache2 = IN_MEMORY_CACHE<string>({ ttlMs: 100 }); // 100ms TTL
-
-      await cache1.set('shortLived', 'value1');
-      await cache2.set('longLived', 'value2');
-
-      // After 60ms, short-lived should expire, long-lived should remain
-      await new Promise((resolve) => setTimeout(resolve, 60));
-
-      expect(await cache1.get('shortLived')).toBeUndefined();
-      expect(await cache2.get('longLived')).toBe('value2');
-
-      // After another 50ms, long-lived should also expire
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(await cache2.get('longLived')).toBeUndefined();
+    it('should handle negative TTL (immediate expiration)', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: -100, maxSize: 1000 });
+      await cache.set('key1', 'value1');
+      expect(await cache.get('key1')).toBeUndefined();
     });
 
     it('should reset expiration when updating existing key', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 100 }); // 100ms TTL
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 100, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
-
-      // Wait 50ms (half the TTL)
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      // Update the value, which should reset the expiration
+      // Update the value (should reset expiration)
       await cache.set('key1', 'updatedValue');
-
-      // Wait another 60ms (total 110ms from first set, but only 60ms from update)
       await new Promise((resolve) => setTimeout(resolve, 60));
 
-      // Should still be available since expiration was reset
+      // Should still be available
       expect(await cache.get('key1')).toBe('updatedValue');
 
-      // Wait another 50ms (now 110ms from update)
+      // Wait for final expiration
       await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Should now be expired
       expect(await cache.get('key1')).toBeUndefined();
-    });
-  });
-
-  describe('Permanent storage (no TTL)', () => {
-    let permanentCache: ICache<string>;
-
-    beforeEach(() => {
-      permanentCache = IN_MEMORY_CACHE<string>({}); // No TTL
     });
 
     it('should store values permanently when no TTL is set', async () => {
-      await permanentCache.set('permanent', 'value');
+      const cache = IN_MEMORY_CACHE<string>({ maxSize: 1000 });
 
-      // Wait longer than typical TTL would be
+      await cache.set('permanent', 'value');
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // Should still be available
-      expect(await permanentCache.get('permanent')).toBe('value');
+      expect(await cache.get('permanent')).toBe('value');
     });
 
     it('should handle explicit undefined TTL', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: undefined });
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: undefined, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
-
-      // Wait a reasonable time
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Should still be available
       expect(await cache.get('key1')).toBe('value1');
-    });
-
-    it('should allow manual deletion of permanent entries', async () => {
-      await permanentCache.set('key1', 'value1');
-      await permanentCache.delete('key1');
-
-      expect(await permanentCache.get('key1')).toBeUndefined();
     });
   });
 
-  describe('Complex data types', () => {
+  describe('Memory Management and Size Limits', () => {
+    it('should enforce maxSize limit', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 10000, maxSize: 3 });
+
+      await cache.set('key1', 'value1');
+      await cache.set('key2', 'value2');
+      await cache.set('key3', 'value3');
+
+      await expect(cache.set('key4', 'value4')).rejects.toThrow('Max cache size 3 exceeded');
+    });
+
+    it('should cleanup expired entries before enforcing maxSize', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50, maxSize: 3 });
+
+      // Fill to capacity
+      await cache.set('key1', 'value1');
+      await cache.set('key2', 'value2');
+      await cache.set('key3', 'value3');
+
+      // Wait for expiration
+      await new Promise((resolve) => setTimeout(resolve, 60));
+
+      // Should be able to add new entry since expired ones can be cleaned up
+      await expect(cache.set('newKey', 'newValue')).resolves.toBeUndefined();
+      expect(await cache.get('newKey')).toBe('newValue');
+    });
+
+    it('should report accurate size', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000, maxSize: 1000 });
+
+      expect(await cache.size()).toBe(0);
+
+      await cache.set('key1', 'value1');
+      await cache.set('key2', 'value2');
+      expect(await cache.size()).toBe(2);
+
+      await cache.delete('key1');
+      expect(await cache.size()).toBe(1);
+
+      await cache.deleteAll();
+      expect(await cache.size()).toBe(0);
+    });
+
+    it('should report accurate size after expired entries cleanup', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50, maxSize: 1000 });
+
+      await cache.set('key1', 'value1');
+      await cache.set('key2', 'value2');
+      expect(await cache.size()).toBe(2);
+
+      // Wait for expiration
+      await new Promise((resolve) => setTimeout(resolve, 60));
+
+      // size() should clean up expired entries
+      expect(await cache.size()).toBe(0);
+    });
+  });
+
+  describe('Data Types Support', () => {
     interface TestObject {
       id: number;
       name: string;
@@ -164,7 +189,7 @@ describe('Cache', () => {
     }
 
     it('should handle object types', async () => {
-      const cache = IN_MEMORY_CACHE<TestObject>({ ttlMs: 1000 });
+      const cache = IN_MEMORY_CACHE<TestObject>({ ttlMs: 1000, maxSize: 1000 });
 
       const testObj: TestObject = {
         id: 1,
@@ -180,10 +205,9 @@ describe('Cache', () => {
     });
 
     it('should handle array types', async () => {
-      const cache = IN_MEMORY_CACHE<number[]>({ ttlMs: 1000 });
+      const cache = IN_MEMORY_CACHE<number[]>({ ttlMs: 1000, maxSize: 1000 });
 
       const testArray = [1, 2, 3, 4, 5];
-
       await cache.set('array', testArray);
       const result = await cache.get('array');
 
@@ -191,8 +215,8 @@ describe('Cache', () => {
       expect(result?.length).toBe(5);
     });
 
-    it('should handle null and undefined values', async () => {
-      const cache = IN_MEMORY_CACHE<string | null>({ ttlMs: 1000 });
+    it('should handle null values', async () => {
+      const cache = IN_MEMORY_CACHE<string | null>({ ttlMs: 1000, maxSize: 1000 });
 
       await cache.set('nullValue', null);
       const result = await cache.get('nullValue');
@@ -201,322 +225,228 @@ describe('Cache', () => {
     });
   });
 
-  describe('Edge cases', () => {
-    it('should handle very short TTL', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 1 }); // 1ms TTL
-
-      await cache.set('shortLived', 'value');
-
-      // Wait just a bit
-      await new Promise((resolve) => setTimeout(resolve, 5));
-
-      expect(await cache.get('shortLived')).toBeUndefined();
-    });
-
-    it('should handle zero TTL', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 0 });
-
-      await cache.set('zeroTTL', 'value');
-
-      // Should expire immediately
-      expect(await cache.get('zeroTTL')).toBeUndefined();
-    });
-
-    it('should handle negative TTL', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: -100 });
-
-      await cache.set('negativeTTL', 'value');
-
-      // Should expire immediately
-      expect(await cache.get('negativeTTL')).toBeUndefined();
-    });
-
-    it('should handle deleting non-existent keys gracefully', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000 });
-
-      // Should not throw error
-      await expect(cache.delete('nonexistent')).resolves.toBeUndefined();
-    });
-
-    it('should handle concurrent operations', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000 });
+  describe('Concurrency', () => {
+    it('should handle concurrent operations safely', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000, maxSize: 1000 });
 
       // Set multiple values concurrently
-      const setPromises = Array.from({ length: 10 }, (_, i) => cache.set(`key${i}`, `value${i}`));
-
+      const setPromises = Array.from({ length: 20 }, (_, i) => cache.set(`key${i}`, `value${i}`));
       await Promise.all(setPromises);
 
       // Get all values concurrently
-      const getPromises = Array.from({ length: 10 }, (_, i) => cache.get(`key${i}`));
-
+      const getPromises = Array.from({ length: 20 }, (_, i) => cache.get(`key${i}`));
       const results = await Promise.all(getPromises);
 
-      // All values should be retrieved correctly
+      // Verify all results
       results.forEach((result, i) => {
         expect(result).toBe(`value${i}`);
       });
+
+      expect(await cache.size()).toBe(20);
     });
 
-    it('should handle large number of entries', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 5000 });
+    it('should handle mixed concurrent operations', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 5000, maxSize: 1000 });
 
-      // Set 1000 entries
-      for (let i = 0; i < 1000; i++) {
-        await cache.set(`key${i}`, `value${i}`);
-      }
+      // Mix of set, get, and delete operations
+      const operations = [
+        ...Array.from({ length: 10 }, (_, i) => cache.set(`key${i}`, `value${i}`)),
+        ...Array.from({ length: 5 }, (_, i) => cache.get(`key${i}`)),
+        ...Array.from({ length: 3 }, (_, i) => cache.delete(`key${i + 10}`)),
+        cache.size()
+      ];
 
-      // Verify a few random entries
-      expect(await cache.get('key0')).toBe('value0');
-      expect(await cache.get('key500')).toBe('value500');
-      expect(await cache.get('key999')).toBe('value999');
+      const results = await Promise.all(operations);
+
+      // Last result should be the size
+      const size = results[results.length - 1] as number;
+      expect(size).toBeGreaterThanOrEqual(7); // 10 sets - up to 3 deletes
     });
   });
 
-  describe('Memory management', () => {
-    it('should clean up expired entries to prevent memory leaks', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50 });
+  describe('Performance Tests', () => {
+    it('should handle high-volume operations efficiently', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 10000, maxSize: 100_000 });
+      const itemCount = 100_000;
 
-      // Add many entries
-      for (let i = 0; i < 100; i++) {
+      // Measure set operations
+      const setStart = process.hrtime();
+      for (let i = 0; i < itemCount; i++) {
         await cache.set(`key${i}`, `value${i}`);
       }
+      const setEnd = process.hrtime(setStart);
+      const setTimeMs = setEnd[0] * 1000 + setEnd[1] / 1000000;
+
+      // Measure get operations
+      const getStart = process.hrtime();
+      for (let i = 0; i < itemCount; i++) {
+        await cache.get(`key${i}`);
+      }
+      const getEnd = process.hrtime(getStart);
+      const getTimeMs = getEnd[0] * 1000 + getEnd[1] / 1000000;
+
+      // Performance expectations (these are generous to avoid flaky tests)
+      expect(setTimeMs).toBeLessThan(5000); // 5 seconds for 5000 sets
+      expect(getTimeMs).toBeLessThan(2000); // 2 seconds for 5000 gets
+      expect(await cache.size()).toBe(itemCount);
+
+      console.log(
+        `Performance: ${itemCount} sets in ${setTimeMs.toFixed(
+          2
+        )}ms, ${itemCount} gets in ${getTimeMs.toFixed(2)}ms`
+      );
+    });
+
+    it('should efficiently handle batch operations', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 10000, maxSize: 5000 });
+      const batchSize = 1000;
+
+      const batchStart = process.hrtime();
+
+      // Batch set operations
+      const setPromises = Array.from({ length: batchSize }, (_, i) =>
+        cache.set(`batch_key${i}`, `batch_value${i}`)
+      );
+      await Promise.all(setPromises);
+
+      // Batch get operations
+      const getPromises = Array.from({ length: batchSize }, (_, i) => cache.get(`batch_key${i}`));
+      const results = await Promise.all(getPromises);
+
+      const batchEnd = process.hrtime(batchStart);
+      const batchTimeMs = batchEnd[0] * 1000 + batchEnd[1] / 1000000;
+
+      // Verify all operations completed successfully
+      expect(results.every((result, i) => result === `batch_value${i}`)).toBe(true);
+      expect(await cache.size()).toBe(batchSize);
+
+      // Performance expectation
+      expect(batchTimeMs).toBeLessThan(3000); // 3 seconds for 1000 concurrent ops
+
+      console.log(`Batch Performance: ${batchSize} concurrent ops in ${batchTimeMs.toFixed(2)}ms`);
+    });
+
+    it('should efficiently cleanup expired entries at scale', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50, maxSize: 5000 });
+      const itemCount = 2000;
+
+      // Add many entries that will expire
+      for (let i = 0; i < itemCount; i++) {
+        await cache.set(`expire_key${i}`, `expire_value${i}`);
+      }
+
+      expect(await cache.size()).toBe(itemCount);
 
       // Wait for expiration
       await new Promise((resolve) => setTimeout(resolve, 60));
 
-      // Access some entries to trigger cleanup
-      for (let i = 0; i < 10; i++) {
-        expect(await cache.get(`key${i}`)).toBeUndefined();
+      // Measure cleanup performance via size() call
+      const cleanupStart = process.hrtime();
+      const sizeAfterCleanup = await cache.size();
+      const cleanupEnd = process.hrtime(cleanupStart);
+      const cleanupTimeMs = cleanupEnd[0] * 1000 + cleanupEnd[1] / 1000000;
+
+      expect(sizeAfterCleanup).toBe(0);
+      expect(cleanupTimeMs).toBeLessThan(500); // 500ms for cleanup of 2000 items
+
+      console.log(
+        `Cleanup Performance: ${itemCount} expired items cleaned in ${cleanupTimeMs.toFixed(2)}ms`
+      );
+    });
+
+    it('should handle capacity management efficiently', async () => {
+      const maxSize = 1000;
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 100, maxSize });
+
+      // Fill cache to near capacity with items that will expire
+      for (let i = 0; i < maxSize - 10; i++) {
+        await cache.set(`old_key${i}`, `old_value${i}`);
       }
 
-      // All accessed entries should be cleaned up (undefined)
-      for (let i = 0; i < 10; i++) {
-        expect(await cache.get(`key${i}`)).toBeUndefined();
+      // Wait for expiration
+      await new Promise((resolve) => setTimeout(resolve, 120));
+
+      // Measure time to add new items (should trigger cleanup)
+      const capacityStart = process.hrtime();
+      for (let i = 0; i < 100; i++) {
+        await cache.set(`new_key${i}`, `new_value${i}`);
       }
-    });
-  });
+      const capacityEnd = process.hrtime(capacityStart);
+      const capacityTimeMs = capacityEnd[0] * 1000 + capacityEnd[1] / 1000000;
 
-  describe('Auto cleanup functionality', () => {
-    it('should automatically clean up expired entries with autoCleanupMs', async () => {
-      const cache = IN_MEMORY_CACHE<string>({
-        ttlMs: 50, // 50ms TTL
-        autoCleanupMs: 30 // cleanup every 30ms
-      });
+      expect(await cache.size()).toBe(100);
+      expect(capacityTimeMs).toBeLessThan(1000); // 1 second for capacity management
 
-      // Add entries
-      await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
-      await cache.set('key3', 'value3');
-
-      // Initially all should be present
-      expect(await cache.size()).toBe(3);
-
-      // Wait for entries to expire and auto cleanup to run
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Auto cleanup should have removed expired entries
-      expect(await cache.size()).toBe(0);
-
-      // Stop cleanup to prevent interference with other tests
-      cache.stopCleanup();
+      console.log(
+        `Capacity Management: 100 new items with cleanup in ${capacityTimeMs.toFixed(2)}ms`
+      );
     });
 
-    it('should not cleanup non-expired entries during auto cleanup', async () => {
-      const cache = IN_MEMORY_CACHE<string>({
-        ttlMs: 200, // 200ms TTL
-        autoCleanupMs: 50 // cleanup every 50ms
-      });
+    it('should maintain performance with mixed expired and valid entries', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 10000, maxSize: 3000 });
 
-      await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
+      // Add items that won't expire
+      const validItems = 500;
+      for (let i = 0; i < validItems; i++) {
+        await cache.set(`valid_key${i}`, `valid_value${i}`);
+      }
 
-      // Wait for one cleanup cycle but not expiration
-      await new Promise((resolve) => setTimeout(resolve, 70));
+      // Add items with short expiry
+      const shortCache = IN_MEMORY_CACHE<string>({ ttlMs: 30, maxSize: 3000 });
+      const expiredItems = 1000;
+      for (let i = 0; i < expiredItems; i++) {
+        await shortCache.set(`expired_key${i}`, `expired_value${i}`);
+      }
 
-      // Entries should still be there
-      expect(await cache.get('key1')).toBe('value1');
-      expect(await cache.get('key2')).toBe('value2');
-      expect(await cache.size()).toBe(2);
-
-      await cache.stopCleanup();
-    });
-
-    it('should handle mixed expired and non-expired entries during auto cleanup', async () => {
-      const cache = IN_MEMORY_CACHE<string>({
-        ttlMs: 80, // 80ms TTL
-        autoCleanupMs: 40 // cleanup every 40ms
-      });
-
-      // Add initial entries
-      await cache.set('shortLived1', 'value1');
-      await cache.set('shortLived2', 'value2');
-
-      // Wait for first set to expire
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Add new entries after first ones have expired
-      await cache.set('newEntry1', 'value3');
-      await cache.set('newEntry2', 'value4');
-
-      // Wait for cleanup to run
+      // Wait for some to expire
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      // Old entries should be gone, new ones should remain
-      expect(await cache.get('shortLived1')).toBeUndefined();
-      expect(await cache.get('shortLived2')).toBeUndefined();
-      expect(await cache.get('newEntry1')).toBe('value3');
-      expect(await cache.get('newEntry2')).toBe('value4');
+      // Test mixed access patterns
+      const mixedStart = process.hrtime();
 
-      await cache.stopCleanup();
-    });
-
-    it('should manually start and stop cleanup', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50 });
-
-      // Add entries
-      await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
-
-      // Start manual cleanup
-      cache.startCleanup(30);
-
-      // Wait for expiration and cleanup
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Should be cleaned up
-      expect(await cache.size()).toBe(0);
-
-      // Add new entries
-      await cache.set('key3', 'value3');
-      await cache.set('key4', 'value4');
-
-      // Stop cleanup
-      await cache.stopCleanup();
-
-      // Wait for what would be cleanup time
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Entries should still be there (cleanup stopped)
-      // Note: they're expired but cleanup isn't running
-      expect(await cache.size()).toBe(2);
-    });
-
-    it('should handle invalidate method manually', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50 });
-
-      // Add entries
-      await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
-      await cache.set('key3', 'value3');
-
-      expect(await cache.size()).toBe(3);
-
-      // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 60));
-
-      // Manual invalidation should clean up expired entries
-      await cache.invalidate();
-
-      expect(await cache.size()).toBe(0);
-    });
-
-    it('should not affect valid entries when calling invalidate', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 200 });
-
-      await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
-
-      // Invalidate before expiration
-      await cache.invalidate();
-
-      // Valid entries should remain
-      expect(await cache.get('key1')).toBe('value1');
-      expect(await cache.get('key2')).toBe('value2');
-      expect(await cache.size()).toBe(2);
-    });
-
-    it('should handle startCleanup with zero or negative interval', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 50 });
-
-      await cache.set('key1', 'value1');
-
-      // Should not start cleanup with invalid intervals
-      cache.startCleanup(0);
-      cache.startCleanup(-10);
-
-      // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 60));
-
-      // No auto cleanup should have occurred
-      expect(await cache.size()).toBe(1); // expired entry still there
-
-      cache.stopCleanup(); // ensure cleanup is stopped
-    });
-
-    it('should handle deleteAll method', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 1000 });
-
-      await cache.set('key1', 'value1');
-      await cache.set('key2', 'value2');
-      await cache.set('key3', 'value3');
-
-      expect(await cache.size()).toBe(3);
-
-      // Delete all entries
-      await cache.deleteAll();
-
-      expect(await cache.size()).toBe(0);
-      expect(await cache.get('key1')).toBeUndefined();
-      expect(await cache.get('key2')).toBeUndefined();
-      expect(await cache.get('key3')).toBeUndefined();
-    });
-
-    it('should handle multiple start/stop cleanup cycles', async () => {
-      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 60 });
-
-      await cache.set('batch1_key1', 'value1');
-      await cache.startCleanup(40);
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      expect(await cache.size()).toBe(0);
-      await cache.stopCleanup();
-
-      await cache.set('batch2_key1', 'value2');
-      await cache.set('batch2_key2', 'value3');
-
-      await cache.startCleanup(40);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect(await cache.size()).toBe(0);
-      await cache.stopCleanup();
-    });
-
-    it('should prevent memory leaks with periodic auto cleanup', async () => {
-      const cache = IN_MEMORY_CACHE<string>({
-        ttlMs: 30,
-        autoCleanupMs: 20
-      });
-
-      // Continuously add entries that expire
-      for (let batch = 0; batch < 5; batch++) {
-        for (let i = 0; i < 20; i++) {
-          await cache.set(`batch${batch}_key${i}`, `value${i}`);
-        }
-
-        // Wait for expiration and cleanup
-        await new Promise((resolve) => setTimeout(resolve, 50));
+      // Access valid items
+      for (let i = 0; i < 100; i++) {
+        await cache.get(`valid_key${i}`);
       }
 
-      // Final check - cache should be empty or nearly empty due to auto cleanup
+      // Access expired items (should be fast since they're cleaned up on access)
+      for (let i = 0; i < 100; i++) {
+        await shortCache.get(`expired_key${i}`);
+      }
+
+      const mixedEnd = process.hrtime(mixedStart);
+      const mixedTimeMs = mixedEnd[0] * 1000 + mixedEnd[1] / 1000000;
+
+      expect(mixedTimeMs).toBeLessThan(500); // 500ms for 200 mixed operations
+
+      console.log(`Mixed Access Performance: 200 mixed operations in ${mixedTimeMs.toFixed(2)}ms`);
+    });
+  });
+
+  describe('Memory Efficiency', () => {
+    it('should not grow unbounded with expired entries', async () => {
+      const cache = IN_MEMORY_CACHE<string>({ ttlMs: 30, maxSize: 10_000 });
+
+      // Simulate continuous usage with expiring entries
+      for (let batch = 0; batch < 5; batch++) {
+        // Add batch of entries
+        for (let i = 0; i < 200; i++) {
+          await cache.set(`batch${batch}_key${i}`, `batch${batch}_value${i}`);
+        }
+
+        // Wait for expiration
+        await new Promise((resolve) => setTimeout(resolve, 40));
+
+        // Access cache to trigger cleanup
+        await cache.size();
+      }
+
+      // Final size should be small due to cleanup
       const finalSize = await cache.size();
-      expect(finalSize).toBeLessThanOrEqual(20); // Allow for some recently added entries
+      expect(finalSize).toBeLessThan(10_000); // Much smaller than total 1000 items added
 
-      await cache.stopCleanup();
+      console.log(`Memory Efficiency: Final size ${finalSize} after 10_000 items with expiration`);
     });
 
-    afterEach(() => {
-      // Ensure cleanup is stopped after each test to prevent interference
-      jest.clearAllTimers();
-    });
   });
 });

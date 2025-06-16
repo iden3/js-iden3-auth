@@ -9,44 +9,41 @@ export interface ICache<T> {
   delete(key: string): Promise<void>;
   deleteAll(): Promise<void>;
   size(): Promise<number>;
-  invalidate(): Promise<void>;
-  startCleanup(intervalMs: number): Promise<void>;
-  stopCleanup(): Promise<void>;
 }
 
-export const IN_MEMORY_CACHE = <T>(opts: { ttlMs?: number; autoCleanupMs?: number }): ICache<T> => {
+export const IN_MEMORY_CACHE = <T>(
+  params: { ttlMs?: number; maxSize: number } = { maxSize: 10_000, ttlMs: 5 * 60 * 1000 }
+): ICache<T> => {
   const cache = new Map<string, CacheEntry<T>>();
-  let cleanupTimer: NodeJS.Timeout | undefined;
-
-  const invalidate = async () => {
-    for (const [key, entry] of cache.entries()) {
-      if (isExpired(entry)) {
-        cache.delete(key);
-      }
-    }
-  };
-
-  const startCleanup = async (intervalMs: number) => {
-    if (intervalMs > 0 && !cleanupTimer) {
-      cleanupTimer = setInterval(invalidate, intervalMs);
-      cleanupTimer.unref?.();
-    }
-  };
-
-  const stopCleanup = async () => {
-    if (cleanupTimer) {
-      clearInterval(cleanupTimer);
-      cleanupTimer = undefined;
-    }
-  };
-
-  opts.autoCleanupMs && startCleanup(opts.autoCleanupMs);
 
   const isExpired = (entry: CacheEntry<T>): boolean => {
-    if (opts.ttlMs === undefined) {
+    if (params.ttlMs === undefined || entry.expiresAt === undefined) {
       return false;
     }
-    return entry.expiresAt !== undefined && Date.now() >= entry.expiresAt;
+    return Date.now() >= entry.expiresAt;
+  };
+
+  const cleanupExpired = () => {
+    const keysToDelete: string[] = [];
+    for (const [key, entry] of cache.entries()) {
+      if (isExpired(entry)) {
+        keysToDelete.push(key);
+      }
+    }
+    keysToDelete.forEach((key) => cache.delete(key));
+    return keysToDelete.length;
+  };
+
+  const ensureCapacity = () => {
+    // First try to clean up expired entries
+    if (cache.size >= params.maxSize) {
+      cleanupExpired();
+    }
+
+    // If still at capacity after cleanup, throw error
+    if (cache.size >= params.maxSize) {
+      throw new Error(`Max cache size ${params.maxSize} exceeded`);
+    }
   };
 
   return {
@@ -54,6 +51,7 @@ export const IN_MEMORY_CACHE = <T>(opts: { ttlMs?: number; autoCleanupMs?: numbe
       const entry = cache.get(key);
       if (!entry) return undefined;
 
+      // Check if this specific entry is expired
       if (isExpired(entry)) {
         cache.delete(key);
         return undefined;
@@ -63,9 +61,12 @@ export const IN_MEMORY_CACHE = <T>(opts: { ttlMs?: number; autoCleanupMs?: numbe
     },
 
     set: async (key: string, data: T) => {
+      // Ensure we have capacity before adding
+      ensureCapacity();
+
       const entry: CacheEntry<T> = {
         data,
-        expiresAt: opts.ttlMs !== undefined ? Date.now() + opts.ttlMs : undefined
+        expiresAt: params.ttlMs !== undefined ? Date.now() + params.ttlMs : undefined
       };
       cache.set(key, entry);
     },
@@ -78,10 +79,10 @@ export const IN_MEMORY_CACHE = <T>(opts: { ttlMs?: number; autoCleanupMs?: numbe
       cache.delete(key);
     },
 
-    size: async (): Promise<number> => cache.size,
-
-    invalidate,
-    startCleanup,
-    stopCleanup
+    size: async (): Promise<number> => {
+      // Clean up expired entries before reporting size
+      cleanupExpired();
+      return cache.size;
+    }
   };
 };
