@@ -1,8 +1,9 @@
 module.exports = {
   testTimeout: 60000,
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.(t|j)sx?$': 'ts-jest'
   },
+  transformIgnorePatterns: ['/node_modules/(?!((quick-lru)/))'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {

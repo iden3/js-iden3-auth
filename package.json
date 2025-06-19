@@ -43,6 +43,7 @@
     "@iden3/js-merkletree": "1.5.0",
     "did-resolver": "^4.1.0",
     "ethers": "^5.7.2",
+    "quick-lru": "^7.0.1",
     "tslib": "^2.6.2",
     "uuid": "^9.0.1"
   },
