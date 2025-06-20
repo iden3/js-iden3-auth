@@ -1,6 +1,6 @@
 import { Id } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
-import { ICache } from '@lib/cache';
+import { ICache, IN_MEMORY_CACHE } from '@lib/cache';
 import { Abi, Abi__factory } from '@lib/state/types/ethers-contracts';
 import { IState } from '@lib/state/types/ethers-contracts/Abi';
 
@@ -22,9 +22,10 @@ export type ResolvedState = {
   transitionTimestamp: number | string;
 };
 
-export type CacheOptions = {
+export type ResolverOptions = {
   stateResolveCache?: ICache<ResolvedState>;
   rootResolveCache?: ICache<ResolvedState>;
+  skipFetchSetup?: boolean;
 };
 
 export class EthStateResolver implements IStateResolver {
@@ -32,10 +33,10 @@ export class EthStateResolver implements IStateResolver {
   private _stateResolveCache?: ICache<ResolvedState>;
   private _rootResolveCache?: ICache<ResolvedState>;
 
-  constructor(rpcUrl: string, contractAddress: string, cacheOptions?: CacheOptions) {
+  constructor(rpcUrl: string, contractAddress: string, options?: ResolverOptions) {
     const url = new URL(rpcUrl);
     const ethersProvider = new ethers.providers.JsonRpcProvider({
-      skipFetchSetup: true,
+      skipFetchSetup: options?.skipFetchSetup ?? false,
       url: url.href,
       user: url.username,
       password: url.password
@@ -43,8 +44,8 @@ export class EthStateResolver implements IStateResolver {
     this._contract = Abi__factory.connect(contractAddress, ethersProvider);
 
     // Initialize cache options
-    this._stateResolveCache = cacheOptions?.stateResolveCache;
-    this._rootResolveCache = cacheOptions?.rootResolveCache;
+    this._stateResolveCache = options?.stateResolveCache ?? IN_MEMORY_CACHE();
+    this._rootResolveCache = options?.rootResolveCache ?? IN_MEMORY_CACHE() ;
   }
 
   private getCacheKey(id: bigint, state: bigint): string {
@@ -126,7 +127,6 @@ export class EthStateResolver implements IStateResolver {
     const cachedResult = await this._rootResolveCache?.get(cacheKey);
 
     if (cachedResult) {
-      console.log('rootResolveCache hit', cacheKey);
       return cachedResult;
     }
 
