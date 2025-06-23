@@ -7,8 +7,8 @@ export interface ICache<T> {
   clear(): Promise<void>;
 }
 
-export function createInMemoryCache<T>(params: { ttlMs?: number; maxSize: number }): ICache<T> {
-  const cache = new QuickLRU<string, T>({ maxSize: params.maxSize, maxAge: params.ttlMs });
+export function createInMemoryCache<T>(params: { ttl?: number; maxSize: number }): ICache<T> {
+  const cache = new QuickLRU<string, T>({ maxSize: params.maxSize, maxAge: params.ttl });
 
   return {
     get: async (key: string): Promise<T | undefined> => {
@@ -16,7 +16,7 @@ export function createInMemoryCache<T>(params: { ttlMs?: number; maxSize: number
     },
 
     set: async (key: string, value: T, ttl?: number) => {
-      cache.set(key, value, { maxAge: ttl ?? params.ttlMs });
+      cache.set(key, value, { maxAge: ttl ?? params.ttl });
     },
 
     clear: async () => {

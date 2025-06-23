@@ -26,9 +26,9 @@ export type ResolvedState = {
  */
 type ResolverCacheOptions = {
   /** TTL in milliseconds for latest states/roots (shorter since they can change) */
-  shorterTtlMs?: number;
+  notReplacedTtl?: number;
   /** TTL in milliseconds for historical states/roots (longer since they're they can change with less probability) */
-  longerTtlMs?: number;
+  replacedTtl?: number;
   /** Maximum number of entries to store in cache */
   maxSize?: number;
 };
@@ -84,18 +84,17 @@ export class EthStateResolver implements IStateResolver {
 
     // Store cache options for later use
     this._stateCacheOptions = {
-      shorterTtlMs:
-        options?.stateCacheOptions?.shorterTtlMs ??
-        CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS / 2,
-      longerTtlMs:
-        options?.stateCacheOptions?.longerTtlMs ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS,
+      notReplacedTtl:
+        options?.stateCacheOptions?.notReplacedTtl ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY / 2,
+      replacedTtl:
+        options?.stateCacheOptions?.replacedTtl ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY,
       maxSize: options?.stateCacheOptions?.maxSize ?? CONSTANTS.DEFAULT_CACHE_MAX_SIZE
     };
     this._rootCacheOptions = {
-      longerTtlMs:
-        options?.rootCacheOptions?.longerTtlMs ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS,
-      shorterTtlMs:
-        options?.rootCacheOptions?.shorterTtlMs ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS / 2,
+      replacedTtl:
+        options?.rootCacheOptions?.replacedTtl ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY,
+      notReplacedTtl:
+        options?.rootCacheOptions?.notReplacedTtl ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY / 2,
       maxSize: options?.rootCacheOptions?.maxSize ?? CONSTANTS.DEFAULT_CACHE_MAX_SIZE
     };
 
@@ -104,14 +103,14 @@ export class EthStateResolver implements IStateResolver {
       options?.stateCacheOptions?.cache ??
       createInMemoryCache({
         maxSize: this._stateCacheOptions.maxSize,
-        ttlMs: this._stateCacheOptions.longerTtlMs
+        ttl: this._stateCacheOptions.replacedTtl
       });
 
     this._rootResolveCache =
       options?.rootCacheOptions?.cache ??
       createInMemoryCache({
         maxSize: this._rootCacheOptions.maxSize,
-        ttlMs: this._rootCacheOptions.longerTtlMs
+        ttl: this._rootCacheOptions.replacedTtl
       });
   }
 
@@ -138,8 +137,8 @@ export class EthStateResolver implements IStateResolver {
     // Cache the result with appropriate TTL based on whether it's latest or historical
     const ttl =
       result.transitionTimestamp === 0
-        ? this._stateCacheOptions.shorterTtlMs
-        : this._stateCacheOptions.longerTtlMs;
+        ? this._stateCacheOptions.notReplacedTtl
+        : this._stateCacheOptions.replacedTtl;
 
     await this._stateResolveCache?.set(cacheKey, result, ttl);
 
@@ -207,8 +206,8 @@ export class EthStateResolver implements IStateResolver {
 
     // Cache the result with appropriate TTL based on whether it's latest or historical
     const ttl = result.latest
-      ? this._rootCacheOptions.shorterTtlMs
-      : this._rootCacheOptions.longerTtlMs;
+      ? this._rootCacheOptions.notReplacedTtl
+      : this._rootCacheOptions.replacedTtl;
 
     await this._rootResolveCache?.set(cacheKey, result, ttl);
 

@@ -5,7 +5,7 @@ describe('Cache', () => {
     let cache: ICache<string>;
 
     beforeEach(() => {
-      cache = createInMemoryCache<string>({ ttlMs: 1000, maxSize: 1000 });
+      cache = createInMemoryCache<string>({ ttl: 1000, maxSize: 1000 });
     });
 
     it('should set and get values', async () => {
@@ -62,7 +62,7 @@ describe('Cache', () => {
 
   describe('TTL and Expiration', () => {
     it('should expire entries after TTL', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 50, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: 50, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
       expect(await cache.get('key1')).toBe('value1');
@@ -73,13 +73,13 @@ describe('Cache', () => {
     });
 
     it('should handle negative TTL (immediate expiration)', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: -100, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: -100, maxSize: 1000 });
       await cache.set('key1', 'value1');
       expect(await cache.get('key1')).toBeUndefined();
     });
 
     it('should reset expiration when updating existing key', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 100, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: 100, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -106,7 +106,7 @@ describe('Cache', () => {
     });
 
     it('should handle explicit undefined TTL', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: undefined, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: undefined, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -117,7 +117,7 @@ describe('Cache', () => {
 
   describe('Memory Management and Size Limits', () => {
     it('should enforce maxSize limit by evicting the least recently used item', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 10000, maxSize: 3 });
+      const cache = createInMemoryCache<string>({ ttl: 10000, maxSize: 3 });
 
       await cache.set('key1', 'value1');
       await cache.set('key2', 'value2');
@@ -133,7 +133,7 @@ describe('Cache', () => {
     });
 
     it('should cleanup expired entries before enforcing maxSize', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 50, maxSize: 3 });
+      const cache = createInMemoryCache<string>({ ttl: 50, maxSize: 3 });
 
       // Fill to capacity
       await cache.set('key1', 'value1');
@@ -149,7 +149,7 @@ describe('Cache', () => {
     });
 
     it('should handle cache operations after expired entries cleanup', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 50, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: 50, maxSize: 1000 });
 
       await cache.set('key1', 'value1');
       await cache.set('key2', 'value2');
@@ -174,7 +174,7 @@ describe('Cache', () => {
     }
 
     it('should handle object types', async () => {
-      const cache = createInMemoryCache<TestObject>({ ttlMs: 1000, maxSize: 1000 });
+      const cache = createInMemoryCache<TestObject>({ ttl: 1000, maxSize: 1000 });
 
       const testObj: TestObject = {
         id: 1,
@@ -190,7 +190,7 @@ describe('Cache', () => {
     });
 
     it('should handle array types', async () => {
-      const cache = createInMemoryCache<number[]>({ ttlMs: 1000, maxSize: 1000 });
+      const cache = createInMemoryCache<number[]>({ ttl: 1000, maxSize: 1000 });
 
       const testArray = [1, 2, 3, 4, 5];
       await cache.set('array', testArray);
@@ -201,7 +201,7 @@ describe('Cache', () => {
     });
 
     it('should handle null values', async () => {
-      const cache = createInMemoryCache<string | null>({ ttlMs: 1000, maxSize: 1000 });
+      const cache = createInMemoryCache<string | null>({ ttl: 1000, maxSize: 1000 });
 
       await cache.set('nullValue', null);
       const result = await cache.get('nullValue');
@@ -212,7 +212,7 @@ describe('Cache', () => {
 
   describe('Concurrency', () => {
     it('should handle concurrent operations safely', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 1000, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: 1000, maxSize: 1000 });
 
       // Set multiple values concurrently
       const setPromises = Array.from({ length: 20 }, (_, i) => cache.set(`key${i}`, `value${i}`));
@@ -229,7 +229,7 @@ describe('Cache', () => {
     });
 
     it('should handle mixed concurrent operations', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 5000, maxSize: 1000 });
+      const cache = createInMemoryCache<string>({ ttl: 5000, maxSize: 1000 });
 
       // Mix of set, get, and delete operations
       const operations = [
@@ -251,7 +251,7 @@ describe('Cache', () => {
 
   describe('Performance Tests', () => {
     it('should handle high-volume operations efficiently', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 10000, maxSize: 10_000 });
+      const cache = createInMemoryCache<string>({ ttl: 10000, maxSize: 10_000 });
       const itemCount = 5_000;
 
       // Measure set operations
@@ -290,7 +290,7 @@ describe('Cache', () => {
     });
 
     it('should efficiently handle batch operations', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 10000, maxSize: 5000 });
+      const cache = createInMemoryCache<string>({ ttl: 10000, maxSize: 5000 });
       const batchSize = 1000;
 
       const batchStart = process.hrtime();
@@ -318,7 +318,7 @@ describe('Cache', () => {
     });
 
     it('should efficiently cleanup expired entries at scale', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 50, maxSize: 5000 });
+      const cache = createInMemoryCache<string>({ ttl: 50, maxSize: 5000 });
       const itemCount = 2000;
 
       // Add many entries that will expire
@@ -355,7 +355,7 @@ describe('Cache', () => {
     });
 
     it('should maintain performance with mixed expired and valid entries', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 10000, maxSize: 3000 });
+      const cache = createInMemoryCache<string>({ ttl: 10000, maxSize: 3000 });
 
       // Add items that won't expire
       const validItems = 500;
@@ -364,7 +364,7 @@ describe('Cache', () => {
       }
 
       // Add items with short expiry
-      const shortCache = createInMemoryCache<string>({ ttlMs: 30, maxSize: 3000 });
+      const shortCache = createInMemoryCache<string>({ ttl: 30, maxSize: 3000 });
       const expiredItems = 1000;
       for (let i = 0; i < expiredItems; i++) {
         await shortCache.set(`expired_key${i}`, `expired_value${i}`);
@@ -397,7 +397,7 @@ describe('Cache', () => {
 
   describe('Memory Efficiency', () => {
     it('should not grow unbounded with expired entries', async () => {
-      const cache = createInMemoryCache<string>({ ttlMs: 30, maxSize: 10_000 });
+      const cache = createInMemoryCache<string>({ ttl: 30, maxSize: 10_000 });
 
       // Simulate continuous usage with expiring entries
       for (let batch = 0; batch < 5; batch++) {

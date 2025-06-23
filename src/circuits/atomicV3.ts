@@ -206,7 +206,7 @@ export class AtomicQueryV3PubSignalsVerifier
     );
 
     const acceptedStateTransitionDelay =
-      opts?.acceptedStateTransitionDelay ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS;
+      opts?.acceptedStateTransitionDelay ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY;
 
     if (issuerNonRevStateResolved.latest) {
       return;

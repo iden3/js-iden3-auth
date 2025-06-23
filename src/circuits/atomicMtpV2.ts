@@ -87,7 +87,7 @@ export class AtomicQueryMTPV2PubSignalsVerifier
     );
 
     const acceptedStateTransitionDelay =
-      opts?.acceptedStateTransitionDelay ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS;
+      opts?.acceptedStateTransitionDelay ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY;
 
     if (!issuerNonRevStateResolved.latest) {
       const timeDiff =
