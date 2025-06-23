@@ -2,15 +2,12 @@ import QuickLRU from 'quick-lru';
 
 export interface ICache<T> {
   get(key: string): Promise<T | undefined>;
-  set(key: string, data: T): Promise<void>;
+  set(key: string, value: T, ttl?: number): Promise<void>;
   delete(key: string): Promise<void>;
-  deleteAll(): Promise<void>;
-  size(): Promise<number>;
+  clear(): Promise<void>;
 }
 
-export const IN_MEMORY_CACHE = <T>(
-  params: { ttlMs?: number; maxSize: number } = { maxSize: 10_000, ttlMs: 5 * 60 * 1000 }
-): ICache<T> => {
+export function createInMemoryCache<T>(params: { ttlMs?: number; maxSize: number }): ICache<T> {
   const cache = new QuickLRU<string, T>({ maxSize: params.maxSize, maxAge: params.ttlMs });
 
   return {
@@ -18,20 +15,16 @@ export const IN_MEMORY_CACHE = <T>(
       return cache.get(key);
     },
 
-    set: async (key: string, data: T) => {
-      cache.set(key, data);
+    set: async (key: string, value: T, ttl?: number) => {
+      cache.set(key, value, { maxAge: ttl ?? params.ttlMs });
     },
 
-    deleteAll: async () => {
+    clear: async () => {
       cache.clear();
     },
 
     delete: async (key: string) => {
       cache.delete(key);
-    },
-
-    size: async (): Promise<number> => {
-      return cache.size;
     }
   };
-};
+}

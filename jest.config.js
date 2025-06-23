@@ -12,6 +12,7 @@ module.exports = {
     '@lib/auth/(.*)': '<rootDir>/src/auth/$1',
     '@lib/state/(.*)': '<rootDir>/src/state/$1',
     '@lib/cache': '<rootDir>/src/cache',
+    '@lib/constants': '<rootDir>/src/constants',
     '@digitalbazaar/http-client': '<rootDir>/__mocks__/@digitalbazaar/http-client/dist/cjs/index.js'
   }
 };

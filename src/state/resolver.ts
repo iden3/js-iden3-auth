@@ -1,10 +1,9 @@
 import { Id } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
-import { ICache, IN_MEMORY_CACHE } from '@lib/cache';
+import { ICache, createInMemoryCache } from '@lib/cache';
 import { Abi, Abi__factory } from '@lib/state/types/ethers-contracts';
 import { IState } from '@lib/state/types/ethers-contracts/Abi';
-
-const ZERO_BIGINT = BigInt(0);
+import { CONSTANTS } from '@lib/constants';
 
 export type Resolvers = {
   [key: string]: IStateResolver;
@@ -22,17 +21,57 @@ export type ResolvedState = {
   transitionTimestamp: number | string;
 };
 
+/**
+ * Configuration options for caching behavior
+ */
+type ResolverCacheOptions = {
+  /** TTL in milliseconds for latest states/roots (shorter since they can change) */
+  shorterTtlMs?: number;
+  /** TTL in milliseconds for historical states/roots (longer since they're they can change with less probability) */
+  longerTtlMs?: number;
+  /** Maximum number of entries to store in cache */
+  maxSize?: number;
+};
+
+/**
+ * Configuration options for the EthStateResolver
+ */
 export type ResolverOptions = {
-  stateResolveCache?: ICache<ResolvedState>;
-  rootResolveCache?: ICache<ResolvedState>;
+  /** Configuration for state resolution caching */
+  stateCacheOptions?: {
+    /** Custom cache implementation (if not provided, uses in-memory cache) */
+    cache?: ICache<ResolvedState>;
+  } & ResolverCacheOptions;
+  /** Configuration for GIST root resolution caching */
+  rootCacheOptions?: {
+    /** Custom cache implementation (if not provided, uses in-memory cache) */
+    cache?: ICache<ResolvedState>;
+  } & ResolverCacheOptions;
+  /** Whether to skip fetch setup for the ethers provider */
   skipFetchSetup?: boolean;
 };
 
+/**
+ * Ethereum-based state resolver that resolves identity states and GIST roots
+ * from a smart contract deployed on an Ethereum-compatible blockchain.
+ *
+ * This resolver caches results with different TTL values:
+ * - Latest states/roots: shorter TTL since they can transition to historical
+ * - Historical states/roots: longer TTL since they are immutable once replaced
+ */
 export class EthStateResolver implements IStateResolver {
   private _contract: Abi;
-  private _stateResolveCache?: ICache<ResolvedState>;
-  private _rootResolveCache?: ICache<ResolvedState>;
+  private _stateResolveCache: ICache<ResolvedState>;
+  private _rootResolveCache: ICache<ResolvedState>;
+  private _stateCacheOptions: Required<ResolverCacheOptions>;
+  private _rootCacheOptions: Required<ResolverCacheOptions>;
 
+  /**
+   * Creates a new EthStateResolver instance
+   * @param rpcUrl - The RPC URL for the Ethereum-compatible blockchain
+   * @param contractAddress - The address of the state contract
+   * @param options - Optional configuration for caching and provider setup
+   */
   constructor(rpcUrl: string, contractAddress: string, options?: ResolverOptions) {
     const url = new URL(rpcUrl);
     const ethersProvider = new ethers.providers.JsonRpcProvider({
@@ -43,17 +82,45 @@ export class EthStateResolver implements IStateResolver {
     });
     this._contract = Abi__factory.connect(contractAddress, ethersProvider);
 
-    // Initialize cache options
-    this._stateResolveCache = options?.stateResolveCache ?? IN_MEMORY_CACHE();
-    this._rootResolveCache = options?.rootResolveCache ?? IN_MEMORY_CACHE() ;
+    // Store cache options for later use
+    this._stateCacheOptions = {
+      shorterTtlMs:
+        options?.stateCacheOptions?.shorterTtlMs ??
+        CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS / 2,
+      longerTtlMs:
+        options?.stateCacheOptions?.longerTtlMs ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS,
+      maxSize: options?.stateCacheOptions?.maxSize ?? CONSTANTS.DEFAULT_CACHE_MAX_SIZE
+    };
+    this._rootCacheOptions = {
+      longerTtlMs:
+        options?.rootCacheOptions?.longerTtlMs ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS,
+      shorterTtlMs:
+        options?.rootCacheOptions?.shorterTtlMs ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS / 2,
+      maxSize: options?.rootCacheOptions?.maxSize ?? CONSTANTS.DEFAULT_CACHE_MAX_SIZE
+    };
+
+    // Initialize cache instances
+    this._stateResolveCache =
+      options?.stateCacheOptions?.cache ??
+      createInMemoryCache({
+        maxSize: this._stateCacheOptions.maxSize,
+        ttlMs: this._stateCacheOptions.longerTtlMs
+      });
+
+    this._rootResolveCache =
+      options?.rootCacheOptions?.cache ??
+      createInMemoryCache({
+        maxSize: this._rootCacheOptions.maxSize,
+        ttlMs: this._rootCacheOptions.longerTtlMs
+      });
   }
 
   private getCacheKey(id: bigint, state: bigint): string {
     return `${id.toString()}-${state.toString()}`;
   }
 
-  private getRootCacheKey(state: bigint): string {
-    return state.toString();
+  private getRootCacheKey(root: bigint): string {
+    return root.toString();
   }
 
   public async resolve(id: bigint, state: bigint): Promise<ResolvedState> {
@@ -68,8 +135,13 @@ export class EthStateResolver implements IStateResolver {
     // Perform the actual resolution
     const result = await this.performResolve(id, state);
 
-    // Cache the result
-    await this._stateResolveCache?.set(cacheKey, result);
+    // Cache the result with appropriate TTL based on whether it's latest or historical
+    const ttl =
+      result.transitionTimestamp === 0
+        ? this._stateCacheOptions.shorterTtlMs
+        : this._stateCacheOptions.longerTtlMs;
+
+    await this._stateResolveCache?.set(cacheKey, result, ttl);
 
     return result;
   }
@@ -101,7 +173,7 @@ export class EthStateResolver implements IStateResolver {
     }
 
     if (!contractState.state.eq(state)) {
-      if (contractState.replacedAtTimestamp.eq(ZERO_BIGINT)) {
+      if (contractState.replacedAtTimestamp.eq(0n)) {
         throw new Error(`no information about state transition`);
       }
       return {
@@ -120,8 +192,8 @@ export class EthStateResolver implements IStateResolver {
     };
   }
 
-  public async rootResolve(state: bigint): Promise<ResolvedState> {
-    const cacheKey = this.getRootCacheKey(state);
+  public async rootResolve(root: bigint): Promise<ResolvedState> {
+    const cacheKey = this.getRootCacheKey(root);
 
     // Check cache first
     const cachedResult = await this._rootResolveCache?.get(cacheKey);
@@ -131,18 +203,22 @@ export class EthStateResolver implements IStateResolver {
     }
 
     // Perform the actual root resolution
-    const result = await this.performRootResolve(state);
+    const result = await this.performRootResolve(root);
 
-    // Cache the result
-    await this._rootResolveCache?.set(cacheKey, result);
+    // Cache the result with appropriate TTL based on whether it's latest or historical
+    const ttl = result.latest
+      ? this._rootCacheOptions.shorterTtlMs
+      : this._rootCacheOptions.longerTtlMs;
+
+    await this._rootResolveCache?.set(cacheKey, result, ttl);
 
     return result;
   }
 
-  private async performRootResolve(state: bigint): Promise<ResolvedState> {
+  private async performRootResolve(root: bigint): Promise<ResolvedState> {
     let globalStateInfo: IState.GistRootInfoStructOutput;
     try {
-      globalStateInfo = await this._contract.getGISTRootInfo(state);
+      globalStateInfo = await this._contract.getGISTRootInfo(root);
     } catch (e: unknown) {
       if ((e as { errorArgs: string[] }).errorArgs[0] === 'Root does not exist') {
         throw new Error('GIST root does not exist in the smart contract');
@@ -150,17 +226,17 @@ export class EthStateResolver implements IStateResolver {
       throw e;
     }
 
-    if (!globalStateInfo.root.eq(state)) {
+    if (!globalStateInfo.root.eq(root)) {
       throw new Error(`gist info contains invalid state`);
     }
 
-    if (!globalStateInfo.replacedByRoot.eq(ZERO_BIGINT)) {
-      if (globalStateInfo.replacedAtTimestamp.eq(ZERO_BIGINT)) {
+    if (!globalStateInfo.replacedByRoot.eq(0n)) {
+      if (globalStateInfo.replacedAtTimestamp.eq(0n)) {
         throw new Error(`state was replaced, but replaced time unknown`);
       }
       return {
         latest: false,
-        state,
+        state: root,
         transitionTimestamp: globalStateInfo.replacedAtTimestamp.toString(),
         genesis: false
       };
@@ -168,7 +244,7 @@ export class EthStateResolver implements IStateResolver {
 
     return {
       latest: true,
-      state: state,
+      state: root,
       transitionTimestamp: 0,
       genesis: false
     };

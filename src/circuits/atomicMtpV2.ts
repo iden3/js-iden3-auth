@@ -12,9 +12,7 @@ import {
   CircuitId,
   VerifiablePresentation
 } from '@0xpolygonid/js-sdk';
-
-const valuesSize = 64;
-const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
+import { CONSTANTS } from '@lib/constants';
 
 export class AtomicQueryMTPV2PubSignalsVerifier
   extends IDOwnershipPubSignals
@@ -55,7 +53,7 @@ export class AtomicQueryMTPV2PubSignalsVerifier
       merklized: this.pubSignals.merklized,
       claimPathKey: this.pubSignals.claimPathKey,
       claimPathNotExists: this.pubSignals.claimPathNotExists,
-      valueArraySize: valuesSize,
+      valueArraySize: CONSTANTS.CIRCUITS_ARRAY_VALUE_SIZE,
       isRevocationChecked: this.pubSignals.isRevocationChecked
     };
     await checkQueryV2Circuits(
@@ -88,10 +86,9 @@ export class AtomicQueryMTPV2PubSignalsVerifier
       this.pubSignals.issuerClaimNonRevState
     );
 
-    let acceptedStateTransitionDelay = defaultProofVerifyOpts;
-    if (opts?.acceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay = opts.acceptedStateTransitionDelay;
-    }
+    const acceptedStateTransitionDelay =
+      opts?.acceptedStateTransitionDelay ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY_MS;
+
     if (!issuerNonRevStateResolved.latest) {
       const timeDiff =
         Date.now() -
