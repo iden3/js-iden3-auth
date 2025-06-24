@@ -4,8 +4,8 @@ import { IDOwnershipPubSignals } from '@lib/circuits/ownershipVerifier';
 import { checkGlobalState, getResolverByID } from '@lib/circuits/common';
 import { Resolvers } from '@lib/state/resolver';
 import { AuthV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
+import { CONSTANTS } from '@lib/constants';
 
-const defaultAuthVerifyOpts = 5 * 60 * 1000; // 5 minutes
 export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignalsVerifier {
   pubSignals = new AuthV2PubSignals();
   constructor(pubSignals: string[]) {
@@ -29,10 +29,8 @@ export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignal
     }
     const gist = await checkGlobalState(resolver, this.pubSignals.GISTRoot);
 
-    let acceptedStateTransitionDelay = defaultAuthVerifyOpts;
-    if (opts?.acceptedStateTransitionDelay) {
-      acceptedStateTransitionDelay = opts.acceptedStateTransitionDelay;
-    }
+    const acceptedStateTransitionDelay =
+      opts?.acceptedStateTransitionDelay ?? CONSTANTS.AUTH_ACCEPTED_STATE_TRANSITION_DELAY;
 
     if (!gist.latest) {
       const timeDiff =

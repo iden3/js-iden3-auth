@@ -292,7 +292,7 @@ export class Verifier {
     this.verifyAuthRequest(request);
     const requestScope = request.body.scope;
 
-    const groupIdToLinkIdMap = new Map<number, { linkID: number; requestId: number }[]>();
+    const groupIdToLinkIdMap = new Map<number, { linkID: number; requestId: string }[]>();
     // group requests by query group id
     for (const proofRequest of requestScope) {
       const groupId = proofRequest.query.groupId as number;
@@ -340,7 +340,7 @@ export class Verifier {
       if (pubSig.linkID && groupId) {
         groupIdToLinkIdMap.set(groupId, [
           ...(groupIdToLinkIdMap.get(groupId) ?? []),
-          { linkID: pubSig.linkID, requestId: proofResp.id }
+          { linkID: pubSig.linkID, requestId: proofResp.id.toString() }
         ]);
       }
       // verify states

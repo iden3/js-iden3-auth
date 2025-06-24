@@ -23,9 +23,7 @@ import {
   verifyFieldValueInclusionNativeExistsSupport
 } from '@0xpolygonid/js-sdk';
 import { JsonLd } from 'jsonld/jsonld-spec';
-
-const valuesSize = 64;
-const defaultProofVerifyOpts = 1 * 60 * 60 * 1000; // 1 hour
+import { CONSTANTS } from '@lib/constants';
 
 /**
  * Verifies the public signals for the AtomicQueryV3 circuit.
@@ -63,7 +61,7 @@ export class AtomicQueryV3PubSignalsVerifier
       timestamp: this.pubSignals.timestamp,
       merklized: this.pubSignals.merklized,
       claimPathKey: this.pubSignals.claimPathKey,
-      valueArraySize: valuesSize,
+      valueArraySize: CONSTANTS.CIRCUITS_ARRAY_VALUE_SIZE,
       isRevocationChecked: this.pubSignals.isRevocationChecked,
       operatorOutput: this.pubSignals.operatorOutput
     };
@@ -208,7 +206,7 @@ export class AtomicQueryV3PubSignalsVerifier
     );
 
     const acceptedStateTransitionDelay =
-      opts?.acceptedStateTransitionDelay ?? defaultProofVerifyOpts;
+      opts?.acceptedStateTransitionDelay ?? CONSTANTS.ACCEPTED_STATE_TRANSITION_DELAY;
 
     if (issuerNonRevStateResolved.latest) {
       return;
