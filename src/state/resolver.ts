@@ -77,8 +77,8 @@ export class EthStateResolver implements IStateResolver {
     const ethersProvider = new ethers.providers.JsonRpcProvider({
       skipFetchSetup: options?.skipFetchSetup ?? false,
       url: url.href,
-      user: url.username,
-      password: url.password
+      user: url.username || undefined,
+      password: url.password || undefined
     });
     this._contract = Abi__factory.connect(contractAddress, ethersProvider);
 
@@ -153,7 +153,7 @@ export class EthStateResolver implements IStateResolver {
     try {
       contractState = await this._contract.getStateInfoByIdAndState(id, state);
     } catch (e) {
-      if ((e as { errorArgs: string[] }).errorArgs[0] === 'State does not exist') {
+      if ((e as { errorArgs: string[] })?.errorArgs[0] === 'State does not exist') {
         if (isGenesis) {
           return {
             latest: true,
