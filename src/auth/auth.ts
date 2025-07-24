@@ -298,7 +298,11 @@ export class Verifier {
       const groupId = proofRequest.query.groupId as number;
 
       const proofResp = response.body.scope.find((resp) => resp.id === proofRequest.id);
+
       if (!proofResp) {
+        if (proofRequest.optional) {
+          continue;
+        }
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
 
