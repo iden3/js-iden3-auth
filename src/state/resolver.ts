@@ -4,7 +4,7 @@ import { ICache, createInMemoryCache } from '@lib/cache';
 import { Abi, Abi__factory } from '@lib/state/types/ethers-contracts';
 import { IState } from '@lib/state/types/ethers-contracts/Abi';
 import { CONSTANTS } from '@lib/constants';
-import { checkRootDoesNotExistError, checkStateDoesNotExistError } from '@0xpolygonid/js-sdk';
+import { isRootDoesNotExistError, isStateDoesNotExistError } from '@0xpolygonid/js-sdk';
 
 export type Resolvers = {
   [key: string]: IStateResolver;
@@ -154,7 +154,7 @@ export class EthStateResolver implements IStateResolver {
     try {
       contractState = await this._contract.getStateInfoByIdAndState(id, state);
     } catch (e) {
-      if (checkStateDoesNotExistError(e)) {
+      if (isStateDoesNotExistError(e)) {
         if (isGenesis) {
           return {
             latest: true,
@@ -220,7 +220,7 @@ export class EthStateResolver implements IStateResolver {
     try {
       globalStateInfo = await this._contract.getGISTRootInfo(root);
     } catch (e: unknown) {
-      if (checkRootDoesNotExistError(e)) {
+      if (isRootDoesNotExistError(e)) {
         throw new Error('GIST root does not exist in the smart contract');
       }
       throw e;
