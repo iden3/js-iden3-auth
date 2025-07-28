@@ -1,6 +1,6 @@
 {
   "name": "@iden3/js-iden3-auth",
-  "version": "1.10.2",
+  "version": "1.10.3",
   "description": "iden3-auth implementation in JavaScript",
   "main": "dist/node/cjs/index.js",
   "module": "dist/node/esm/index.js",
