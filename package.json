@@ -11,8 +11,8 @@
     "patches"
   ],
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest",
+    "test:watch": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest --watch",
     "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types",
     "build:esm": "tsc --outDir dist/node/esm && tsc-alias -p tsconfig.json --outDir dist/node/esm -f --resolve-full-extension .js",
     "build:cjs": "tsc --module commonjs --outDir dist/node/cjs && tsc-alias -p tsconfig.json --outDir dist/node/cjs",
