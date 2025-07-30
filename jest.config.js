@@ -1,7 +1,7 @@
 module.exports = {
   testTimeout: 60000,
   transform: {
-    '^.+\\.(t|j)sx?$': 'ts-jest'
+    '^.+\\.(t|j)sx?$': ['ts-jest', { useESM: true }]
   },
   transformIgnorePatterns: ['/node_modules/(?!((quick-lru)/))'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
@@ -14,5 +14,6 @@ module.exports = {
     '@lib/cache': '<rootDir>/src/cache',
     '@lib/constants': '<rootDir>/src/constants',
     '@digitalbazaar/http-client': '<rootDir>/__mocks__/@digitalbazaar/http-client/dist/cjs/index.js'
-  }
+  },
+  extensionsToTreatAsEsm: ['.ts']
 };

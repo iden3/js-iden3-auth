@@ -3,6 +3,15 @@ import { DocumentLoader } from '@iden3/js-jsonld-merklization';
 import { VerifyOpts } from '@lib/circuits';
 import { IStateResolver, ResolvedState, Resolvers } from '@lib/state/resolver';
 import { DIDResolutionResult } from 'did-resolver';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// ES Module equivalent of __dirname
+export function getTestDataPath(relativePath: string): string {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  return join(__dirname, relativePath);
+}
 
 class MockResolver implements IStateResolver {
   resolve(): Promise<ResolvedState> {

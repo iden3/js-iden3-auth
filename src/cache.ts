@@ -1,6 +1,5 @@
-import * as lru from 'quick-lru';
+import QuickLRU from 'quick-lru';
 
-const QuickLRU = lru.default;
 export interface ICache<T> {
   get(key: string): Promise<T | undefined>;
   set(key: string, value: T, ttl?: number): Promise<void>;

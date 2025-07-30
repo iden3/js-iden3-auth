@@ -20,8 +20,7 @@ import {
   Verifier
 } from '@lib/auth/auth';
 import { Circuits } from '@lib/circuits/registry';
-import path from 'path';
-import { resolveDIDDocument, resolvers, schemaLoader, testOpts } from './mocks';
+import { resolveDIDDocument, resolvers, schemaLoader, testOpts, getTestDataPath } from './mocks';
 import { getDateFromUnixTimestamp, getUnixTimestamp } from '@iden3/js-iden3-core';
 
 describe('auth tests', () => {
@@ -291,7 +290,7 @@ describe('auth tests', () => {
     };
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       documentLoader: schemaLoader
     });
     await expect(verifier.verifyAuthResponse(response, request, testOpts)).resolves.not.toThrow();
@@ -460,7 +459,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       documentLoader: schemaLoader
     });
     await expect(verifier.verifyAuthResponse(response, request, testOpts)).resolves.not.toThrow();
@@ -469,7 +468,7 @@ describe('auth tests', () => {
   it('TestVerifyJWZ', async () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       ipfsNodeURL: connectionString
     });
 
@@ -519,7 +518,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata')
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '92567472-76d9-499a-8c1f-daae9d105346'; // because it's used in the response
@@ -575,7 +574,7 @@ describe('auth tests', () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
       documentLoader: schemaLoader,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       didDocumentResolver: resolveDIDDocument
     });
     verifier.setupJWSPacker(new KMS(), resolveDIDDocument);
@@ -619,7 +618,7 @@ describe('auth tests', () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
       documentLoader: schemaLoader,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       didDocumentResolver: resolveDIDDocument
     });
     verifier.setupJWSPacker(new KMS(), resolveDIDDocument);
@@ -688,7 +687,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       documentLoader: schemaLoader
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
@@ -735,7 +734,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       documentLoader: schemaLoader
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
