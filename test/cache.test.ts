@@ -1,4 +1,4 @@
-import { ICache, createInMemoryCache } from '../src/cache';
+import { ICache, createInMemoryCache } from '@0xpolygonid/js-sdk';
 
 describe('Cache', () => {
   describe('Basic Operations', () => {
