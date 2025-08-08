@@ -1,6 +1,6 @@
 import { Id } from '@iden3/js-iden3-core';
 import { ethers } from 'ethers';
-import { ICache, createInMemoryCache } from '@lib/cache';
+import { ICache, createInMemoryCache } from '@0xpolygonid/js-sdk';
 import { Abi, Abi__factory } from '@lib/state/types/ethers-contracts';
 import { IState } from '@lib/state/types/ethers-contracts/Abi';
 import { CONSTANTS } from '@lib/constants';
