@@ -13,7 +13,7 @@ import {
   ZeroKnowledgeProofRequest,
   buildAccept
 } from '@0xpolygonid/js-sdk';
-import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
+import { AuthPubSignals } from '@lib/circuits/auth';
 import {
   createAuthorizationRequest,
   createAuthorizationRequestWithMessage,
@@ -546,7 +546,7 @@ describe('auth tests', () => {
     ]);
     const request: AuthorizationRequestMessage = createAuthorizationRequestWithMessage(
       reason,
-      'message to sign',
+      '',
       sender,
       callback,
       {
@@ -562,8 +562,10 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata'),
+      ipfsNodeURL: connectionString
     });
+
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '92567472-76d9-499a-8c1f-daae9d105346';
 
@@ -586,7 +588,7 @@ describe('auth tests', () => {
     ]);
     const request: AuthorizationRequestMessage = createAuthorizationRequestWithMessage(
       reason,
-      'message to sign',
+      '',
       sender,
       callback,
       {
@@ -602,8 +604,10 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata'),
+      ipfsNodeURL: connectionString
     });
+
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '92567472-76d9-499a-8c1f-daae9d105346';
 
@@ -718,7 +722,7 @@ describe('auth tests', () => {
       '19229084873704550357232887142774605442297337229176579229011342091594174977',
       '6110517768249559238193477435454792024732173865488900270849624328650765691494',
       '1243904711429961858774220647610724273798918457991486031567244100767259239747'
-    ]) as AuthPubSignalsV2;
+    ]) as AuthPubSignals;
 
     expect(type).not.toBeNull();
     expect(instance).not.toBeNull();

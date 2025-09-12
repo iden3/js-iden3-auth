@@ -6,6 +6,9 @@ import { Resolvers } from '@lib/state/resolver';
 import { AuthV2PubSignals, BaseConfig, byteEncoder } from '@0xpolygonid/js-sdk';
 import { CONSTANTS } from '@lib/constants';
 
+/**
+ * @deprecated, use AuthPubSignals from './auth' instead
+ */
 export class AuthPubSignalsV2 extends IDOwnershipPubSignals implements PubSignalsVerifier {
   pubSignals = new AuthV2PubSignals();
   constructor(pubSignals: string[]) {
