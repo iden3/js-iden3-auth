@@ -51,5 +51,11 @@ jobs:
       - name: Unzip circuits to folder
         run: cd ./test/testdata && unzip latest.zip && cd - && pwd
 
+      - name: Download authV3 circuits
+        run:  wget https://circuits.privado.id/trusted-setup-authV3-3.0.0.zip -P ./test/testdata
+
+      - name: Unzip circuits to folder
+        run: cd ./test/testdata && unzip trusted-setup-authV3-3.0.0.zip && cd - && pwd
+
       - name: Run Tests
         run: npm run test
