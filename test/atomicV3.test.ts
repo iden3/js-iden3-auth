@@ -1,6 +1,5 @@
 import { Verifier } from '@lib/auth/auth';
-import { testOpts, resolvers } from './mocks';
-import path from 'path';
+import { testOpts, resolvers, getTestDataPath } from './mocks';
 import {
   AuthorizationResponseMessage,
   PROTOCOL_CONSTANTS,
@@ -176,7 +175,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
@@ -342,7 +341,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
@@ -405,7 +404,7 @@ describe('atomicV3', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: getTestDataPath('./testdata'),
       documentLoader: schemaLoader
     });
 
@@ -571,7 +570,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
@@ -732,7 +731,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata')
+      circuitsDir: getTestDataPath('./testdata')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
