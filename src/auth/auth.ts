@@ -1,4 +1,4 @@
-import { AuthPubSignalsV2 } from '@lib/circuits/authV2';
+import { AuthPubSignals } from '@lib/circuits/auth';
 import { Query } from '@lib/circuits/query';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -180,7 +180,10 @@ export class Verifier {
     return this.packageManager.registerPackers([packer]);
   }
 
-  // setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
+  /**
+    @deprecated, use setupAuthZKPPacker for AuthV2/AuthV3/ AuthV3_8_32 circuits support
+    setupAuthV2ZKPPacker sets the custom packer manager for the Verifier.
+  **/
   public async setupAuthV2ZKPPacker(circuitStorage: ICircuitStorage) {
     if (!circuitStorage) {
       throw new Error('circuit storage is not defined');
@@ -201,7 +204,7 @@ export class Verifier {
         throw new Error(`CircuitId is not supported ${circuitId}`);
       }
 
-      const verifier = new AuthPubSignalsV2(pubSignals);
+      const verifier = new AuthPubSignals(pubSignals);
       await verifier.verifyStates(this.stateResolver);
       return true;
     };
@@ -213,6 +216,64 @@ export class Verifier {
       key: authV2Set.verificationKey,
       verificationFn
     });
+
+    const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
+    return this.setPacker(zkpPacker);
+  }
+
+  // setupAuthZKPPacker sets the custom packer manager for the Verifier.
+  public async setupAuthZKPPacker(circuitStorage: ICircuitStorage) {
+    if (!circuitStorage) {
+      throw new Error('circuit storage is not defined');
+    }
+    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
+    const authV3Set = await circuitStorage.loadCircuitData(CircuitId.AuthV3);
+    const authV3_8_32Set = await circuitStorage.loadCircuitData(CircuitId.AuthV3_8_32);
+
+    if (!authV2Set.verificationKey) {
+      throw new Error('verification key is not for authV2 circuit');
+    }
+
+    const mapKeyAuthV2 = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
+    const mapKeyAuthV3 = proving.provingMethodGroth16AuthV3Instance.methodAlg.toString();
+    const mapKeyAuthV3_8_32 = proving.provingMethodGroth16AuthV3_8_32Instance.methodAlg.toString();
+    const provingParamMap: Map<string, ProvingParams> = new Map();
+
+    const stateVerificationFn = async (
+      circuitId: string,
+      pubSignals: Array<string>
+    ): Promise<boolean> => {
+      if (
+        circuitId !== CircuitId.AuthV2 &&
+        circuitId !== CircuitId.AuthV3 &&
+        circuitId !== CircuitId.AuthV3_8_32
+      ) {
+        throw new Error(`CircuitId is not supported ${circuitId}`);
+      }
+
+      const verifier = new AuthPubSignals(pubSignals);
+      await verifier.verifyStates(this.stateResolver);
+      return true;
+    };
+
+    const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
+
+    const verificationParamMap: Map<string, VerificationParams> = new Map();
+    verificationParamMap.set(mapKeyAuthV2, {
+      key: authV2Set.verificationKey,
+      verificationFn
+    });
+
+    authV3Set.verificationKey &&
+      verificationParamMap.set(mapKeyAuthV3, {
+        key: authV3Set.verificationKey,
+        verificationFn
+      });
+    authV3_8_32Set.verificationKey &&
+      verificationParamMap.set(mapKeyAuthV3_8_32, {
+        key: authV3_8_32Set.verificationKey,
+        verificationFn
+      });
 
     const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
     return this.setPacker(zkpPacker);
@@ -440,7 +501,7 @@ export class Verifier {
   }
 
   private async initPackers(didResolver?: Resolvable) {
-    await this.setupAuthV2ZKPPacker(this.circuitStorage);
+    await this.setupAuthZKPPacker(this.circuitStorage);
     // set default jws packer if packageManager is not present in options but did document resolver is.
     if (didResolver) {
       this.setupJWSPacker(new KMS(), didResolver);
