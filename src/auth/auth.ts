@@ -234,13 +234,6 @@ export class Verifier {
       throw new Error('verification key is not for authV2 circuit');
     }
 
-    if (!authV3Set.verificationKey) {
-      throw new Error('verification key is not for authV3 circuit');
-    }
-
-    if (!authV3_8_32Set.verificationKey) {
-      throw new Error('verification key is not for authV3 circuit');
-    }
     const mapKeyAuthV2 = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
     const mapKeyAuthV3 = proving.provingMethodGroth16AuthV3Instance.methodAlg.toString();
     const mapKeyAuthV3_8_32 = proving.provingMethodGroth16AuthV3_8_32Instance.methodAlg.toString();
@@ -270,14 +263,17 @@ export class Verifier {
       key: authV2Set.verificationKey,
       verificationFn
     });
-    verificationParamMap.set(mapKeyAuthV3, {
-      key: authV3Set.verificationKey,
-      verificationFn
-    });
-    verificationParamMap.set(mapKeyAuthV3_8_32, {
-      key: authV3_8_32Set.verificationKey,
-      verificationFn
-    });
+
+    authV3Set.verificationKey &&
+      verificationParamMap.set(mapKeyAuthV3, {
+        key: authV3Set.verificationKey,
+        verificationFn
+      });
+    authV3_8_32Set.verificationKey &&
+      verificationParamMap.set(mapKeyAuthV3_8_32, {
+        key: authV3_8_32Set.verificationKey,
+        verificationFn
+      });
 
     const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
     return this.setPacker(zkpPacker);
