@@ -2,6 +2,7 @@ import { AuthorizationRequestMessage, CircuitId, ProofType } from '@0xpolygonid/
 import { Verifier } from '@lib/auth/auth';
 import { resolvers, schemaLoader, testOpts, getTestDataPath } from './mocks';
 import { PROTOCOL_CONSTANTS } from '@0xpolygonid/js-sdk';
+import { it, describe } from 'vitest';
 
 describe('Linked proofs verification', () => {
   it('should verification pass', async () => {

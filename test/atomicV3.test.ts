@@ -9,10 +9,12 @@ import {
   ProofType
 } from '@0xpolygonid/js-sdk';
 import { DocumentLoader } from '@iden3/js-jsonld-merklization';
+import { it, describe, expect } from 'vitest';
 
 const schemaLoader: DocumentLoader = cacheLoader({
   ipfsNodeURL: process.env.IPFS_URL ?? 'https://ipfs.io'
 });
+
 describe('atomicV3', () => {
   it('TestVerifyV3MessageWithSigProof_NonMerklized', async () => {
     const request: AuthorizationRequestMessage = {

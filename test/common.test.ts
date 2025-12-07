@@ -2,6 +2,7 @@ import { DID } from '@iden3/js-iden3-core';
 import { checkUserState } from '@lib/circuits/common';
 import { mockResolverWithNoStateInContract, mockResolverWithNotLatestState } from './mocks';
 import { Hash } from '@iden3/js-merkletree';
+import { it, describe, expect } from 'vitest';
 
 describe('Common', () => {
   const issuerDID = DID.parse('did:iden3:polygon:mumbai:x6suHR8HkEYczV9yVeAKKiXCZAd25P8WS6QvNhszk');

@@ -12,7 +12,6 @@ import {
   calculateQueryHashV3,
   calculateCoreSchemaHash,
   QueryMetadata,
-  LinkedMultiQueryInputs,
   Operators,
   fieldValueFromVerifiablePresentation,
   VerifiablePresentation
@@ -23,10 +22,13 @@ import {
  * @beta
  */
 export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
-  readonly pubSignals = new LinkedMultiQueryPubSignals();
+  readonly pubSignals: LinkedMultiQueryPubSignals;
+  readonly queryCount: number;
+  static readonly defaultQueryCount = 10;
 
-  constructor(pubSignals: string[]) {
-    this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
+  constructor(pubSignals: string[], options?: { queryCount?: number }) {
+    this.queryCount = options?.queryCount ?? LinkedMultiQueryVerifier.defaultQueryCount;
+    this.pubSignals = new LinkedMultiQueryPubSignals(this.queryCount).pubSignalsUnmarshal(
       byteEncoder.encode(JSON.stringify(pubSignals))
     );
   }
@@ -61,7 +63,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
 
     const request: { queryHash: bigint; queryMeta: QueryMetadata }[] = [];
     const merklized = queriesMetadata[0]?.merklizedSchema ? 1 : 0;
-    for (let i = 0; i < LinkedMultiQueryInputs.queryCount; i++) {
+    for (let i = 0; i < this.queryCount; i++) {
       const queryMeta = queriesMetadata[i];
       const values = queryMeta?.values ?? [];
       const valArrSize = values.length;
@@ -95,7 +97,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     pubSignalsMeta.sort(queryHashCompare);
     request.sort(queryHashCompare);
 
-    for (let i = 0; i < LinkedMultiQueryInputs.queryCount; i++) {
+    for (let i = 0; i < this.queryCount; i++) {
       if (request[i].queryHash != pubSignalsMeta[i].queryHash) {
         throw new Error('query hashes do not match');
       }
@@ -118,10 +120,4 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
   async verifyStates(): Promise<void> {
     return Promise.resolve();
   }
-
-  private bigIntCompare = (a: bigint, b: bigint): number => {
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
-  };
 }

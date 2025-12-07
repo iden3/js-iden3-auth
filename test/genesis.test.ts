@@ -1,5 +1,6 @@
 import { DID } from '@iden3/js-iden3-core';
 import { isGenesisStateId } from '@lib/state/resolver';
+import { it, describe, expect } from 'vitest';
 
 describe('Genesis', () => {
   it('isGenesisState', async () => {

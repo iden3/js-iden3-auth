@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Resolvers } from '@lib/state/resolver';
 import { Circuits, VerifyOpts } from '@lib/circuits/registry';
-import { proving, Token } from '@iden3/js-jwz';
+import { proving, ProvingMethodAlg, Token } from '@iden3/js-jwz';
 import {
   AuthorizationRequestMessage,
   AuthorizationResponseMessage,
@@ -26,13 +26,15 @@ import {
   byteEncoder,
   JSONObject,
   verifyExpiresTime,
-  parseAcceptProfile
+  parseAcceptProfile,
+  getCircuitIdsWithSubVersions,
+  ZeroKnowledgeProofRequest,
+  getGroupedCircuitIdsWithSubVersions
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
 import path from 'path';
 import { DID, getUnixTimestamp } from '@iden3/js-iden3-core';
-import { ZeroKnowledgeProofRequest } from '@0xpolygonid/js-sdk';
 
 /**
  * Options to pass to createAuthorizationRequest function
@@ -226,28 +228,16 @@ export class Verifier {
     if (!circuitStorage) {
       throw new Error('circuit storage is not defined');
     }
-    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
-    const authV3Set = await circuitStorage.loadCircuitData(CircuitId.AuthV3);
-    const authV3_8_32Set = await circuitStorage.loadCircuitData(CircuitId.AuthV3_8_32);
 
-    if (!authV2Set.verificationKey) {
-      throw new Error('verification key is not for authV2 circuit');
-    }
-
-    const mapKeyAuthV2 = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
-    const mapKeyAuthV3 = proving.provingMethodGroth16AuthV3Instance.methodAlg.toString();
-    const mapKeyAuthV3_8_32 = proving.provingMethodGroth16AuthV3_8_32Instance.methodAlg.toString();
+    const circuitIds = getCircuitIdsWithSubVersions([CircuitId.AuthV2, CircuitId.AuthV3]);
+    const verificationParamMap: Map<string, VerificationParams> = new Map();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
     const stateVerificationFn = async (
       circuitId: string,
       pubSignals: Array<string>
     ): Promise<boolean> => {
-      if (
-        circuitId !== CircuitId.AuthV2 &&
-        circuitId !== CircuitId.AuthV3 &&
-        circuitId !== CircuitId.AuthV3_8_32
-      ) {
+      if (!circuitIds.includes(circuitId as CircuitId)) {
         throw new Error(`CircuitId is not supported ${circuitId}`);
       }
 
@@ -258,22 +248,20 @@ export class Verifier {
 
     const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
 
-    const verificationParamMap: Map<string, VerificationParams> = new Map();
-    verificationParamMap.set(mapKeyAuthV2, {
-      key: authV2Set.verificationKey,
-      verificationFn
-    });
-
-    authV3Set.verificationKey &&
-      verificationParamMap.set(mapKeyAuthV3, {
-        key: authV3Set.verificationKey,
+    for (const circuitId of circuitIds) {
+      const authSet = await circuitStorage.loadCircuitData(circuitId);
+      if (!authSet.verificationKey) {
+        throw new Error(`verification key is not for ${circuitId} circuit`);
+      }
+      const methodAlg = new ProvingMethodAlg(
+        PROTOCOL_CONSTANTS.AcceptJwzAlgorithms.Groth16,
+        circuitId
+      ).toString();
+      verificationParamMap.set(methodAlg, {
+        key: authSet.verificationKey,
         verificationFn
       });
-    authV3_8_32Set.verificationKey &&
-      verificationParamMap.set(mapKeyAuthV3_8_32, {
-        key: authV3_8_32Set.verificationKey,
-        verificationFn
-      });
+    }
 
     const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
     return this.setPacker(zkpPacker);
@@ -367,21 +355,16 @@ export class Verifier {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
 
-      const circuitId = proofResp.circuitId;
-      if (circuitId !== proofRequest.circuitId) {
+      const circuitId = proofResp.circuitId as CircuitId;
+      const circuitIds = getGroupedCircuitIdsWithSubVersions(circuitId);
+      if (!circuitIds.includes(proofRequest.circuitId)) {
         throw new Error(
           `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${circuitId}`
         );
       }
-      const isValid = await this.prover.verify(proofResp, circuitId);
-      if (!isValid) {
-        throw new Error(
-          `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
-        );
-      }
 
-      const CircuitVerifier = Circuits.getCircuitPubSignals(circuitId);
-      if (!CircuitVerifier) {
+      const verifierInfo = Circuits.getCircuitPubSignals(circuitId);
+      if (!verifierInfo) {
         throw new Error(`circuit ${circuitId} is not supported by the library`);
       }
 
@@ -389,7 +372,7 @@ export class Verifier {
       params.verifierDid = DID.parse(request.from);
 
       // verify query
-      const verifier = new CircuitVerifier(proofResp.pub_signals);
+      const verifier = new verifierInfo.verifier(proofResp.pub_signals, verifierInfo.opts);
 
       const pubSignals = await verifier.verifyQuery(
         proofRequest.query as unknown as Query,
@@ -455,14 +438,14 @@ export class Verifier {
       throw new Error(`zero-knowledge proof of jwz token is not valid`);
     }
 
-    const CircuitVerifier = Circuits.getCircuitPubSignals(token.circuitId);
+    const verifierInfo = Circuits.getCircuitPubSignals(token.circuitId);
 
-    if (!CircuitVerifier) {
+    if (!verifierInfo) {
       throw new Error(`circuit ${token.circuitId} is not supported by the library`);
     }
 
     // outputs unmarshaller
-    const verifier = new CircuitVerifier(token.zkProof.pub_signals);
+    const verifier = new verifierInfo.verifier(token.zkProof.pub_signals, verifierInfo.opts);
 
     // state verification
     await verifier.verifyStates(this.stateResolver, opts);

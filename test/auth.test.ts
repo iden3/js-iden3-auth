@@ -22,6 +22,7 @@ import {
 import { Circuits } from '@lib/circuits/registry';
 import { resolveDIDDocument, resolvers, schemaLoader, testOpts, getTestDataPath } from './mocks';
 import { getDateFromUnixTimestamp, getUnixTimestamp } from '@iden3/js-iden3-core';
+import { it, describe, expect } from 'vitest';
 
 describe('auth tests', () => {
   const connectionString = process.env.IPFS_URL ?? 'https://ipfs.io';
@@ -31,8 +32,7 @@ describe('auth tests', () => {
       env: PROTOCOL_CONSTANTS.MediaType.ZKPMessage,
       circuits: [
         PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV2,
-        PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV3,
-        PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV3_8_32
+        PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV3
       ]
     }
   ]);
@@ -583,7 +583,7 @@ describe('auth tests', () => {
       {
         protocolVersion: PROTOCOL_CONSTANTS.ProtocolVersion.V1,
         env: PROTOCOL_CONSTANTS.MediaType.ZKPMessage,
-        circuits: [PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV3_8_32]
+        circuits: [PROTOCOL_CONSTANTS.AcceptAuthCircuits.AuthV3]
       }
     ]);
     const request: AuthorizationRequestMessage = createAuthorizationRequestWithMessage(
@@ -717,14 +717,14 @@ describe('auth tests', () => {
   });
 
   it('registry: get existing circuit', () => {
-    const type = Circuits.getCircuitPubSignals('authV2');
-    const instance = new type([
+    const verifierInfo = Circuits.getCircuitPubSignals('authV2');
+    const instance = new verifierInfo.verifier([
       '19229084873704550357232887142774605442297337229176579229011342091594174977',
       '6110517768249559238193477435454792024732173865488900270849624328650765691494',
       '1243904711429961858774220647610724273798918457991486031567244100767259239747'
     ]) as AuthPubSignals;
 
-    expect(type).not.toBeNull();
+    expect(verifierInfo).not.toBeNull();
     expect(instance).not.toBeNull();
     expect(instance.verifyQuery).not.toBeNull();
     expect(instance.userId.string()).toEqual('x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29');
