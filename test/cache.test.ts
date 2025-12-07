@@ -1,4 +1,5 @@
 import { ICache, createInMemoryCache } from '@0xpolygonid/js-sdk';
+import { it, describe, expect, beforeEach } from 'vitest';
 
 describe('Cache', () => {
   describe('Basic Operations', () => {

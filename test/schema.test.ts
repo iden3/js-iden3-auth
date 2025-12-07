@@ -1,4 +1,5 @@
 import { DocumentLoader, getDocumentLoader } from '@iden3/js-jsonld-merklization';
+import { it, describe, expect } from 'vitest';
 
 describe('schema loader', () => {
   it('schema http loader', async () => {

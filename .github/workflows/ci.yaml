@@ -57,5 +57,11 @@ jobs:
       - name: Unzip circuits to folder
         run: cd ./test/testdata && unzip trusted-setup-authV3-3.0.0.zip && cd - && pwd
 
+      - name: Download atomicQueryV3 circuits
+        run: wget https://pse-trusted-setup.s3.eu-west-1.amazonaws.com/credentialAtomicV3.zip -P ./tests/testdata
+
+      - name: Unzip credentialAtomicV3 circuits to testdata folder
+        run: cd ./tests/testdata && unzip credentialAtomicV3.zip && rm credentialAtomicV3.zip && cd - && pwd
+
       - name: Run Tests
         run: npm run test

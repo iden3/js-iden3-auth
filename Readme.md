@@ -17,31 +17,26 @@ Currently, library implementation includes support of next message types
 ### RUN AND TEST
 
 1. Download regular circuits from S3 and unzip circuits to folder
+
     ```
     mkdir ./test/testdata && wget https://circuits.privado.id/latest.zip -P ./test/testdata
 
     cd ./test/testdata && unzip latest.zip && cd - && pwd
     ```
+
 2. Download authV3 circuits and unzip circuits to folder
+
     ```
     wget https://circuits.privado.id/trusted-setup-authV3-3.0.0.zip -P ./test/testdata
 
     cd ./test/testdata && unzip trusted-setup-authV3-3.0.0.zip && cd - && pwd
     ```
+
 3. Run tests
+
     ```
     npm run test
     ```
-
-**Temporal:**
-For now to run jest tests without experimental feature support:
-
-1. add mocked folder
-<https://github.com/iden3/js-iden3-auth/tree/develop/__mocks__/%40digitalbazaar/http-client/dist/cjs>
-2. change jest config.
-<https://github.com/iden3/js-iden3-auth/blob/develop/jest.config.js>
-
----
 
 Auth verification procedure:
 
@@ -186,6 +181,7 @@ We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for gener
 ```bash
 typechain --target ethers-v5 /path/to/state_contract.sol
 ```
+
 ## License
 
 js-iden3-auth is part of the iden3 project copyright 2024 0kims association
