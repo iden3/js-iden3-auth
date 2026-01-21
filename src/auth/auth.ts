@@ -372,11 +372,11 @@ export class Verifier {
         proofRequest.circuitId as CircuitId
       );
 
-      if (!allCircuitsSubversions.includes(proofRequest.circuitId)) {
+      if (!allCircuitsSubversions.includes(proofResp.circuitId as CircuitId)) {
         throw new Error(
           `proof is not given for requested circuit expected: ${
-            proofRequest.circuitId
-          }, given ${allCircuitsSubversions.join(', ')}`
+            allCircuitsSubversions.join(', ')
+          }, given ${proofResp.circuitId}`
         );
       }
 

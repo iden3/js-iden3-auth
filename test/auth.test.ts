@@ -835,7 +835,7 @@ describe('auth tests', () => {
     await expect(verifier.fullVerify(token, request, testOpts)).resolves.not.toThrow();
   });
 
-  test('TestFullVerify StableV3', async () => {
+  it('TestFullVerify StableV3', async () => {
     const verifierID = 'did:iden3:polygon:amoy:xCRp75DgAdS63W65fmXHz6p9DwdonuRU9e46DifhX';
     const callbackURL = 'https://test.com/callback';
     const reason = 'reason';
