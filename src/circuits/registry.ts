@@ -29,8 +29,12 @@ export interface PubSignalsVerifier {
   verifyIdOwnership(sender: string, challenge: bigint): Promise<void>;
 }
 
+export type PubSignalsVerifierOpts = {
+  queryCount?: number;
+};
+
 export interface PubSignals {
-  new (pubSignals: string[]): PubSignalsVerifier;
+  new (pubSignals: string[], opts?: PubSignalsVerifierOpts): PubSignalsVerifier;
 }
 
 const authV2 = AuthPubSignals;
@@ -39,6 +43,9 @@ const authV3_8_32 = AuthPubSignals;
 const credentialAtomicQueryMTPV2 = AtomicQueryMTPV2PubSignalsVerifier;
 const credentialAtomicQuerySigV2 = AtomicQuerySigV2PubSignalsVerifier;
 const credentialAtomicQueryV3 = AtomicQueryV3PubSignalsVerifier;
+const linkedMultiQuery = LinkedMultiQueryVerifier;
+const linkedMultiQuery3 = LinkedMultiQueryVerifier;
+const linkedMultiQuery5 = LinkedMultiQueryVerifier;
 const linkedMultiQuery10 = LinkedMultiQueryVerifier;
 
 export type VerifierType = PubSignalsVerifier & PubSignals;
@@ -50,6 +57,9 @@ const supportedCircuits: { [key: string]: unknown } = {
   credentialAtomicQueryMTPV2,
   credentialAtomicQuerySigV2,
   credentialAtomicQueryV3,
+  linkedMultiQuery,
+  linkedMultiQuery3,
+  linkedMultiQuery5,
   linkedMultiQuery10
 };
 

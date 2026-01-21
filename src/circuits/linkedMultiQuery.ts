@@ -23,9 +23,18 @@ import {
  * @beta
  */
 export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
-  readonly pubSignals = new LinkedMultiQueryPubSignals();
+  readonly pubSignals: LinkedMultiQueryPubSignals;
+  readonly queryCount: number;
 
-  constructor(pubSignals: string[]) {
+  constructor(
+    pubSignals: string[],
+    opts?: {
+      queryCount?: number;
+    }
+  ) {
+    this.queryCount = opts?.queryCount ?? 10;
+    this.pubSignals = new LinkedMultiQueryPubSignals(this.queryCount);
+
     this.pubSignals = this.pubSignals.pubSignalsUnmarshal(
       byteEncoder.encode(JSON.stringify(pubSignals))
     );
@@ -61,7 +70,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
 
     const request: { queryHash: bigint; queryMeta: QueryMetadata }[] = [];
     const merklized = queriesMetadata[0]?.merklizedSchema ? 1 : 0;
-    for (let i = 0; i < LinkedMultiQueryInputs.queryCount; i++) {
+    for (let i = 0; i < this.queryCount; i++) {
       const queryMeta = queriesMetadata[i];
       const values = queryMeta?.values ?? [];
       const valArrSize = values.length;
@@ -95,7 +104,7 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
     pubSignalsMeta.sort(queryHashCompare);
     request.sort(queryHashCompare);
 
-    for (let i = 0; i < LinkedMultiQueryInputs.queryCount; i++) {
+    for (let i = 0; i < this.queryCount; i++) {
       if (request[i].queryHash != pubSignalsMeta[i].queryHash) {
         throw new Error('query hashes do not match');
       }
@@ -118,10 +127,4 @@ export class LinkedMultiQueryVerifier implements PubSignalsVerifier {
   async verifyStates(): Promise<void> {
     return Promise.resolve();
   }
-
-  private bigIntCompare = (a: bigint, b: bigint): number => {
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
-  };
 }
