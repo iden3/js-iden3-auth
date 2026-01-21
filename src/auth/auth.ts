@@ -445,7 +445,6 @@ export class Verifier {
   }
 
   private getCircuitOpts(circuitId: string): PubSignalsVerifierOpts | undefined {
-    console.log('circuitId', circuitId);
     switch (circuitId) {
       case 'linkedMultiQuery3':
         return { queryCount: 3 };
