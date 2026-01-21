@@ -450,8 +450,8 @@ export class Verifier {
         return { queryCount: 3 };
       case 'linkedMultiQuery5':
         return { queryCount: 5 };
-      case 'linkedMultiQuery10':
-      case 'linkedMultiQuery':
+      case CircuitId.LinkedMultiQuery10:
+      case CircuitId.LinkedMultiQueryStable:
         return { queryCount: 10 };
       default:
         return undefined;
