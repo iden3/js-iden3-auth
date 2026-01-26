@@ -3,7 +3,7 @@ import { Query } from '@lib/circuits/query';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Resolvers } from '@lib/state/resolver';
-import { Circuits, VerifyOpts } from '@lib/circuits/registry';
+import { Circuits, PubSignalsVerifierOpts, VerifyOpts } from '@lib/circuits/registry';
 import { proving, Token } from '@iden3/js-jwz';
 import {
   AuthorizationRequestMessage,
@@ -26,7 +26,8 @@ import {
   byteEncoder,
   JSONObject,
   verifyExpiresTime,
-  parseAcceptProfile
+  parseAcceptProfile,
+  getGroupedCircuitIdsWithSubVersions
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
 import { Options, DocumentLoader } from '@iden3/js-jsonld-merklization';
@@ -367,29 +368,38 @@ export class Verifier {
         throw new Error(`proof is not given for requestId ${proofRequest.id}`);
       }
 
-      const circuitId = proofResp.circuitId;
-      if (circuitId !== proofRequest.circuitId) {
+      const allCircuitsSubversions = getGroupedCircuitIdsWithSubVersions(
+        proofRequest.circuitId as CircuitId
+      );
+
+      if (!allCircuitsSubversions.includes(proofResp.circuitId as CircuitId)) {
         throw new Error(
-          `proof is not given for requested circuit expected: ${proofRequest.circuitId}, given ${circuitId}`
-        );
-      }
-      const isValid = await this.prover.verify(proofResp, circuitId);
-      if (!isValid) {
-        throw new Error(
-          `Proof with circuit id ${circuitId} and request id ${proofResp.id} is not valid`
+          `proof is not given for requested circuit expected: ${
+            allCircuitsSubversions.join(', ')
+          }, given ${proofResp.circuitId}`
         );
       }
 
-      const CircuitVerifier = Circuits.getCircuitPubSignals(circuitId);
+      const isValid = await this.prover.verify(proofResp, proofResp.circuitId);
+      if (!isValid) {
+        throw new Error(
+          `Proof with circuit id ${proofResp.circuitId} and request id ${proofResp.id} is not valid`
+        );
+      }
+
+      const CircuitVerifier = Circuits.getCircuitPubSignals(proofRequest.circuitId);
       if (!CircuitVerifier) {
-        throw new Error(`circuit ${circuitId} is not supported by the library`);
+        throw new Error(`circuit ${proofResp.circuitId} is not supported by the library`);
       }
 
       const params: JSONObject = proofRequest.params ?? {};
       params.verifierDid = DID.parse(request.from);
 
       // verify query
-      const verifier = new CircuitVerifier(proofResp.pub_signals);
+      const verifier = new CircuitVerifier(
+        proofResp.pub_signals,
+        this.getCircuitOpts(proofResp.circuitId)
+      );
 
       const pubSignals = await verifier.verifyQuery(
         proofRequest.query as unknown as Query,
@@ -431,6 +441,20 @@ export class Verifier {
           )}`
         );
       }
+    }
+  }
+
+  private getCircuitOpts(circuitId: string): PubSignalsVerifierOpts | undefined {
+    switch (circuitId) {
+      case 'linkedMultiQuery3':
+        return { queryCount: 3 };
+      case 'linkedMultiQuery5':
+        return { queryCount: 5 };
+      case CircuitId.LinkedMultiQuery10:
+      case CircuitId.LinkedMultiQueryStable:
+        return { queryCount: 10 };
+      default:
+        return undefined;
     }
   }
 
