@@ -16,19 +16,14 @@ Currently, library implementation includes support of next message types
 
 ### RUN AND TEST
 
-1. Download regular circuits from S3 and unzip circuits to folder
-    ```
-    mkdir ./test/testdata && wget https://circuits.privado.id/latest.zip -P ./test/testdata
+1. Install dependencies
 
-    cd ./test/testdata && unzip latest.zip && cd - && pwd
     ```
-2. Download authV3 circuits and unzip circuits to folder
+    npm install
     ```
-    wget https://circuits.privado.id/trusted-setup-authV3-3.0.0.zip -P ./test/testdata
 
-    cd ./test/testdata && unzip trusted-setup-authV3-3.0.0.zip && cd - && pwd
-    ```
-3. Run tests
+2. Run tests
+
     ```
     npm run test
     ```
@@ -148,7 +143,7 @@ The blockchain verification algorithm is used
   const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
   const verifier = await auth.Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: path.join(__dirname, './circuits'),
       documentLoader: schemaLoader
     }
   );
@@ -186,6 +181,7 @@ We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for gener
 ```bash
 typechain --target ethers-v5 /path/to/state_contract.sol
 ```
+
 ## License
 
 js-iden3-auth is part of the iden3 project copyright 2024 0kims association
