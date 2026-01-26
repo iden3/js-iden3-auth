@@ -45,23 +45,5 @@ jobs:
       - name: Run Build
         run: npm run build
 
-      - name: Download regular circuits for CI 'latest.zip' from S3
-        run: mkdir ./test/testdata && wget https://circuits.privado.id/latest.zip -P ./test/testdata
-
-      - name: Unzip circuits to folder
-        run: cd ./test/testdata && unzip latest.zip && rm latest.zip && cd - && pwd
-
-      - name: Download authV3 circuits
-        run:  wget https://circuits.privado.id/trusted-setup-authV3-3.0.0.zip -P ./test/testdata
-
-      - name: Unzip circuits to folder
-        run: cd ./test/testdata && unzip trusted-setup-authV3-3.0.0.zip && rm trusted-setup-authV3-3.0.0.zip && cd - && pwd
-
-      - name: Download atomicQueryV3 circuits
-        run: wget https://pse-trusted-setup.s3.eu-west-1.amazonaws.com/credentialAtomicV3.zip -P ./test/testdata
-
-      - name: Unzip credentialAtomicV3 circuits to testdata folder
-        run: cd ./test/testdata && unzip credentialAtomicV3.zip && rm credentialAtomicV3.zip && cd - && pwd
-
       - name: Run Tests
         run: npm run test

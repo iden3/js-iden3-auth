@@ -27,6 +27,7 @@ import {
   JSONObject,
   verifyExpiresTime,
   parseAcceptProfile,
+  CircuitLoadMode,
   getGroupedCircuitIdsWithSubVersions
 } from '@0xpolygonid/js-sdk';
 import { Resolvable } from 'did-resolver';
@@ -53,12 +54,12 @@ export type AuthorizationRequestCreateOptions = {
  * @returns `Promise<AuthorizationRequestMessage>`
  */
 export function createAuthorizationRequest(
-  reason: string,
+  reason: string | undefined,
   sender: string,
   callbackUrl: string,
   opts?: AuthorizationRequestCreateOptions
 ): AuthorizationRequestMessage {
-  return createAuthorizationRequestWithMessage(reason, '', sender, callbackUrl, opts);
+  return createAuthorizationRequestWithMessage(reason, undefined, sender, callbackUrl, opts);
 }
 /**
  *  createAuthorizationRequestWithMessage is a function to create protocol authorization request with explicit message to sign
@@ -69,8 +70,8 @@ export function createAuthorizationRequest(
  * @returns `Promise<AuthorizationRequestMessage>`
  */
 export function createAuthorizationRequestWithMessage(
-  reason: string,
-  message: string,
+  reason: string | undefined,
+  message: string | undefined,
   sender: string,
   callbackUrl: string,
   opts?: AuthorizationRequestCreateOptions
@@ -157,7 +158,9 @@ export class Verifier {
     if (!params.suite) {
       const documentLoader = (params as Options).documentLoader ?? cacheLoader(params as Options);
       const dirname = params?.circuitsDir ?? path.join(process.cwd(), 'circuits');
-      const circuitStorage = new FSCircuitStorage({ dirname });
+      const circuitStorage = new FSCircuitStorage({
+        dirname
+      });
       params.suite = {
         documentLoader,
         circuitStorage,
@@ -189,7 +192,9 @@ export class Verifier {
     if (!circuitStorage) {
       throw new Error('circuit storage is not defined');
     }
-    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
+    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2, {
+      mode: CircuitLoadMode.Verification
+    });
 
     if (!authV2Set.verificationKey) {
       throw new Error('verification key is not for authv2 circuit');
@@ -227,17 +232,6 @@ export class Verifier {
     if (!circuitStorage) {
       throw new Error('circuit storage is not defined');
     }
-    const authV2Set = await circuitStorage.loadCircuitData(CircuitId.AuthV2);
-    const authV3Set = await circuitStorage.loadCircuitData(CircuitId.AuthV3);
-    const authV3_8_32Set = await circuitStorage.loadCircuitData(CircuitId.AuthV3_8_32);
-
-    if (!authV2Set.verificationKey) {
-      throw new Error('verification key is not for authV2 circuit');
-    }
-
-    const mapKeyAuthV2 = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
-    const mapKeyAuthV3 = proving.provingMethodGroth16AuthV3Instance.methodAlg.toString();
-    const mapKeyAuthV3_8_32 = proving.provingMethodGroth16AuthV3_8_32Instance.methodAlg.toString();
     const provingParamMap: Map<string, ProvingParams> = new Map();
 
     const stateVerificationFn = async (
@@ -245,9 +239,9 @@ export class Verifier {
       pubSignals: Array<string>
     ): Promise<boolean> => {
       if (
-        circuitId !== CircuitId.AuthV2 &&
-        circuitId !== CircuitId.AuthV3 &&
-        circuitId !== CircuitId.AuthV3_8_32
+        ![CircuitId.AuthV2, CircuitId.AuthV3, CircuitId.AuthV3_8_32].includes(
+          circuitId as CircuitId
+        )
       ) {
         throw new Error(`CircuitId is not supported ${circuitId}`);
       }
@@ -256,25 +250,32 @@ export class Verifier {
       await verifier.verifyStates(this.stateResolver);
       return true;
     };
-
     const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
 
-    const verificationParamMap: Map<string, VerificationParams> = new Map();
-    verificationParamMap.set(mapKeyAuthV2, {
-      key: authV2Set.verificationKey,
-      verificationFn
-    });
+    const instances = [
+      proving.provingMethodGroth16AuthV2Instance,
+      proving.provingMethodGroth16AuthV3Instance,
+      proving.provingMethodGroth16AuthV3_8_32Instance
+    ];
 
-    authV3Set.verificationKey &&
-      verificationParamMap.set(mapKeyAuthV3, {
-        key: authV3Set.verificationKey,
-        verificationFn
-      });
-    authV3_8_32Set.verificationKey &&
-      verificationParamMap.set(mapKeyAuthV3_8_32, {
-        key: authV3_8_32Set.verificationKey,
-        verificationFn
-      });
+    const sets = await Promise.all(
+      instances.map(({ methodAlg }) =>
+        circuitStorage.loadCircuitData(methodAlg.circuitId as CircuitId, {
+          mode: CircuitLoadMode.Verification
+        })
+      )
+    );
+
+    const verificationParamMap = new Map<string, VerificationParams>();
+    instances.forEach(({ methodAlg }, index) => {
+      const set = sets[index];
+      if (set.verificationKey) {
+        verificationParamMap.set(methodAlg.toString(), {
+          key: set.verificationKey,
+          verificationFn
+        });
+      }
+    });
 
     const zkpPacker = new ZKPPacker(provingParamMap, verificationParamMap);
     return this.setPacker(zkpPacker);
@@ -374,9 +375,9 @@ export class Verifier {
 
       if (!allCircuitsSubversions.includes(proofResp.circuitId as CircuitId)) {
         throw new Error(
-          `proof is not given for requested circuit expected: ${
-            allCircuitsSubversions.join(', ')
-          }, given ${proofResp.circuitId}`
+          `proof is not given for requested circuit expected: ${allCircuitsSubversions.join(
+            ', '
+          )}, given ${proofResp.circuitId}`
         );
       }
 
