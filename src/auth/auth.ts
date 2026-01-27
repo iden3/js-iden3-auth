@@ -157,7 +157,9 @@ export class Verifier {
   static async newVerifier(params: VerifierParams): Promise<Verifier> {
     if (!params.suite) {
       const documentLoader = (params as Options).documentLoader ?? cacheLoader(params as Options);
-      const dirname = params?.circuitsDir ?? path.join(process.cwd(), 'circuits');
+      const dirname =
+        params.circuitsDir ?? path.join(__dirname, '..', '..', '..', '..', 'circuits');
+
       const circuitStorage = new FSCircuitStorage({
         dirname
       });

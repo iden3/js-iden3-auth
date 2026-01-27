@@ -149,6 +149,50 @@ The blockchain verification algorithm is used
   );
   ```
 
+### Circuits Directory Structure
+
+The `circuitsDir` should point to a directory containing subdirectories for each supported circuit, with each subdirectory containing a `verification_key.json` file. The expected structure is:
+
+```
+circuits/
+├── authV2/
+│   └── verification_key.json
+├── authV3/
+│   └── verification_key.json
+├── authV3-8-32/
+│   └── verification_key.json
+├── credentialAtomicQueryMTPV2/
+│   └── verification_key.json
+├── credentialAtomicQueryMTPV2OnChain/
+│   └── verification_key.json
+├── credentialAtomicQuerySigV2/
+│   └── verification_key.json
+├── credentialAtomicQuerySigV2OnChain/
+│   └── verification_key.json
+├── credentialAtomicQueryV3/
+│   └── verification_key.json
+├── credentialAtomicQueryV3-16-16-64/
+│   └── verification_key.json
+├── credentialAtomicQueryV3-beta.1/
+│   └── verification_key.json
+├── credentialAtomicQueryV3OnChain/
+│   └── verification_key.json
+├── credentialAtomicQueryV3OnChain-16-16-64-16-32/
+│   └── verification_key.json
+├── credentialAtomicQueryV3OnChain-beta.1/
+│   └── verification_key.json
+├── linkedMultiQuery/
+│   └── verification_key.json
+├── linkedMultiQuery10-beta.1/
+│   └── verification_key.json
+├── linkedMultiQuery3/
+│   └── verification_key.json
+└── linkedMultiQuery5/
+    └── verification_key.json
+```
+
+If `circuitsDir` is not provided, the library will use the default circuits directory bundled with the package.
+
   FullVerify
 
   ``` javascript
