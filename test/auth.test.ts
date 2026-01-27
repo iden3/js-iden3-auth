@@ -24,6 +24,7 @@ import { Circuits } from '@lib/circuits/registry';
 import { resolveDIDDocument, resolvers, schemaLoader, testOpts, getTestDataPath } from './mocks';
 import { getDateFromUnixTimestamp, getUnixTimestamp } from '@iden3/js-iden3-core';
 
+
 describe('auth tests', () => {
   const connectionString = process.env.IPFS_URL ?? 'https://ipfs.io';
   const acceptProfileZKP = buildAccept([
@@ -295,7 +296,7 @@ describe('auth tests', () => {
     };
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
     await expect(verifier.verifyAuthResponse(response, request, testOpts)).resolves.not.toThrow();
@@ -464,7 +465,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
     await expect(verifier.verifyAuthResponse(response, request, testOpts)).resolves.not.toThrow();
@@ -473,7 +474,7 @@ describe('auth tests', () => {
   it('TestVerifyJWZ', async () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       ipfsNodeURL: connectionString
     });
 
@@ -523,7 +524,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata')
+      circuitsDir: getTestDataPath('../circuits')
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
     request.thid = '92567472-76d9-499a-8c1f-daae9d105346'; // because it's used in the response
@@ -563,7 +564,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       ipfsNodeURL: connectionString
     });
 
@@ -605,7 +606,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       ipfsNodeURL: connectionString
     });
 
@@ -663,7 +664,7 @@ describe('auth tests', () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
       documentLoader: schemaLoader,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       didDocumentResolver: resolveDIDDocument
     });
     verifier.setupJWSPacker(new KMS(), resolveDIDDocument);
@@ -707,7 +708,7 @@ describe('auth tests', () => {
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
       documentLoader: schemaLoader,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       didDocumentResolver: resolveDIDDocument
     });
     verifier.setupJWSPacker(new KMS(), resolveDIDDocument);
@@ -776,7 +777,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
@@ -823,7 +824,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
     request.id = '28494007-9c49-4f1a-9694-7700c08865bf';
@@ -913,7 +914,7 @@ describe('auth tests', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata')
+      circuitsDir: getTestDataPath('../circuits')
     });
 
     const response = await verifier.fullVerify(token, request, testOpts);
