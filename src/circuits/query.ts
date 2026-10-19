@@ -75,7 +75,8 @@ export async function checkQueryV2Circuits(
     JSON.stringify(context),
     query.credentialSubject as JsonDocumentObject,
     {
-      documentLoader: loader
+      documentLoader: loader,
+      legacyNoopOperator: true
     }
   );
 
