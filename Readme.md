@@ -16,19 +16,14 @@ Currently, library implementation includes support of next message types
 
 ### RUN AND TEST
 
-1. Download regular circuits from S3 and unzip circuits to folder
-    ```
-    mkdir ./test/testdata && wget https://circuits.privado.id/latest.zip -P ./test/testdata
+1. Install dependencies
 
-    cd ./test/testdata && unzip latest.zip && cd - && pwd
     ```
-2. Download authV3 circuits and unzip circuits to folder
+    npm install
     ```
-    wget https://circuits.privado.id/trusted-setup-authV3-3.0.0.zip -P ./test/testdata
 
-    cd ./test/testdata && unzip trusted-setup-authV3-3.0.0.zip && cd - && pwd
-    ```
-3. Run tests
+2. Run tests
+
     ```
     npm run test
     ```
@@ -148,11 +143,55 @@ The blockchain verification algorithm is used
   const ethStateResolver = new resolver.EthStateResolver('rpc url', 'contractAddress');
   const verifier = await auth.Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: path.join(__dirname, './testdata'),
+      circuitsDir: path.join(__dirname, './circuits'),
       documentLoader: schemaLoader
     }
   );
   ```
+
+### Circuits Directory Structure
+
+The `circuitsDir` should point to a directory containing subdirectories for each supported circuit, with each subdirectory containing a `verification_key.json` file. The expected structure is:
+
+```
+circuits/
+├── authV2/
+│   └── verification_key.json
+├── authV3/
+│   └── verification_key.json
+├── authV3-8-32/
+│   └── verification_key.json
+├── credentialAtomicQueryMTPV2/
+│   └── verification_key.json
+├── credentialAtomicQueryMTPV2OnChain/
+│   └── verification_key.json
+├── credentialAtomicQuerySigV2/
+│   └── verification_key.json
+├── credentialAtomicQuerySigV2OnChain/
+│   └── verification_key.json
+├── credentialAtomicQueryV3/
+│   └── verification_key.json
+├── credentialAtomicQueryV3-16-16-64/
+│   └── verification_key.json
+├── credentialAtomicQueryV3-beta.1/
+│   └── verification_key.json
+├── credentialAtomicQueryV3OnChain/
+│   └── verification_key.json
+├── credentialAtomicQueryV3OnChain-16-16-64-16-32/
+│   └── verification_key.json
+├── credentialAtomicQueryV3OnChain-beta.1/
+│   └── verification_key.json
+├── linkedMultiQuery/
+│   └── verification_key.json
+├── linkedMultiQuery10-beta.1/
+│   └── verification_key.json
+├── linkedMultiQuery3/
+│   └── verification_key.json
+└── linkedMultiQuery5/
+    └── verification_key.json
+```
+
+If `circuitsDir` is not provided, the library will use the default circuits directory bundled with the package.
 
   FullVerify
 
@@ -186,6 +225,7 @@ We can use [TypeChain](https://github.com/dethcrypto/TypeChain#readme) for gener
 ```bash
 typechain --target ethers-v5 /path/to/state_contract.sol
 ```
+
 ## License
 
 js-iden3-auth is part of the iden3 project copyright 2024 0kims association

@@ -85,7 +85,7 @@ describe('Linked proofs verification', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
 
@@ -173,7 +173,7 @@ describe('Linked proofs verification', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
 

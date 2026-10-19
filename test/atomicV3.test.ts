@@ -175,7 +175,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata')
+      circuitsDir: getTestDataPath('../circuits')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
@@ -341,7 +341,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata')
+      circuitsDir: getTestDataPath('../circuits')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
@@ -404,7 +404,7 @@ describe('atomicV3', () => {
 
     const verifier = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata'),
+      circuitsDir: getTestDataPath('../circuits'),
       documentLoader: schemaLoader
     });
 
@@ -570,7 +570,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata')
+      circuitsDir: getTestDataPath('../circuits')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
@@ -731,7 +731,7 @@ describe('atomicV3', () => {
 
     const authInstance = await Verifier.newVerifier({
       stateResolver: resolvers,
-      circuitsDir: getTestDataPath('./testdata')
+      circuitsDir: getTestDataPath('../circuits')
     });
 
     await authInstance.verifyAuthResponse(message, request, testOpts);
