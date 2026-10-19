@@ -14,7 +14,7 @@ describe('schema loader', () => {
   it('schema ipfs loader', async () => {
     let connectionString = process.env.IPFS_URL;
     if (!connectionString) {
-      connectionString = 'https://ipfs.io';
+      connectionString = 'https://ipfs.filebase.io';
     }
     const loader = getDocumentLoader({
       ipfsGatewayURL: connectionString
